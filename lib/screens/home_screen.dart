@@ -15,10 +15,10 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: const [
-            HeaderSection(),
-            ShortcutButtons(),
-            Expanded(child: SuggestionCarousel()),
-            ActionList(),
+            // HeaderSection(),
+            // ShortcutButtons(),
+            // Expanded(child: SuggestionCarousel()),
+            // ActionList(),
             SizedBox(height: 10),
           ],
         ),
@@ -30,9 +30,15 @@ class HomeScreen extends StatelessWidget {
         child: FloatingActionButton(
         onPressed: () {},
         backgroundColor: Colors.white,
-        shape: const CircleBorder(),
-        elevation: 4,
+        shape: const CircleBorder(
+          side: BorderSide(
+            color: Color.fromARGB(255, 79, 138, 65),
+            width: 5.0,
+          )
+        ), 
+        elevation: 10,
         child: const Icon(Icons.chat, color: Color.fromARGB(255, 79, 138, 65)), // เขียว
+
       ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
