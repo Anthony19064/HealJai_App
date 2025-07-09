@@ -1,40 +1,24 @@
 import 'package:flutter/material.dart';
-import 'Widgets/navbar.dart';
-import 'Widgets/bodyTest.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const HealJaiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HealJaiApp extends StatelessWidget {
+  const HealJaiApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ฮีลใจ',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'Mali',
+        scaffoldBackgroundColor: const Color(0xFFFDF9F5),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const MyHomePage(title: 'Flutter Demo1'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: Navbar(),
-      body: TestBody(),
+      home: const HomeScreen(),
     );
   }
 }
