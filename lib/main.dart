@@ -13,28 +13,48 @@ final GoRouter _router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const HomeScreen(),
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: HomeScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return child; // 👈 ไม่มี transition เลย
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/commu',
-      builder: (context, state) => const CommuScreen(),
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: CommuScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return child; // 👈 ไม่มี transition เลย
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/game',
-      builder: (context, state) => const GameScreen(),
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: GameScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return child; // 👈 ไม่มี transition เลย
+          },
+        );
+      },
     ),
   ],
 );
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-    );
+    return MaterialApp.router(routerConfig: _router);
   }
 }
