@@ -1,39 +1,26 @@
 import 'package:flutter/material.dart';
-import 'Widgets/navbar.dart';
-import 'Widgets/bodyTest.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const HealJaiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  
+
+class HealJaiApp extends StatelessWidget {
+  const HealJaiApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const MyHomePage(),
-    );
-  }
-}
+      title: 'ฮีลใจ',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Mali',
+        scaffoldBackgroundColor: const Color(0xFFFDF9F5),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+      ),
+      home: const HomeScreen(),
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: Navbar(),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [TestBody(),TestBody(),TestBody()],
-        ),
     );
   }
 }
