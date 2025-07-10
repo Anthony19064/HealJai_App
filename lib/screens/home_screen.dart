@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:rive/rive.dart';
+
 import '../Widgets/header_section.dart';
-import '../Widgets/shortcut_buttons.dart';
-import '../Widgets/suggestion_carousel.dart';
-import '../Widgets/action_list.dart';
+// import '../Widgets/shortcut_buttons.dart';
+// import '../Widgets/suggestion_carousel.dart';
+// import '../Widgets/action_list.dart';
 import '../Widgets/bottom_nav.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,11 +17,22 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: const [
-            // HeaderSection(),
+            HeaderSection(),
             // ShortcutButtons(),
             // Expanded(child: SuggestionCarousel()),
             // ActionList(),
             SizedBox(height: 10),
+            Text("Home page"),
+
+            //Rive animation Test
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: RiveAnimation.asset(
+                'assets/animations/test6.riv',
+                fit: BoxFit.contain,
+              ),
+            ),
           ],
         ),
       ),
@@ -28,24 +41,24 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: Transform.translate(
         offset: const Offset(0, 30),
         child: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.white,
-        shape: const CircleBorder(
-          side: BorderSide(
+          onPressed: () {},
+          backgroundColor: Colors.white,
+          shape: const CircleBorder(
+            side: BorderSide(
+              color: Color.fromARGB(255, 79, 138, 65),
+              width: 5.0,
+            ),
+          ),
+          elevation: 10,
+          child: const Icon(
+            Icons.chat,
             color: Color.fromARGB(255, 79, 138, 65),
-            width: 5.0,
-          )
-        ), 
-        elevation: 10,
-        child: const Icon(Icons.chat, color: Color.fromARGB(255, 79, 138, 65)), // เขียว
-
-      ),
+          ), // เขียว
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-     
       bottomNavigationBar: const BottomNavBar(),
     );
-    
   }
 }
