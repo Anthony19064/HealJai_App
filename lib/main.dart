@@ -18,7 +18,7 @@ final GoRouter _router = GoRouter(
           key: state.pageKey,
           child: HomeScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return child; // 👈 ไม่มี transition เลย
+            return child; 
           },
         );
       },
@@ -30,7 +30,7 @@ final GoRouter _router = GoRouter(
           key: state.pageKey,
           child: CommuScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return child; // 👈 ไม่มี transition เลย
+            return child; 
           },
         );
       },
@@ -42,7 +42,7 @@ final GoRouter _router = GoRouter(
           key: state.pageKey,
           child: GameScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return child; // 👈 ไม่มี transition เลย
+            return child; 
           },
         );
       },
