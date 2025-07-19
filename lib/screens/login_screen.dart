@@ -149,7 +149,7 @@ class LoginScreen extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            // Navigate to sign up screen
+            context.go('/regis');
           },
           child: const Text(
             'สร้างบัญชี', // Create account
