@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../Widgets/header_section.dart';
 
-class CommuScreen extends StatefulWidget {
-  const CommuScreen({super.key});
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
 
   @override
-  State<CommuScreen> createState() => _CommuScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _CommuScreenState extends State<CommuScreen> {
+class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,10 +18,9 @@ class _CommuScreenState extends State<CommuScreen> {
         child: Column(
           children: [
             HeaderSection(),
-            Text("Commu page")
+            Text('Chat Page'),
           ],
-        ),
-      ),
+        )),
     );
   }
 }
