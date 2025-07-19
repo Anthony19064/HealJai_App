@@ -1,88 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class BottomNavBar extends StatelessWidget {
+
+import '../data_Lists/data_BottomBar.dart';
+import '../providers/navState.dart';
+
+class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(0, 30), // ขยับ BottomNavBar ขึ้นจากล่างนิดนึง
-      child: Stack(
-        alignment: Alignment.topCenter,
-        clipBehavior: Clip.none,
-        children: [
-          // 🔻 BottomAppBar ด้านหลัง
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(32),
-              topRight: Radius.circular(32),
-            ),
-            child: BottomAppBar(
-              color: const Color.fromARGB(255, 79, 138, 65),
-              elevation: 6,
-              child: SizedBox(
-                height: 70,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: const [
-                    NavItem(icon: Icons.home, label: 'หน้าหลัก', path: '/'),
-                    NavItem(icon: Icons.videogame_asset, label: 'มินิเกม', path: '/game'),
-                    SizedBox(width: 40), // ช่องเว้นให้ปุ่ม Floating อยู่ตรงกลาง
-                    NavItem(icon: Icons.groups, label: 'ชุมชน', path: '/commu'),
-                    NavItem(icon: Icons.menu_book, label: 'บทความ', path: '/'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 🔵 ปุ่ม Floating อยู่ซ้อนด้านบน
-          Positioned(
-            top: -25, // ยกให้ลอยขึ้นจาก BottomAppBar
-            child: FloatingActionButton(
-              onPressed: () {
-                // ฟังก์ชันเมื่อกดปุ่ม
-              },
-              backgroundColor: Colors.white,
-              shape: const CircleBorder(
-                side: BorderSide(
-                  color: Color.fromARGB(255, 79, 138, 65),
-                  width: 5.0,
-                ),
-              ),
-              elevation: 10,
-              child: const Icon(
-                Icons.chat,
-                color: Color.fromARGB(255, 79, 138, 65),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<BottomNavBar> createState() => _BottomNavState();
 }
-class NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String path;
 
-  const NavItem({required this.icon, required this.label, required this.path, super.key});
+class _BottomNavState extends State<BottomNavBar> {
+  late List<Map<String, dynamic>> Bottom_data = [];
+  int selectedIndex = 2; 
+  
 
   @override
+  void initState() {
+    super.initState();
+    Bottom_data = List.from(Data_BottomBar);
+  }
+
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        context.go(path);
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
-        ],
+    final navState = Provider.of<NavState>(context);
+    
+    return Container(
+      color: const Color(0xFFFFF7EB),
+      child: Container(
+        height: 60,
+        margin: const EdgeInsets.only(bottom: 35, left: 20, right: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Color(0xFFE0E0E0), width: 2),
+          borderRadius: BorderRadius.circular(15),
+        ),
+      
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children:
+              Bottom_data.asMap().entries.map((entry) {
+                int index = entry.key;
+                var item = entry.value;
+                bool isSelected = navState.selectedIndex == index;
+      
+                return GestureDetector(
+                  onTap: () {
+                    navState.setIndex(index);
+                    context.go(item['path']);
+                  },
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color:  isSelected? Color(0xFF78B465) : Color(0xFFFFFFFF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SvgPicture.asset(
+                      item['icon'],
+                      color: isSelected? Color(0xFFFFFFFF) : Color(0xFF8D8D8D),
+                      fit: BoxFit.scaleDown,
+                    ),
+                  ),
+                );
+              }).toList(),
+        ),
       ),
     );
   }

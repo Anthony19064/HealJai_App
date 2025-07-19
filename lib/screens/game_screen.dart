@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../Widgets/header_section.dart';
-import '../Widgets/bottom_nav.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -14,6 +13,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF7EB),
       body: SafeArea(
         child: Column(
           children: [
@@ -22,7 +22,7 @@ class _GameScreenState extends State<GameScreen> {
           ],
         )
       ),
-      bottomNavigationBar: BottomNavBar(),
+
     );
   }
 }

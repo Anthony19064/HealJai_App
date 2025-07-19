@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
-
 import '../Widgets/header_section.dart';
 
-class CommuScreen extends StatefulWidget {
-  const CommuScreen({super.key});
+class BookScreen extends StatefulWidget {
+  const BookScreen({super.key});
 
   @override
-  State<CommuScreen> createState() => _CommuScreenState();
+  State<BookScreen> createState() => _BookScreenState();
 }
 
-class _CommuScreenState extends State<CommuScreen> {
+class _BookScreenState extends State<BookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
       body: SafeArea(
-        child: Column(
+        child:Column(
           children: [
             HeaderSection(),
-            Text("Commu page")
+            Text("BookPage")
           ],
-        ),
-      ),
+        )),
     );
   }
 }
