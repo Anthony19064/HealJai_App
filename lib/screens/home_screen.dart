@@ -37,27 +37,6 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      // ✅ ปุ่มลอยตรงกลาง
-      floatingActionButton: Transform.translate(
-        offset: const Offset(0, 30),
-        child: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: Colors.white,
-          shape: const CircleBorder(
-            side: BorderSide(
-              color: Color.fromARGB(255, 79, 138, 65),
-              width: 5.0,
-            ),
-          ),
-          elevation: 10,
-          child: const Icon(
-            Icons.chat,
-            color: Color.fromARGB(255, 79, 138, 65),
-          ), // เขียว
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
       bottomNavigationBar: const BottomNavBar(),
     );
   }
