@@ -51,12 +51,12 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // **CustomInputField สำหรับ username 
+            // **ฟอร์ม สำหรับ username 
             _buildInputField(
               labelText: 'username',
             ),
             const SizedBox(height: 20),
-            // **CustomInputField สำหรับ password 
+            // **ฟอร์ม สำหรับ password 
             _buildInputField(
               labelText: 'password',
               isPassword: true,
@@ -113,7 +113,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // **ส่วนโค้ดของ CustomInputField ถูกย้ายมาเป็น private method**
+  // **ส่วนโค้ดของ สร้างฟอร์มกรอกข้อมูล
   Widget _buildInputField({
     required String labelText,
     String hintText = '',
@@ -149,7 +149,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // ส่วนโค้ด _buildLoginButton (เหมือนเดิม)
+  // ส่วนโค้ด ปุ่ม login ธรรมดา
   Widget _buildLoginButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -177,7 +177,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // ส่วนโค้ด _buildSignUpRow 
+  // สร้างบัญชี
   Widget _buildSignUpRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +206,7 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // **ส่วนโค้ดของ SocialLoginButton 
+  // **ส่วนโค้ดของlogin google facebook
   Widget _buildSocialLoginButton(
       {required String iconPath, required String text, required VoidCallback onPressed}) {
     return Container(
