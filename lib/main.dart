@@ -9,6 +9,7 @@ import 'Screens/home_screen.dart';
 import 'Screens/commu_screen.dart';
 import 'Screens/book_screen.dart';
 import 'Screens/login_screen.dart';
+import 'Screens/regis_screen.dart';
 import 'Widgets/bottom_nav.dart';
 
 import 'providers/navState.dart';
@@ -69,6 +70,12 @@ final GoRouter _router = GoRouter(
       path: '/login',
       pageBuilder: (context, state) {
         return NoTransitionPage(child: LoginScreen());
+      },
+    ),
+    GoRoute(
+      path: '/regis',
+      pageBuilder: (context, state) {
+        return const NoTransitionPage(child: RegisScreen());
       },
     ),
   ],
