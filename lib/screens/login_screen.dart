@@ -1,7 +1,8 @@
+
 import 'package:flutter/material.dart';
-import '../Widgets/custom_input_field.dart'; // Import custom widgets
-import '../Widgets/social_login_button.dart';
 import 'package:go_router/go_router.dart';
+
+
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -9,23 +10,22 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0), // Light peach background
+      backgroundColor: const Color(0xFFFFF8F0), 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-             context.go('/');
+            context.go('/');
           },
         ),
         title: const Text(
           'HealJai',
           style: TextStyle(
-            color: Color(0xFF6B8E23), // HealJai green color
+            color: Color(0xFF6B8E23), // สี heal jai
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            // fontFamily: 'Mitr', // ถ้าตั้งใน ThemeData แล้ว ไม่ต้องตั้งซ้ำที่นี่
           ),
         ),
         centerTitle: true,
@@ -35,25 +35,29 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           children: <Widget>[
             const SizedBox(height: 20),
-            // รูปโลโก้
+            // รูปโลโก้ 
             Container(
               width: 120,
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white, 
+                color: Colors.white,
                 border: Border.all(color: Colors.grey.shade300, width: 1),
                 image: const DecorationImage(
                   image: AssetImage('assets/images/duck.png'), // path รูปโลโก้
+                  fit: BoxFit.cover, // ทำให้รูปครอบคลุมพื้นที่วงกลม
                 ),
               ),
             ),
             const SizedBox(height: 40),
-            CustomInputField(
+
+            // **ฟอร์ม สำหรับ username 
+            _buildInputField(
               labelText: 'username',
             ),
             const SizedBox(height: 20),
-            CustomInputField(
+            // **ฟอร์ม สำหรับ password 
+            _buildInputField(
               labelText: 'password',
               isPassword: true,
             ),
@@ -61,10 +65,10 @@ class LoginScreen extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  // Handle forgot password
+                  // ฟังชั่นปุ่ม forgot password
                 },
                 child: const Text(
-                  'ลืมรหัสผ่าน ?', // Forgot password?
+                  'ลืมรหัสผ่าน ?',
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: 14,
@@ -73,31 +77,33 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _buildLoginButton(context), // ยังคงเป็น private method ใน LoginScreen เพราะมันเฉพาะเจาะจงกับหน้านี้
+            _buildLoginButton(context),
             const SizedBox(height: 20),
-            _buildSignUpRow(context), // ยังคงเป็น private method ใน LoginScreen
+            _buildSignUpRow(context),
             const SizedBox(height: 30),
             const Text(
-              'หรือ', // Or
+              'หรือ',
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 30),
-            SocialLoginButton(
+            // **SocialLoginButton Google 
+            _buildSocialLoginButton(
               iconPath: 'assets/images/google.png', // ไอค่อน google
               text: 'ล็อกอินด้วย Google',
               onPressed: () {
-                // Handle Google login
+                // ฟังชั่นปุ่ม login google
               },
             ),
             const SizedBox(height: 15),
-            SocialLoginButton(
-              iconPath: 'assets/images/facebook.png', // ไอค่อน Facebook 
+            // **SocialLoginButton Facebook 
+            _buildSocialLoginButton(
+              iconPath: 'assets/images/facebook.png', // ไอค่อน Facebook
               text: 'ล็อกอินด้วย Facebook',
               onPressed: () {
-                // ควบคุมกดปุ่มล็อกอิน
+                // ฟังชั่นปุ่ม login facebook
               },
             ),
             const SizedBox(height: 40),
@@ -107,7 +113,43 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // แยกเป็น private method ภายใน LoginScreen เพราะใช้แค่ในหน้านี้
+  // **ส่วนโค้ดของ สร้างฟอร์มกรอกข้อมูล
+  Widget _buildInputField({
+    required String labelText,
+    String hintText = '',
+    bool isPassword = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          labelText,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            hintText: hintText,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide.none, // No border color
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ส่วนโค้ด ปุ่ม login ธรรมดา
   Widget _buildLoginButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -135,13 +177,13 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // แยกเป็น private method ภายใน LoginScreen เพราะใช้แค่ในหน้านี้
+  // สร้างบัญชี
   Widget _buildSignUpRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         const Text(
-          'ยังไม่มีบัญชีหรือ', // Don't have an account yet or
+          'ยังไม่มีบัญชีหรือ',
           style: TextStyle(
             color: Colors.black54,
             fontSize: 16,
@@ -149,18 +191,55 @@ class LoginScreen extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            context.go('/regis');
+            context.go('/regis'); // ไปหน้า regis
           },
           child: const Text(
-            'สร้างบัญชี', // Create account
+            'สร้างบัญชี',
             style: TextStyle(
-              color: Color(0xFF6B8E23), // HealJai green color
+              color: Color(0xFF6B8E23),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  // **ส่วนโค้ดของlogin google facebook
+  Widget _buildSocialLoginButton(
+      {required String iconPath, required String text, required VoidCallback onPressed}) {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Image.asset(iconPath),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
