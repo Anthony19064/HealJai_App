@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'Screens/chat_screen.dart';
@@ -17,7 +16,9 @@ import 'providers/navState.dart';
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => NavState())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => NavState())
+      ],
       child: const MyApp(),
     ),
   );
@@ -27,10 +28,12 @@ final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
     ShellRoute(
-      builder: (context, state, child) {
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: BottomNavBar(), // ติดไว้ตรงนี้เลย
+      pageBuilder: (context, state, child) {
+        return NoTransitionPage(
+          child: Scaffold(
+            body: child,
+            bottomNavigationBar: BottomNavBar(),
+          ),
         );
       },
       routes: [
@@ -75,7 +78,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/regis',
       pageBuilder: (context, state) {
-        return const NoTransitionPage(child: RegisScreen());
+        return NoTransitionPage(child: RegisScreen());
       },
     ),
   ],

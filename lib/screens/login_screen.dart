@@ -1,31 +1,55 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
+import 'package:animate_do/animate_do.dart';
 
+import '../Widgets/LoginPage/InputField.dart';
+import '../Widgets//LoginPage/SocialLogin.dart';
 
-
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>(); // key ของ Form Login
+  final TextEditingController usernameController =
+      TextEditingController(); // ตัวเก็บค่า username
+  final TextEditingController passwordController =
+      TextEditingController(); // ตัวเก็บค่า password
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0), 
+      resizeToAvoidBottomInset: true,
+      backgroundColor: const Color(0xFFFFF8F0),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            context.go('/');
-          },
+        leading: ElasticInDown(
+          duration: Duration(milliseconds: 800),
+          child: Container(
+            margin: EdgeInsets.only(left: 15),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
+              onPressed: () {
+                context.pop();
+              },
+            ),
+          ),
         ),
-        title: const Text(
-          'HealJai',
-          style: TextStyle(
-            color: Color(0xFF6B8E23), // สี heal jai
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        title: ElasticInDown(
+          duration: Duration(milliseconds: 800),
+          child: Text(
+            'HealJai',
+            style: GoogleFonts.mali(
+              fontSize: 35,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF78B465),
+            ),
           ),
         ),
         centerTitle: true,
@@ -33,212 +57,204 @@ class LoginScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
-          children: <Widget>[
-            const SizedBox(height: 20),
-            // รูปโลโก้ 
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/duck.png'), // path รูปโลโก้
-                  fit: BoxFit.cover, // ทำให้รูปครอบคลุมพื้นที่วงกลม
+          children: [
+            // รูปโลโก้
+            ElasticInDown(
+              duration: Duration(milliseconds: 800),
+              delay: const Duration(milliseconds: 200),
+              child: Container(
+                margin: EdgeInsets.only(top: 20, bottom: 10),
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                ),
+                child: Transform.scale(
+                  scale: 0.8,
+                  child: Lottie.asset('assets/animations/duck.json'),
                 ),
               ),
             ),
-            const SizedBox(height: 40),
-
-            // **ฟอร์ม สำหรับ username 
-            _buildInputField(
-              labelText: 'username',
+            ElasticInLeft(
+              duration: Duration(milliseconds: 800),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    InputField(
+                      labelText: 'username',
+                      input_Controller: usernameController,
+                      isPassword: false,
+                    ),
+                    InputField(
+                      labelText: 'password',
+                      input_Controller: passwordController,
+                      isPassword: true,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
-            // **ฟอร์ม สำหรับ password 
-            _buildInputField(
-              labelText: 'password',
-              isPassword: true,
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // ฟังชั่นปุ่ม forgot password
-                },
-                child: const Text(
-                  'ลืมรหัสผ่าน ?',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
+            ElasticInLeft(
+              duration: Duration(milliseconds: 800),
+              child: Container(
+                height: 40,
+                margin: EdgeInsets.only(bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      //
+                    },
+                    child: Text(
+                      'ลืมรหัสผ่าน ?',
+                      style: GoogleFonts.mali(
+                        color: Color(0xFF5C5C5C),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            _buildLoginButton(context),
-            const SizedBox(height: 20),
-            _buildSignUpRow(context),
-            const SizedBox(height: 30),
-            const Text(
-              'หรือ',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
+            ElasticInRight(
+              duration: Duration(milliseconds: 800),
+              child: Column(children: [ButtonLogin(), ButtonRegister()]),
+            ),
+            ElasticInUp(
+              duration: Duration(milliseconds: 800),
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(bottom: 10),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 40,
+                          child: Divider(color: Color(0xFFE0E0E0), thickness: 2),
+                        ),
+                        Center(
+                          child: Container(
+                            color: Color(0xFFFFF8F0),
+                            height: 40,
+                            width: 100,
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                'หรือ',
+                                style: GoogleFonts.mali(
+                                  color: Color(0xFF787878),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //Google
+                      Sociallogin(
+                        iconPath: 'assets/images/google.png', // ไอค่อน google
+                        onPressed: () {
+                          // ฟังชั่นปุ่ม login google
+                        },
+                      ),
+                      const SizedBox(width: 40),
+                      //Facebook
+                      Sociallogin(
+                        iconPath: 'assets/images/facebook.png', // ไอค่อน Facebook
+                        onPressed: () {
+                          // ฟังชั่นปุ่ม login facebook
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
-            // **SocialLoginButton Google 
-            _buildSocialLoginButton(
-              iconPath: 'assets/images/google.png', // ไอค่อน google
-              text: 'ล็อกอินด้วย Google',
-              onPressed: () {
-                // ฟังชั่นปุ่ม login google
-              },
-            ),
-            const SizedBox(height: 15),
-            // **SocialLoginButton Facebook 
-            _buildSocialLoginButton(
-              iconPath: 'assets/images/facebook.png', // ไอค่อน Facebook
-              text: 'ล็อกอินด้วย Facebook',
-              onPressed: () {
-                // ฟังชั่นปุ่ม login facebook
-              },
-            ),
-            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
+}
 
-  // **ส่วนโค้ดของ สร้างฟอร์มกรอกข้อมูล
-  Widget _buildInputField({
-    required String labelText,
-    String hintText = '',
-    bool isPassword = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          labelText,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          obscureText: isPassword,
-          decoration: InputDecoration(
-            hintText: hintText,
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              borderSide: BorderSide.none, // No border color
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-          ),
-        ),
-      ],
-    );
-  }
+class ButtonLogin extends StatelessWidget {
+  const ButtonLogin({super.key});
 
-  // ส่วนโค้ด ปุ่ม login ธรรมดา
-  Widget _buildLoginButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: () {
-          // Handle login logic
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFA5D6A7), // Green button color
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Log in',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // สร้างบัญชี
-  Widget _buildSignUpRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        const Text(
-          'ยังไม่มีบัญชีหรือ',
-          style: TextStyle(
-            color: Colors.black54,
-            fontSize: 16,
-          ),
-        ),
-        TextButton(
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 10),
+      child: SizedBox(
+        width: double.infinity,
+        height: 45,
+        child: ElevatedButton(
           onPressed: () {
-            context.go('/regis'); // ไปหน้า regis
+            // Handle login logic
           },
-          child: const Text(
-            'สร้างบัญชี',
-            style: TextStyle(
-              color: Color(0xFF6B8E23),
-              fontSize: 16,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF78B465), // Green button color
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            elevation: 0,
+          ),
+          child: Text(
+            'Sign in',
+            style: GoogleFonts.mali(
+              color: Colors.white,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      ],
+      ),
     );
   }
+}
 
-  // **ส่วนโค้ดของlogin google facebook
-  Widget _buildSocialLoginButton(
-      {required String iconPath, required String text, required VoidCallback onPressed}) {
+class ButtonRegister extends StatelessWidget {
+  const ButtonRegister({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Image.asset(iconPath),
+      margin: EdgeInsets.only(top: 10, bottom: 10),
+      height: 40,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'ยังไม่มีบัญชีหรอ?',
+            style: GoogleFonts.mali(
+              color: Color(0xFF5C5C5C),
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(width: 10),
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+          ),
+          TextButton(
+            onPressed: () {
+              context.push('/regis');
+            },
+            child: Text(
+              'สร้างบัญชี',
+              style: GoogleFonts.mali(
+                color: Color(0xFF78B465),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

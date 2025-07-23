@@ -15,8 +15,7 @@ class RegisScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            context.go('/login');
-            context.pop(); // หรือ context.go('/login');
+            context.pop();
           },
         ),
         title: const Text(

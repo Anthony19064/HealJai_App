@@ -7,46 +7,49 @@ class HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'HealJai',
-            style: GoogleFonts.mali(
-              fontSize: 25,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF78B465),
+    return Container(
+      margin: EdgeInsets.only(top: 10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'HealJai',
+              style: GoogleFonts.mali(
+                fontSize: 25,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF78B465),
+              ),
             ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  spreadRadius: 0,
-                  blurRadius: 7,
-                  offset: Offset(0, 8), // เงาด้านล่าง
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    spreadRadius: 0,
+                    blurRadius: 7,
+                    offset: Offset(0, 8), // เงาด้านล่าง
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.white, // สีขอบ
+                  width: 3,
                 ),
-              ],
-              border: Border.all(
-                color: Colors.white, // สีขอบ
-                width: 3,
+              ),
+              child: GestureDetector(
+                onTap: (){
+                  context.push('/login');
+                },
+                child: CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/makima.jpg'),
+                  radius: 26,
+                ),
               ),
             ),
-            child: GestureDetector(
-              onTap: (){
-                context.go('/login');
-              },
-              child: CircleAvatar(
-                backgroundImage: AssetImage('assets/images/makima.jpg'),
-                radius: 30,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
