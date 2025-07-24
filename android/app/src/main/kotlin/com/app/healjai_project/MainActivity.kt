@@ -1,4 +1,4 @@
-package com.example.healjai_project
+package com.app.healjai_project
 
 import io.flutter.embedding.android.FlutterActivity
 

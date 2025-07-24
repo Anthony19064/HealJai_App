@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 import 'Screens/chat_screen.dart';
 import 'Screens/game_screen.dart';
@@ -10,14 +12,20 @@ import 'Screens/book_screen.dart';
 import 'Screens/login_screen.dart';
 import 'Screens/regis_screen.dart';
 import 'Widgets/bottom_nav.dart';
+import 'Widgets/header_section.dart';
 
-import 'providers/navState.dart';
+import 'providers/navProvider.dart';
+import 'providers/userProvider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => NavState())
+        ChangeNotifierProvider(create: (_) => NavState()),
+        ChangeNotifierProvider(create: (_) => UserInfo()),  
       ],
       child: const MyApp(),
     ),
@@ -31,7 +39,12 @@ final GoRouter _router = GoRouter(
       pageBuilder: (context, state, child) {
         return NoTransitionPage(
           child: Scaffold(
-            body: child,
+            backgroundColor: const Color(0xFFFFF7EB),
+            body: SafeArea(
+              child: Column(
+                children: [HeaderSection(), Expanded(child: child)],
+              ),
+            ),
             bottomNavigationBar: BottomNavBar(),
           ),
         );
@@ -52,7 +65,12 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: '/',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: HomeScreen());
+            return NoTransitionPage(
+              key: ValueKey(
+                state.uri.toString(),
+              ),
+              child: HomeScreen(),
+            );
           },
         ),
         GoRoute(
@@ -89,8 +107,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-    );
+    return MaterialApp.router(routerConfig: _router);
   }
 }

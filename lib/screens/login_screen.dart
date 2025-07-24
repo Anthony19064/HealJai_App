@@ -3,9 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:provider/provider.dart';
+
 
 import '../Widgets/LoginPage/InputField.dart';
 import '../Widgets//LoginPage/SocialLogin.dart';
+
+import '../service/authen.dart';
+import '../providers/userProvider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userInfo = Provider.of<UserInfo>(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFFFF8F0),
@@ -134,7 +141,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Container(
                           height: 40,
-                          child: Divider(color: Color(0xFFE0E0E0), thickness: 2),
+                          child: Divider(
+                            color: Color(0xFFE0E0E0),
+                            thickness: 2,
+                          ),
                         ),
                         Center(
                           child: Container(
@@ -163,16 +173,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       //Google
                       Sociallogin(
                         iconPath: 'assets/images/google.png', // ไอค่อน google
-                        onPressed: () {
-                          // ฟังชั่นปุ่ม login google
+                        onPressed: () async {
+                          final userCredential = await signInWithGoogle();
+                          final user = userCredential?.user;
+                          if (userCredential != null) {
+                            await saveUserToLocal({
+                              'userId' : user?.uid,
+                              'userName' : user?.displayName,
+                              'userMail' : user?.email,
+                              'userPhoto' : user?.photoURL,
+                            });
+
+                            await userInfo.setUserInfo();
+                            context.pop();
+                          } else {
+                            print('Login canceled or failed');
+                          }
                         },
                       ),
                       const SizedBox(width: 40),
                       //Facebook
                       Sociallogin(
-                        iconPath: 'assets/images/facebook.png', // ไอค่อน Facebook
+                        iconPath:
+                            'assets/images/facebook.png', // ไอค่อน Facebook
                         onPressed: () {
-                          // ฟังชั่นปุ่ม login facebook
+                          // facebook 
                         },
                       ),
                     ],

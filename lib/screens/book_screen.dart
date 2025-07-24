@@ -11,15 +11,10 @@ class BookScreen extends StatefulWidget {
 class _BookScreenState extends State<BookScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF7EB),
-      body: SafeArea(
-        child:Column(
-          children: [
-            HeaderSection(),
-            Text("BookPage")
-          ],
-        )),
+    return Column(
+      children: [
+        Text("BookPage")
+      ],
     );
   }
 }

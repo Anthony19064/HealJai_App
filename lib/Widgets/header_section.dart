@@ -1,14 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-class HeaderSection extends StatelessWidget {
+import '../service/authen.dart';
+import '../providers/userProvider.dart';
+
+class HeaderSection extends StatefulWidget {
   const HeaderSection({super.key});
 
   @override
+  State<HeaderSection> createState() => _HeaderSectionState();
+}
+
+class _HeaderSectionState extends State<HeaderSection> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userInfo = Provider.of<UserInfo>(context);
+
     return Container(
-      margin: EdgeInsets.only(top: 10),
+      margin: EdgeInsets.only(top: 10, bottom: 20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
@@ -39,11 +55,20 @@ class HeaderSection extends StatelessWidget {
                 ),
               ),
               child: GestureDetector(
-                onTap: (){
-                  context.push('/login');
+                onTap: () async {
+                  if (userInfo.userId != null) {
+                    await clearUserLocal(); // clear local
+                    await userInfo.clearUserInfo(); // clear Provider
+                    context.pop();
+                  } else {
+                    context.push('/login');
+                  }
                 },
                 child: CircleAvatar(
-                  backgroundImage: AssetImage('assets/images/makima.jpg'),
+                  backgroundImage:
+                      userInfo.userPhoto != null
+                          ? NetworkImage(userInfo.userPhoto!)
+                          : AssetImage('assets/images/makima.jpg'),
                   radius: 26,
                 ),
               ),

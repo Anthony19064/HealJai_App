@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 
 import '../data_Lists/data_BottomBar.dart';
-import '../providers/navState.dart';
+import '../providers/navProvider.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});

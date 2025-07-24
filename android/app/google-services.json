@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "307519523878",
+    "project_id": "healjaiapp-60ec3",
+    "storage_bucket": "healjaiapp-60ec3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307519523878:android:7693c5c405e9302a33eae7",
+        "android_client_info": {
+          "package_name": "com.app.healjai_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "307519523878-l6ejks340nmhn9jspv1ab74psjeganj6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.healjai_project",
+            "certificate_hash": "0866d3e07e2227fec44124cecd75634481137ec9"
+          }
+        },
+        {
+          "client_id": "307519523878-iq8q7i06hb7jmukgdqdrl926dj2siqu7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHoAxP5cIKiY-g0ArwpKiCq7Esr1S2T_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "307519523878-iq8q7i06hb7jmukgdqdrl926dj2siqu7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "307519523878-c1cfr0fvkj54vi45t628qi2n1g2qqhcp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.healjaiProject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

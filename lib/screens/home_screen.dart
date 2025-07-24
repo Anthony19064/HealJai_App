@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
+import 'package:provider/provider.dart';
 
 import '../Widgets/header_section.dart';
-// import '../Widgets/shortcut_buttons.dart';
-// import '../Widgets/suggestion_carousel.dart';
-// import '../Widgets/action_list.dart';
+import '../providers/userProvider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF7EB), // สีพื้นหลังแบบนุ่ม
-      body: SafeArea(
-        child: Column(
-          children: const [
-            HeaderSection(),
-          ],
-        ),
-      ),
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+
+  Widget build(BuildContext context) {
+    final userInfo = Provider.of<UserInfo>(context);
+
+    return Column(
+      children: [
+        Text(userInfo.userName != null? "Welcome na kub ${userInfo.userName}" : "D kub"),
+        ],
     );
   }
 }
