@@ -12,15 +12,10 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF7EB),
-      body: SafeArea(
-        child: Column(
-          children: [
-            HeaderSection(),
-            Text('Chat Page'),
-          ],
-        )),
+    return Column(
+      children: [
+        Text('Chat Page'),
+      ],
     );
   }
 }

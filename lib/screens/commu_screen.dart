@@ -12,16 +12,10 @@ class CommuScreen extends StatefulWidget {
 class _CommuScreenState extends State<CommuScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF7EB),
-      body: SafeArea(
-        child: Column(
-          children: [
-            HeaderSection(),
-            Text("Commu page")
-          ],
-        ),
-      ),
+    return Column(
+      children: [
+        Text("Commu page"),
+      ],
     );
   }
 }
