@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
               width: 100,
               height: 100,
               child: RiveAnimation.asset(
-                'assets/animations/test6.riv',
+                'assets/animations/test8.riv',
                 fit: BoxFit.contain,
               ),
             ),
