@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:animate_do/animate_do.dart';
 
-import '../Widgets/header_section.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -14,7 +14,9 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text("Game page"),
+        ZoomIn(
+          duration: Duration(milliseconds: 500),
+          child: Text("Game page")),
       ]
     );
   }

@@ -25,7 +25,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NavState()),
-        ChangeNotifierProvider(create: (_) => UserInfo()),  
+        ChangeNotifierProvider(create: (_) => UserInfo()),
       ],
       child: const MyApp(),
     ),
@@ -65,12 +65,7 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: '/',
           pageBuilder: (context, state) {
-            return NoTransitionPage(
-              key: ValueKey(
-                state.uri.toString(),
-              ),
-              child: HomeScreen(),
-            );
+            return NoTransitionPage(child: HomeScreen());
           },
         ),
         GoRoute(
