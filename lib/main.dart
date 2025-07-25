@@ -96,7 +96,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/regis',
       pageBuilder: (context, state) {
-        return NoTransitionPage(child: RegisScreen());
+        return NoTransitionPage(child: RegisScreenPageView());
       },
     ),
   ],
