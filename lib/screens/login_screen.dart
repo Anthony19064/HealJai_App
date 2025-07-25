@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
 
-
 import '../Widgets/LoginPage/InputField.dart';
 import '../Widgets//LoginPage/SocialLogin.dart';
 
@@ -129,7 +128,34 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ElasticInRight(
               duration: Duration(milliseconds: 800),
-              child: Column(children: [ButtonLogin(), ButtonRegister()]),
+              child: Column(
+                children: [
+                  ButtonLogin(
+                    onPressed: () async {
+                      final data = await signInwithEmail(
+                        usernameController.text,
+                        passwordController.text,
+                      );
+
+                      final user = data['user'];
+                      if (user != null) {
+                        await saveUserToLocal({
+                          'userId': user['id'],
+                          'userName': user['username'],
+                          'userMail': user['mail'],
+                          'userPhoto': user['photoURL'],
+                        });
+
+                        await userInfo.setUserInfo();
+                        context.pop();
+                      } else {
+                        print('Login canceled or failed');
+                      }
+                    },
+                  ),
+                  ButtonRegister(),
+                ],
+              ),
             ),
             ElasticInUp(
               duration: Duration(milliseconds: 800),
@@ -178,10 +204,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           final user = userCredential?.user;
                           if (userCredential != null) {
                             await saveUserToLocal({
-                              'userId' : user?.uid,
-                              'userName' : user?.displayName,
-                              'userMail' : user?.email,
-                              'userPhoto' : user?.photoURL,
+                              'userId': user?.uid,
+                              'userName': user?.displayName,
+                              'userMail': user?.email,
+                              'userPhoto': user?.photoURL,
                             });
 
                             await userInfo.setUserInfo();
@@ -197,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         iconPath:
                             'assets/images/facebook.png', // ไอค่อน Facebook
                         onPressed: () {
-                          // facebook 
+                          // facebook
                         },
                       ),
                     ],
@@ -213,7 +239,9 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class ButtonLogin extends StatelessWidget {
-  const ButtonLogin({super.key});
+  final VoidCallback onPressed;
+
+  const ButtonLogin({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -223,9 +251,7 @@ class ButtonLogin extends StatelessWidget {
         width: double.infinity,
         height: 45,
         child: ElevatedButton(
-          onPressed: () {
-            // Handle login logic
-          },
+          onPressed: onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF78B465), // Green button color
             shape: RoundedRectangleBorder(

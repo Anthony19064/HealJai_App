@@ -71,7 +71,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                     backgroundImage:
                         userInfo.userPhoto != null
                             ? NetworkImage(userInfo.userPhoto!)
-                            : AssetImage('assets/images/makima.jpg'),
+                            : AssetImage('assets/images/profile.png'),
                     radius: 26,
                   ),
                 ),
