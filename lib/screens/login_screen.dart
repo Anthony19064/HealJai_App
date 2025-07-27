@@ -198,7 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       //Google
                       Sociallogin(
-                        iconPath: 'assets/images/google.png', // ไอค่อน google
+                        iconPath: 'assets/images/google.png',
+                        text: 'ล็อคอินด้วย google', // ไอค่อน google
                         onPressed: () async {
                           final userCredential = await signInWithGoogle();
                           final user = userCredential?.user;
@@ -215,15 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           } else {
                             print('Login canceled or failed');
                           }
-                        },
-                      ),
-                      const SizedBox(width: 40),
-                      //Facebook
-                      Sociallogin(
-                        iconPath:
-                            'assets/images/facebook.png', // ไอค่อน Facebook
-                        onPressed: () {
-                          // facebook
                         },
                       ),
                     ],
