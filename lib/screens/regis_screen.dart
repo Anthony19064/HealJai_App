@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -13,48 +14,23 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final PageController _pageController = PageController();
 
-  String? _usernameError; // New: Error for username
-  String? _emailError;    // New: Error for email
-  String? _passwordError; // New: Error for password
-  String? _confirmPasswordError; // Error for confirm password (replaces _passwordMatchError)
+  final _formKeyUsername = GlobalKey<FormState>(); // key ของ FormUsername
+  final _formKeyEmail = GlobalKey<FormState>(); // key ของ FormEmail
+  final _formKeyPassword = GlobalKey<FormState>(); // key ของ FormPassword
+  final _formKeyCPassword = GlobalKey<FormState>(); // key ของ FormCPassword
 
   @override
   void initState() {
     super.initState();
-    // ถ้าพิมพ์แจ้งเตือนหาย
-    _usernameController.addListener(_clearUsernameError);
-    _emailController.addListener(_clearEmailError);
-    _passwordController.addListener(_clearPasswordError);
-    _confirmPasswordController.addListener(_clearConfirmPasswordError);
-  }
-
-  void _clearUsernameError() {
-    if (_usernameError != null) setState(() => _usernameError = null);
-  }
-
-  void _clearEmailError() {
-    if (_emailError != null) setState(() => _emailError = null);
-  }
-
-  void _clearPasswordError() {
-    if (_passwordError != null) setState(() => _passwordError = null);
-  }
-
-  void _clearConfirmPasswordError() {
-    if (_confirmPasswordError != null) setState(() => _confirmPasswordError = null);
   }
 
   @override
   void dispose() {
-    _usernameController.removeListener(_clearUsernameError);
-    _emailController.removeListener(_clearEmailError);
-    _passwordController.removeListener(_clearPasswordError);
-    _confirmPasswordController.removeListener(_clearConfirmPasswordError);
-
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -77,432 +53,254 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               context.pop();
             } else {
               _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 200),
                 curve: Curves.easeIn,
               );
-              // Clear errors when going back
-              setState(() {
-                _usernameError = null;
-                _emailError = null;
-                _passwordError = null;
-                _confirmPasswordError = null;
-              });
             }
           },
         ),
-        title: Text(
-          'ยินดีที่ได้รู้จัก',
-          style: GoogleFonts.mali(
-            color: const Color(0xFF78B465),
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
       ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // ปิดการปัดด้วยนิ้ว
-        onPageChanged: (index) {
-          // Clear errors when page changes (e.g., from pressing 'next')
-          setState(() {
-            _usernameError = null;
-            _emailError = null;
-            _passwordError = null;
-            _confirmPasswordError = null;
-          });
-        },
+        onPageChanged: (index) {},
         children: [
           _buildStepContent(
-            messageBox: _buildUsernameMessageBox(),
-            inputField: _buildUsernameInputField(),
+            messageTopic: "ฮัลโหลล ~\nชื่อของเธอคืออะไรหรอ ?",
+            formkey: _formKeyUsername,
+            inputController: _usernameController,
+            hinttext: "Username",
             buttonText: 'ถัดไป',
-            errorText: _usernameError, // Pass username error
             onButtonPressed: () {
-              if (_usernameController.text.trim().isEmpty) {
-                setState(() => _usernameError = 'กรุณากรอกชื่อผู้ใช้งาน');
-                return;
+              if (_formKeyUsername.currentState!.validate()) {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
               }
-              _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+            },
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'กรุณากรอกชื่อผู้ใช้งาน';
+              }
+              if (value.length < 5) {
+                return 'ต้องมีตัวอักษรอย่างน้อย 5 ตัว';
+              }
+              if (!RegExp(r'^[a-zA-Z]').hasMatch(value)) {
+                return 'ต้องขึ้นต้นด้วยตัวอักษรเท่านั้น';
+              }
+              return null;
             },
           ),
           _buildStepContent(
-            messageBox: _buildEmailMessageBox(),
-            inputField: _buildEmailInputField(),
+            messageTopic: "ขออีเมลเธอหน่อยได้ไหม\nเอาไว้ติดต่อเรื่องสำคัญน่ะ",
+            formkey: _formKeyEmail,
+            inputController: _emailController,
+            hinttext: "Email",
             buttonText: 'ถัดไป',
-            errorText: _emailError, // Pass email error
             onButtonPressed: () {
-              final email = _emailController.text.trim();
-              if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) { // More robust email regex
-                setState(() => _emailError = 'กรุณากรอกอีเมลที่ถูกต้อง');
-                return;
+              if (_formKeyEmail.currentState!.validate()) {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
               }
-              _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+            },
+            validator: (value) {
+              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+              if (value == null || value.trim().isEmpty) {
+                return 'กรุณากรอกอีเมล';
+              }
+              if (!emailRegex.hasMatch(value.trim())) {
+                return 'รูปแบบอีเมลไม่ถูกต้อง';
+              }
+
+              return null;
             },
           ),
           _buildStepContent(
-            messageBox: _buildPasswordMessageBox(),
-            inputField: _buildPasswordInputField(),
+            messageTopic: "มาตั้งรหัสผ่านกัน\nเอาแบบลับขั้นสุดยอดเลยนะ",
+            formkey: _formKeyPassword,
+            inputController: _passwordController,
+            hinttext: "Password",
             buttonText: 'ถัดไป',
-            errorText: _passwordError, // Pass password error
             onButtonPressed: () {
-              if (_passwordController.text.trim().length < 6) {
-                setState(() => _passwordError = 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
-                return;
+              if (_formKeyPassword.currentState!.validate()) {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
               }
-              _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+            },
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'กรุณากรอกรหัสผ่าน';
+              }
+              if (value.length < 8) {
+                return 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวนะ :)';
+              }
+              return null;
             },
           ),
           _buildStepContent(
-            messageBox: _buildConfirmPasswordMessageBox(),
-            inputField: _buildConfirmPasswordInputField(),
+            messageTopic: "มาลองทวนรหัสผ่านเมื่อกี้กัน\nเผื่อเธอลืมน่ะ XD",
+            formkey: _formKeyCPassword,
+            inputController: _confirmPasswordController,
+            hinttext: "Confirm Password",
             buttonText: 'ลงทะเบียน',
-            errorText: _confirmPasswordError, 
             onButtonPressed: () {
-              final password = _passwordController.text.trim();
-              final confirmPassword = _confirmPasswordController.text.trim();
+              if (_formKeyCPassword.currentState!.validate()) {
 
-              if (password != confirmPassword) {
-                setState(() => _confirmPasswordError = 'รหัสผ่านไม่ตรงกัน');
-                return;
+                //ไว้เอาส่ง API
+                print(_usernameController.text);
+                print(_emailController.text);
+                print(_passwordController.text);
+
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                );
               }
-
-             
-              print('Initiating final registration with:');
-              print('Username: ${_usernameController.text.trim()}');
-              print('Email: ${_emailController.text.trim()}');
-              print('Password: $password'); 
-              print('Registration successful (simulated)!');
-
-              _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+            },
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'กรุณากรอกรหัสผ่าน';
+              }
+              if (value.length < 8) {
+                return 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวนะ :)';
+              }
+              if (_passwordController.text != _confirmPasswordController.text) {
+                return 'รหัสผ่านไม่ตรงกับรอบก่อนนะ :(';
+              }
+              return null;
             },
           ),
           _buildStepContent(
-            messageBox: _buildWelcomeMessageBox(),
-            inputField: const SizedBox.shrink(), 
-            buttonText: 'ถัดไป',
+            messageTopic: "เยี่ยมเลยตอนนี้เรารู้จักกันแล้วนะ\nไปลองล็อคอินกัน !!",
+            formkey: null,
+            inputController: null,
+            hinttext: "",
+            buttonText: 'ไปกันต่ออ',
             onButtonPressed: () {
+
               context.go('/login');
             },
+            isEnd: true,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildStepContent({
-    required Widget messageBox,
-    required Widget inputField,
-    required String buttonText,
-    required VoidCallback onButtonPressed,
-    String? errorText, 
-  }) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(top: 20.0),
-            child: messageBox,
-          ),
-          Container(
-            margin: const EdgeInsets.only(top: 40.0),
-            child: Image.asset(
-              'assets/images/mascot.png',
-              height: 200,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.image_not_supported, size: 100, color: Colors.grey);
-              },
+Widget _buildStepContent({
+  bool isEnd = false,
+  required String messageTopic,
+  required GlobalKey? formkey,
+  required TextEditingController? inputController,
+  FormFieldValidator<String>? validator,
+  required String hinttext,
+  required String buttonText,
+  required VoidCallback onButtonPressed,
+}) {
+  return SingleChildScrollView(
+    padding: const EdgeInsets.symmetric(horizontal: 30.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          margin: const EdgeInsets.only(top: 20.0),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+            ),
+            child: Text(
+              messageTopic,
+              style: GoogleFonts.mali(
+                fontSize: 18,
+                height: 2.0,
+                color: Color(0xFF464646),
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-          Container(
-            margin: const EdgeInsets.only(top: 40.0),
-            child: inputField,
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 40.0),
+          child: Image.asset(
+            'assets/images/mascot.png',
+            height: 200,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(
+                Icons.image_not_supported,
+                size: 100,
+                color: Colors.grey,
+              );
+            },
           ),
-          // โชว์ข้อความล่างฟร์ม
-          if (errorText != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0), 
+        ),
+        
+        if(!isEnd) Container(
+          margin: const EdgeInsets.only(top: 40.0),
+          child: Form(
+            key: formkey,
+            child: TextFormField(
+              controller: inputController,
+              validator: validator,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+              ],
+              decoration: InputDecoration(
+                hintText: hinttext,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 15.0,
+                  horizontal: 20.0,
+                ),
+              ),
+              style: GoogleFonts.mali(fontSize: 16),
+            ),
+          ),
+        ),
+
+        Container(
+          margin: EdgeInsets.only(top: 30.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: onButtonPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF78B465),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                elevation: 0,
+              ),
               child: Text(
-                errorText,
+                buttonText,
                 style: GoogleFonts.mali(
-                  color: Colors.red,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center, 
-              ),
-            ),
-          Container(
-            margin: EdgeInsets.only(top: (errorText != null) ? 10.0 : 30.0), 
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: onButtonPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF78B465),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  buttonText,
-                  style: GoogleFonts.mali(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-          Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUsernameMessageBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'ฮัลโหลล -',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'ชื่อของเธอคืออะไรหรออ ?',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmailMessageBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'ขออีเมลเธอหน่อยได้ไหม',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'เอาไว้ติดต่อเรื่องสำคัญนะ',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordMessageBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'ขอรหัสผ่านเธอหน่อยสิ',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'เอาแบบลับสุดยอดเลยนะ',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConfirmPasswordMessageBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'มาลองทวนรหัสเมื่อกี้',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'กันอีกรอบดีกว่า เพื่อเธอไม่ลืม',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomeMessageBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'สุดยอด ยินดีต้อนรับเข้าสู่',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'พื้นที่ HealJai นะ',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mali(
-              fontSize: 16,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUsernameInputField() {
-    return TextField(
-      controller: _usernameController,
-      decoration: InputDecoration(
-        hintText: 'username',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-      ),
-      style: GoogleFonts.mali(fontSize: 16),
-    );
-  }
-
-  Widget _buildEmailInputField() {
-    return TextField(
-      controller: _emailController,
-      decoration: InputDecoration(
-        hintText: 'Email',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-      ),
-      style: GoogleFonts.mali(fontSize: 16),
-      keyboardType: TextInputType.emailAddress,
-    );
-  }
-
-  Widget _buildPasswordInputField() {
-    return TextField(
-      controller: _passwordController,
-      decoration: InputDecoration(
-        hintText: 'password',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-      ),
-      style: GoogleFonts.mali(fontSize: 16),
-      obscureText: true,
-    );
-  }
-
-  Widget _buildConfirmPasswordInputField() {
-    return TextField(
-      controller: _confirmPasswordController,
-      decoration: InputDecoration(
-        hintText: 'confirm password',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-      ),
-      style: GoogleFonts.mali(fontSize: 16),
-      obscureText: true,
-    );
-  }
+        Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
+      ],
+    ),
+  );
 }
