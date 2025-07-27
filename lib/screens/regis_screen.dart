@@ -17,10 +17,44 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
 
   final PageController _pageController = PageController();
 
-  String? _passwordMatchError;
+  String? _usernameError; // New: Error for username
+  String? _emailError;    // New: Error for email
+  String? _passwordError; // New: Error for password
+  String? _confirmPasswordError; // Error for confirm password (replaces _passwordMatchError)
+
+  @override
+  void initState() {
+    super.initState();
+    // ถ้าพิมพ์แจ้งเตือนหาย
+    _usernameController.addListener(_clearUsernameError);
+    _emailController.addListener(_clearEmailError);
+    _passwordController.addListener(_clearPasswordError);
+    _confirmPasswordController.addListener(_clearConfirmPasswordError);
+  }
+
+  void _clearUsernameError() {
+    if (_usernameError != null) setState(() => _usernameError = null);
+  }
+
+  void _clearEmailError() {
+    if (_emailError != null) setState(() => _emailError = null);
+  }
+
+  void _clearPasswordError() {
+    if (_passwordError != null) setState(() => _passwordError = null);
+  }
+
+  void _clearConfirmPasswordError() {
+    if (_confirmPasswordError != null) setState(() => _confirmPasswordError = null);
+  }
 
   @override
   void dispose() {
+    _usernameController.removeListener(_clearUsernameError);
+    _emailController.removeListener(_clearEmailError);
+    _passwordController.removeListener(_clearPasswordError);
+    _confirmPasswordController.removeListener(_clearConfirmPasswordError);
+
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -46,13 +80,20 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn,
               );
+              // Clear errors when going back
+              setState(() {
+                _usernameError = null;
+                _emailError = null;
+                _passwordError = null;
+                _confirmPasswordError = null;
+              });
             }
           },
         ),
         title: Text(
           'ยินดีที่ได้รู้จัก',
           style: GoogleFonts.mali(
-            color: Color(0xFF78B465),
+            color: const Color(0xFF78B465),
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -61,10 +102,14 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
       ),
       body: PageView(
         controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(), // ปิดการปัดด้วยนิ้ว
         onPageChanged: (index) {
+          // Clear errors when page changes (e.g., from pressing 'next')
           setState(() {
-            _passwordMatchError = null;
+            _usernameError = null;
+            _emailError = null;
+            _passwordError = null;
+            _confirmPasswordError = null;
           });
         },
         children: [
@@ -72,9 +117,10 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             messageBox: _buildUsernameMessageBox(),
             inputField: _buildUsernameInputField(),
             buttonText: 'ถัดไป',
+            errorText: _usernameError, // Pass username error
             onButtonPressed: () {
               if (_usernameController.text.trim().isEmpty) {
-                _showSnackBar('กรุณากรอกชื่อผู้ใช้งาน');
+                setState(() => _usernameError = 'กรุณากรอกชื่อผู้ใช้งาน');
                 return;
               }
               _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -84,9 +130,11 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             messageBox: _buildEmailMessageBox(),
             inputField: _buildEmailInputField(),
             buttonText: 'ถัดไป',
+            errorText: _emailError, // Pass email error
             onButtonPressed: () {
-              if (_emailController.text.trim().isEmpty || !_emailController.text.contains('@') || !_emailController.text.contains('.')) {
-                _showSnackBar('กรุณากรอกอีเมลที่ถูกต้อง');
+              final email = _emailController.text.trim();
+              if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) { // More robust email regex
+                setState(() => _emailError = 'กรุณากรอกอีเมลที่ถูกต้อง');
                 return;
               }
               _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -96,9 +144,10 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             messageBox: _buildPasswordMessageBox(),
             inputField: _buildPasswordInputField(),
             buttonText: 'ถัดไป',
+            errorText: _passwordError, // Pass password error
             onButtonPressed: () {
               if (_passwordController.text.trim().length < 6) {
-                _showSnackBar('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+                setState(() => _passwordError = 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
                 return;
               }
               _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -108,50 +157,55 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             messageBox: _buildConfirmPasswordMessageBox(),
             inputField: _buildConfirmPasswordInputField(),
             buttonText: 'ลงทะเบียน',
-            showError: _passwordMatchError != null,
-            errorText: _passwordMatchError,
+            errorText: _confirmPasswordError, 
             onButtonPressed: () {
-              if (_passwordController.text != _confirmPasswordController.text) {
-                setState(() {
-                  _passwordMatchError = 'รหัสผ่านไม่ตรงกัน';
-                });
-                _showSnackBar('รหัสผ่านไม่ตรงกัน');
+              final password = _passwordController.text.trim();
+              final confirmPassword = _confirmPasswordController.text.trim();
+
+              if (password != confirmPassword) {
+                setState(() => _confirmPasswordError = 'รหัสผ่านไม่ตรงกัน');
                 return;
               }
+
+             
+              print('Initiating final registration with:');
+              print('Username: ${_usernameController.text.trim()}');
+              print('Email: ${_emailController.text.trim()}');
+              print('Password: $password'); 
+              print('Registration successful (simulated)!');
+
               _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
             },
           ),
           _buildStepContent(
             messageBox: _buildWelcomeMessageBox(),
-            inputField: const SizedBox.shrink(),
+            inputField: const SizedBox.shrink(), 
             buttonText: 'ถัดไป',
             onButtonPressed: () {
-              context.go('/home');
+              context.go('/login');
             },
           ),
         ],
       ),
     );
   }
+
   Widget _buildStepContent({
     required Widget messageBox,
     required Widget inputField,
     required String buttonText,
     required VoidCallback onButtonPressed,
-    bool showError = false,
-    String? errorText,
+    String? errorText, 
   }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 30.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          
           Container(
             margin: const EdgeInsets.only(top: 20.0),
             child: messageBox,
           ),
-          
           Container(
             margin: const EdgeInsets.only(top: 40.0),
             child: Image.asset(
@@ -163,32 +217,32 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               },
             ),
           ),
-          
           Container(
             margin: const EdgeInsets.only(top: 40.0),
             child: inputField,
           ),
-          if (showError && errorText != null)
+          // โชว์ข้อความล่างฟร์ม
+          if (errorText != null)
             Padding(
-              padding: const EdgeInsets.only(top: 10.0),
+              padding: const EdgeInsets.only(top: 8.0), 
               child: Text(
                 errorText,
                 style: GoogleFonts.mali(
                   color: Colors.red,
                   fontSize: 14,
                 ),
+                textAlign: TextAlign.center, 
               ),
             ),
-         
           Container(
-            margin: const EdgeInsets.only(top: 30.0),
+            margin: EdgeInsets.only(top: (errorText != null) ? 10.0 : 30.0), 
             child: SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: onButtonPressed,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF78B465),
+                  backgroundColor: const Color(0xFF78B465),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
@@ -205,14 +259,12 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               ),
             ),
           ),
-          
-          Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)), 
+          Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
         ],
       ),
     );
   }
 
-  
   Widget _buildUsernameMessageBox() {
     return Container(
       width: double.infinity,
@@ -247,7 +299,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildEmailMessageBox() {
     return Container(
       width: double.infinity,
@@ -282,7 +333,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildPasswordMessageBox() {
     return Container(
       width: double.infinity,
@@ -317,7 +367,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildConfirmPasswordMessageBox() {
     return Container(
       width: double.infinity,
@@ -352,7 +401,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildWelcomeMessageBox() {
     return Container(
       width: double.infinity,
@@ -387,7 +435,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildUsernameInputField() {
     return TextField(
       controller: _usernameController,
@@ -405,7 +452,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildEmailInputField() {
     return TextField(
       controller: _emailController,
@@ -424,7 +470,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildPasswordInputField() {
     return TextField(
       controller: _passwordController,
@@ -443,7 +488,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
     );
   }
 
-  
   Widget _buildConfirmPasswordInputField() {
     return TextField(
       controller: _confirmPasswordController,
@@ -459,17 +503,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
       ),
       style: GoogleFonts.mali(fontSize: 16),
       obscureText: true,
-    );
-  }
-
-  
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: GoogleFonts.mali(color: Colors.white)),
-        backgroundColor: Colors.redAccent,
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }
