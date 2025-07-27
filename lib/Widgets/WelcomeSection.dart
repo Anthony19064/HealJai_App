@@ -75,3 +75,35 @@ class _QuoteTemplateState extends State<QuoteTemplate> {
     );
   }
 }
+
+
+class DailyActivityCard extends StatelessWidget{
+  final String title;
+  final IconData icon;
+
+  const DailyActivityCard({Key? key, required this.title,required this.icon}): super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+     return Container(
+      width: 110,
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon,size:40, color: Colors.green,),
+          SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize:14,fontWeight:FontWeight.bold),
+          )
+        ],
+      ),
+    );
+  }
+}
