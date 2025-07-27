@@ -87,6 +87,7 @@ class DailyActivityCard extends StatelessWidget{
   Widget build(BuildContext context) {
      return Container(
       width: 110,
+      height: 110,
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
