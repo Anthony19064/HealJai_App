@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../Widgets/header_section.dart';
+import 'package:animate_do/animate_do.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -14,7 +13,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Chat Page'),
+        ZoomIn(
+          duration: Duration(milliseconds: 500),
+          child: Text('Chat Page')),
       ],
     );
   }

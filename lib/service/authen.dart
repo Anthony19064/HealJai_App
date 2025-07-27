@@ -1,11 +1,36 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
+String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<UserCredential?> signInWithGoogle() async {
+Future<Map<String, dynamic>> signInwithEmail(String email, String password) async{
+  final response = await http.post(
+    Uri.parse('$apiURL/api/login'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'mail' : email,
+      'password' : password,
+    }),
+  );
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200 && data['success'] == true) {
+    return data;
+  }else{
+    print("Error API ${data['message']}");
+    return {};
+  }
+
+}
+
+Future<UserCredential?> signInWithGoogle() async{
   try {
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
     if (googleUser == null) return null; // User canceled

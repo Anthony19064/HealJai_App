@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../Widgets/header_section.dart';
+import 'package:animate_do/animate_do.dart';
 
 class CommuScreen extends StatefulWidget {
   const CommuScreen({super.key});
@@ -14,7 +13,10 @@ class _CommuScreenState extends State<CommuScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text("Commu page"),
+        ZoomIn(
+          duration: Duration(milliseconds: 500),
+          child: Text("Commu page"),
+        ),
       ],
     );
   }

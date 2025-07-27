@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Widgets/header_section.dart';
+import 'package:animate_do/animate_do.dart';
 
 class BookScreen extends StatefulWidget {
   const BookScreen({super.key});
@@ -13,7 +13,9 @@ class _BookScreenState extends State<BookScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text("BookPage")
+        ZoomIn(
+          duration: Duration(milliseconds: 500),
+          child: Text("BookPage"))
       ],
     );
   }
