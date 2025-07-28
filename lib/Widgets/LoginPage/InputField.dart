@@ -5,12 +5,14 @@ class InputField extends StatefulWidget {
   final String labelText;
   final bool isPassword;
   final TextEditingController? input_Controller;
+  final FormFieldValidator<String>? validator;
 
   const InputField({
     Key? key,
     required this.labelText,
     this.isPassword = false,
     this.input_Controller,
+    required this.validator,
   }) : super(key: key);
 
   @override
@@ -38,6 +40,7 @@ class _InputFieldState extends State<InputField> {
         ),
         TextFormField(
           obscureText: widget.isPassword ? _passwordState : false,
+          validator: widget.validator,
           controller: widget.input_Controller,
           decoration: InputDecoration(
             border: OutlineInputBorder(

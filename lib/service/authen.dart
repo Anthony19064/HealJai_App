@@ -20,13 +20,7 @@ Future<Map<String, dynamic>> signInwithEmail(String email, String password) asyn
     }),
   );
   final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200 && data['success'] == true) {
-    return data;
-  }else{
-    print("Error API ${data['message']}");
-    return {};
-  }
+  return data;
 
 }
 
