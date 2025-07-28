@@ -23,8 +23,8 @@ class _SocialLoginState extends State<Sociallogin> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300, 
-      height: 50, 
+      width: double.infinity, 
+      height: 55, 
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15.0),
@@ -46,21 +46,26 @@ class _SocialLoginState extends State<Sociallogin> {
           splashColor: const Color(0xFF78B465).withOpacity(0.3), // สีเวลาคลื่นกระจาย
           highlightColor: const Color(0xFF78B465).withOpacity(0.1), // ปรับให้โปร่งแสงขึ้นเล็กน้อย
           borderRadius: BorderRadius.circular(15.0), 
-          child: Row( 
-            mainAxisAlignment: MainAxisAlignment.center, 
+          child: Stack( 
             children: <Widget>[
-              SizedBox(
-                width: 24, // **ปรับขนาดไอคอนให้เหมาะสม**
-                height: 24,
-                child: Image.asset(widget.iconPath),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  margin: EdgeInsets.only(left: 10),
+                  width: 30, // **ปรับขนาดไอคอนให้เหมาะสม**
+                  height: 30,
+                  child: Image.asset(widget.iconPath),
+                ),
               ),
-              const SizedBox(width: 10), // **ช่องว่างระหว่างไอคอนกับข้อความ**
-              Text(
-                widget.text, 
-                style: GoogleFonts.mali(
-                  color: Colors.black87,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  widget.text, 
+                  style: GoogleFonts.mali(
+                    color: Color(0xFF464646),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

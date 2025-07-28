@@ -49,6 +49,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   carousel_slider: ^5.1.1
   smooth_page_indicator: ^1.2.1
+  fluttertoast: ^8.2.12
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

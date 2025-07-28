@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 
 class RegisScreenPageView extends StatefulWidget {
   const RegisScreenPageView({super.key});
@@ -232,8 +233,8 @@ Widget _buildStepContent({
         ),
         Container(
           margin: const EdgeInsets.only(top: 40.0),
-          child: Image.asset(
-            'assets/images/mascot.png',
+          child: Lottie.asset(
+            'assets/animations/runing.json',
             height: 200,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {

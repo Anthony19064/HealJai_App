@@ -25,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController =
       TextEditingController(); // ตัวเก็บค่า password
 
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     final userInfo = Provider.of<UserInfo>(context);
@@ -90,14 +92,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     InputField(
-                      labelText: 'username',
+                      labelText: 'email',
                       input_Controller: usernameController,
                       isPassword: false,
+                      validator: (value) {
+                        final emailRegex = RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        );
+                        if (value == null || value.trim().isEmpty) {
+                          return 'กรุณากรอกข้อมูลให้ครบถ้วน';
+                        }
+                        if (!emailRegex.hasMatch(value.trim())) {
+                          return 'รูปแบบอีเมลไม่ถูกต้อง';
+                        }
+                      },
                     ),
                     InputField(
                       labelText: 'password',
                       input_Controller: passwordController,
                       isPassword: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'กรุณากรอกข้อมูลให้ครบถ้วน';
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -131,25 +149,46 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   ButtonLogin(
+                    isLoading: isLoading,
                     onPressed: () async {
-                      final data = await signInwithEmail(
-                        usernameController.text,
-                        passwordController.text,
-                      );
-
-                      final user = data['user'];
-                      if (user != null) {
-                        await saveUserToLocal({
-                          'userId': user['id'],
-                          'userName': user['username'],
-                          'userMail': user['mail'],
-                          'userPhoto': user['photoURL'],
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          isLoading = true;
                         });
+                        final data = await signInwithEmail(
+                          usernameController.text,
+                          passwordController.text,
+                        );
 
-                        await userInfo.setUserInfo();
-                        context.pop();
-                      } else {
-                        print('Login canceled or failed');
+                        if (data['success']) {
+                          final user = data['user'];
+                          await saveUserToLocal({
+                            'userId': user['id'],
+                            'userName': user['username'],
+                            'userMail': user['mail'],
+                            'userPhoto': user['photoURL'],
+                          });
+                          await userInfo.setUserInfo();
+                          context.pop();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                data['message'],
+                                style: GoogleFonts.mali(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              backgroundColor: Color(0xFFFD7D7E),
+                            ),
+                          );
+                        }
+                        setState(() {
+                          isLoading = false;
+                        });
                       }
                     },
                   ),
@@ -193,32 +232,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      //Google
-                      Sociallogin(
-                        iconPath: 'assets/images/google.png',
-                        text: 'ล็อคอินด้วย google', // ไอค่อน google
-                        onPressed: () async {
-                          final userCredential = await signInWithGoogle();
-                          final user = userCredential?.user;
-                          if (userCredential != null) {
-                            await saveUserToLocal({
-                              'userId': user?.uid,
-                              'userName': user?.displayName,
-                              'userMail': user?.email,
-                              'userPhoto': user?.photoURL,
-                            });
-
-                            await userInfo.setUserInfo();
-                            context.pop();
-                          } else {
-                            print('Login canceled or failed');
-                          }
-                        },
-                      ),
-                    ],
+                  Container(
+                    margin: EdgeInsets.only(top: 10),
+                    child: Sociallogin(
+                      iconPath: 'assets/images/google.png',
+                      text: 'Sign in with Google', // ไอค่อน google
+                      onPressed: () async {
+                        final userCredential = await signInWithGoogle();
+                        final user = userCredential?.user;
+                        if (userCredential != null) {
+                          await saveUserToLocal({
+                            'userId': user?.uid,
+                            'userName': user?.displayName,
+                            'userMail': user?.email,
+                            'userPhoto': user?.photoURL,
+                          });
+                    
+                          await userInfo.setUserInfo();
+                          context.pop();
+                        } else {
+                          print('Login canceled or failed');
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -232,8 +268,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
 class ButtonLogin extends StatelessWidget {
   final VoidCallback onPressed;
+  final bool isLoading;
 
-  const ButtonLogin({super.key, required this.onPressed});
+  const ButtonLogin({
+    super.key,
+    required this.onPressed,
+    required this.isLoading,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -251,14 +292,17 @@ class ButtonLogin extends StatelessWidget {
             ),
             elevation: 0,
           ),
-          child: Text(
-            'Sign in',
-            style: GoogleFonts.mali(
-              color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child:
+              isLoading
+                  ? Lottie.asset('assets/animations/loading.json')
+                  : Text(
+                    'Sign in',
+                    style: GoogleFonts.mali(
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
         ),
       ),
     );
