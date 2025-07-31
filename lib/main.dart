@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'Screens/chat_screen.dart';
+import 'Screens/forget_password.dart';
 import 'Screens/game_screen.dart';
 import 'Screens/home_screen.dart';
 import 'Screens/commu_screen.dart';
@@ -94,6 +95,12 @@ final GoRouter _router = GoRouter(
       path: '/regis',
       pageBuilder: (context, state) {
         return NoTransitionPage(child: RegisScreenPageView());
+      },
+    ),
+    GoRoute(
+      path: '/forget_pass',
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: ForgetPassword());
       },
     ),
   ],

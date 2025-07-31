@@ -125,7 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      //
+                      context.push('/forget_pass');
+                      
                     },
                     child: Text(
                       'ลืมรหัสผ่าน ?',
