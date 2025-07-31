@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
 
 import '../Widgets/LoginPage/InputField.dart';
 import '../Widgets//LoginPage/SocialLogin.dart';
@@ -71,17 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
               duration: Duration(milliseconds: 800),
               delay: const Duration(milliseconds: 200),
               child: Container(
-                margin: EdgeInsets.only(top: 20, bottom: 10),
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
-                ),
+                width: 230,
+                height: 230,
                 child: Transform.scale(
                   scale: 0.8,
-                  child: Lottie.asset('assets/animations/duck.json'),
+                  child: RiveAnimation.asset('assets/animations/mascot.riv'),
                 ),
               ),
             ),
@@ -247,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'userMail': user?.email,
                             'userPhoto': user?.photoURL,
                           });
-                    
+
                           await userInfo.setUserInfo();
                           context.pop();
                         } else {
