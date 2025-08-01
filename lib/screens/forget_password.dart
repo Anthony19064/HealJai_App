@@ -20,7 +20,8 @@ class _ForgetPasswordState extends State<ForgetPassword> {
 
   final _formKeyEmail = GlobalKey<FormState>();
   final _formKeyPassword = GlobalKey<FormState>();
-  final _formKeyCPassword = GlobalKey<FormState>();
+  // _formKeyCPassword ไม่จำเป็นต้องใช้แยกแล้ว เพราะจะรวมการตรวจสอบไว้ใน _formKeyPassword
+  // final _formKeyCPassword = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           },
         ),
         title: Text(
-          'ลืมรหัสผ่านหรอ?',
+          'มาสร้างรหัสผ่านใหม่กัน',
           style: GoogleFonts.mali(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -76,7 +77,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
             formkey: _formKeyEmail,
             inputController: _emailController,
             hinttext: "อีเมลที่เคยใช้สมัคร",
-            labeltext: "Email", // <<-- ส่ง labeltext ที่นี่
+            labeltext: "Email",
             buttonText: 'ส่งรหัสกู้คืน',
             onButtonPressed: () {
               if (_formKeyEmail.currentState!.validate()) {
@@ -97,15 +98,25 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               return null;
             },
           ),
-          // ขั้นตอนที่ 2: ตั้งรหัสผ่านใหม่
+          // ขั้นตอนที่ 2: ตั้งรหัสผ่านใหม่และยืนยันรหัสผ่าน
           _buildStepContent(
-            messageTopic: "มาตั้งรหัสผ่านใหม่กัน",
+            messageTopic: "ขอแบบยากๆเลยนะ เอาแต่แบบที่เธอจำได้",
             formkey: _formKeyPassword,
             inputController: _passwordController,
             hinttext: "New Password",
-            labeltext: "รหัสผ่านใหม่", // <<-- ส่ง labeltext ที่นี่
+            labeltext: "New Password",
             isPassword: true,
-            buttonText: 'ถัดไป',
+            confirmInputController: _confirmPasswordController, // ส่ง controller สำหรับยืนยันรหัสผ่าน
+            confirmPasswordValidator: (value) { // validator สำหรับยืนยันรหัสผ่าน
+              if (value == null || value.trim().isEmpty) {
+                return 'กรุณายืนยันรหัสผ่านใหม่';
+              }
+              if (value != _passwordController.text) {
+                return 'รหัสผ่านไม่ตรงกัน';
+              }
+              return null;
+            },
+            buttonText: 'รีเซ็ตรหัสผ่าน',
             onButtonPressed: () {
               if (_formKeyPassword.currentState!.validate()) {
                 _pageController.nextPage(
@@ -114,7 +125,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 );
               }
             },
-            validator: (value) {
+            validator: (value) { // validator สำหรับรหัสผ่านใหม่
               if (value == null || value.trim().isEmpty) {
                 return 'กรุณากรอกรหัสผ่านใหม่';
               }
@@ -124,38 +135,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               return null;
             },
           ),
-          // ขั้นตอนที่ 3: ยืนยันรหัสผ่านใหม่
-          _buildStepContent(
-            messageTopic: "ยืนยันรหัสผ่านใหม่เพื่อความแน่ใจ",
-            formkey: _formKeyCPassword,
-            inputController: _confirmPasswordController,
-            hinttext: "Confirm New Password",
-            labeltext: "ยืนยันรหัสผ่านใหม่", // <<-- ส่ง labeltext ที่นี่
-            isPassword: true,
-            buttonText: 'ยืนยันรหัสผ่าน',
-            onButtonPressed: () {
-              if (_formKeyCPassword.currentState!.validate()) {
-                print('Email: ${_emailController.text}');
-                print('New Password: ${_passwordController.text}');
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                );
-              }
-            },
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'กรุณายืนยันรหัสผ่านใหม่';
-              }
-              if (value.length < 8) {
-                return 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัวนะ :)';
-              }
-              if (_passwordController.text != _confirmPasswordController.text) {
-                return 'รหัสผ่านไม่ตรงกัน';
-              }
-              return null;
-            },
-          ),
+          
           // ขั้นตอนที่ 4: เสร็จสิ้น
           _buildStepContent(
             messageTopic: "เยี่ยมเลย\nรหัสผ่านของเธอถูกเปลี่ยนเรียบร้อยแล้ว!",
@@ -184,6 +164,8 @@ class _ForgetPasswordState extends State<ForgetPassword> {
     required String buttonText,
     required VoidCallback onButtonPressed,
     bool isPassword = false,
+    TextEditingController? confirmInputController, // เพิ่ม parameter สำหรับ controller ยืนยันรหัสผ่าน
+    FormFieldValidator<String>? confirmPasswordValidator, // เพิ่ม parameter สำหรับ validator ยืนยันรหัสผ่าน
   }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -195,7 +177,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20.0),
-             
+              
               child: Text(
                 messageTopic,
                 style: GoogleFonts.mali(
@@ -224,7 +206,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           // ),
           
           if (!isEnd) ...[
-            // **ส่วนที่แก้ไข: เพิ่ม Text Widget สำหรับ Label เหนือ Form**
+            // ส่วนของ label สำหรับช่องแรก (รหัสผ่านใหม่ หรือ Email)
             if (labeltext != null)
               Align(
                 alignment: Alignment.centerLeft,
@@ -240,30 +222,75 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                   ),
                 ),
               ),
+            // ช่อง Input หลัก
             Container(
               child: Form(
                 key: formkey,
-                child: TextFormField(
-                  controller: inputController,
-                  validator: validator,
-                  obscureText: isPassword,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+                child: Column( // ใช้ Column เพื่อจัดเรียงช่อง input สองช่อง
+                  children: [
+                    TextFormField(
+                      controller: inputController,
+                      validator: validator,
+                      obscureText: isPassword,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+                      ],
+                      decoration: InputDecoration(
+                        hintText: hinttext,
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 15.0,
+                          horizontal: 20.0,
+                        ),
+                      ),
+                      style: GoogleFonts.mali(fontSize: 16),
+                    ),
+                    // เพิ่มช่องยืนยันรหัสผ่านใหม่ ถ้า isPassword เป็น true
+                    if (isPassword) ...[
+                      const SizedBox(height: 20), 
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 0.0, top: 0.0, bottom: 8.0),
+                          child: Text(
+                            'Comfirm New Password', 
+                            style: GoogleFonts.mali(
+                              color: Color(0xFF78B465),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: confirmInputController, // ใช้ controller สำหรับยืนยันรหัสผ่าน
+                        validator: confirmPasswordValidator, // ใช้ validator สำหรับยืนยันรหัสผ่าน
+                        obscureText: true, // ซ่อนข้อความเสมอสำหรับช่องยืนยัน
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: "Confirm New Password", // Hint text สำหรับช่องยืนยัน
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 15.0,
+                            horizontal: 20.0,
+                          ),
+                        ),
+                        style: GoogleFonts.mali(fontSize: 16),
+                      ),
+                    ],
                   ],
-                  decoration: InputDecoration(
-                    hintText: hinttext,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 15.0,
-                      horizontal: 20.0,
-                    ),
-                  ),
-                  style: GoogleFonts.mali(fontSize: 16),
                 ),
               ),
             ),
