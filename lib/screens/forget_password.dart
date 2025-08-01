@@ -98,7 +98,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               return null;
             },
           ),
-          // ขั้นตอนที่ 2: ตั้งรหัสผ่านใหม่และยืนยันรหัสผ่าน
+          // ขั้นตอนที่ 2: การตั้งรหัสผ่านใหม่และยืนยันรหัสผ่าน
           _buildStepContent(
             messageTopic: "ขอแบบยากๆเลยนะ เอาแต่แบบที่เธอจำได้",
             formkey: _formKeyPassword,
