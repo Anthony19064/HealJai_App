@@ -19,6 +19,7 @@ Future<Map<String, dynamic>> signInwithEmail(
     body: jsonEncode({'mail': email, 'password': password}),
   );
   final data = jsonDecode(response.body);
+  
   return data;
 }
 
@@ -108,7 +109,11 @@ Future<void> clearUserLocal() async {
 
   // Local
   final prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
+  await prefs.remove('userId');
+  await prefs.remove('userName');
+  await prefs.remove('userMail');
+  await prefs.remove('userPhoto');
+  await prefs.remove('JWT_Token');
 
   print(" logout หมดแล้วจ้า ✅");
 }
