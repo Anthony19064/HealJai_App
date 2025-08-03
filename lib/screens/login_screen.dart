@@ -10,6 +10,7 @@ import '../Widgets/LoginPage/InputField.dart';
 import '../Widgets//LoginPage/SocialLogin.dart';
 
 import '../service/authen.dart';
+import '../service/token.dart';
 import '../providers/userProvider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -100,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (!emailRegex.hasMatch(value.trim())) {
                           return 'รูปแบบอีเมลไม่ถูกต้อง';
                         }
+                        return null;
                       },
                     ),
                     InputField(
@@ -110,6 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'กรุณากรอกข้อมูลให้ครบถ้วน';
                         }
+                        return null;
                       },
                     ),
                   ],
@@ -163,8 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             'userMail': user['mail'],
                             'userPhoto': user['photoURL'],
                           });
+                          await saveToken(data['token']);
                           await userInfo.setUserInfo();
-                          context.pop();
+                          context.go('/');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -242,8 +246,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             'userMail': user['mail'],
                             'userPhoto': user['photoURL'],
                           });
+                          await saveToken(data['token']);
                           await userInfo.setUserInfo();
-                          context.pop();
+                          context.go('/');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -353,3 +358,5 @@ class ButtonRegister extends StatelessWidget {
     );
   }
 }
+
+

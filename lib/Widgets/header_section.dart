@@ -47,7 +47,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                   if (userInfo.userId != null) {
                     await clearUserLocal(); // clear local
                     await userInfo.clearUserInfo(); // clear Provider
-                    context.pop();
+                    context.go('/');
                   } else {
                     context.push('/login');
                   }
