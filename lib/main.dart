@@ -54,12 +54,6 @@ final GoRouter _router = GoRouter(
       },
       routes: [
         GoRoute(
-          path: '/chat',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: ChatScreen());
-          },
-        ),
-        GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: GameScreen());
@@ -101,6 +95,12 @@ final GoRouter _router = GoRouter(
       path: '/forget_pass',
       pageBuilder: (context, state) {
         return NoTransitionPage(child: ForgetPassword());
+      },
+    ),
+    GoRoute(
+      path: '/chat',
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: ChatScreen());
       },
     ),
   ],
