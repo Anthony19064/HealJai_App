@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
               onPressed: () {
-                context.pop();
+                context.go('/');
               },
             ),
           ),
@@ -126,7 +126,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextButton(
                     onPressed: () {
                       context.push('/forget_pass');
-                      
                     },
                     child: Text(
                       'ลืมรหัสผ่าน ?',
@@ -234,20 +233,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       iconPath: 'assets/images/google.png',
                       text: 'Sign in with Google', // ไอค่อน google
                       onPressed: () async {
-                        final userCredential = await signInWithGoogle();
-                        final user = userCredential?.user;
-                        if (userCredential != null) {
+                        final data = await signInWithGoogle();
+                        if (data['success']) {
+                          final user = data['user'];
                           await saveUserToLocal({
-                            'userId': user?.uid,
-                            'userName': user?.displayName,
-                            'userMail': user?.email,
-                            'userPhoto': user?.photoURL,
+                            'userId': user['id'],
+                            'userName': user['username'],
+                            'userMail': user['mail'],
+                            'userPhoto': user['photoURL'],
                           });
-
                           await userInfo.setUserInfo();
                           context.pop();
                         } else {
-                          print('Login canceled or failed');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                data['message'],
+                                style: GoogleFonts.mali(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              backgroundColor: Color(0xFFFD7D7E),
+                            ),
+                          );
                         }
                       },
                     ),

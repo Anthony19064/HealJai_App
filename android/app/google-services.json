@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "307519523878-uurb42dtbp1jk0j9avppqm00tv9ft7r6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.healjai_project",
+            "certificate_hash": "f2c7b034cba52bc965cde687b58a71655939b15d"
+          }
+        },
+        {
           "client_id": "307519523878-iq8q7i06hb7jmukgdqdrl926dj2siqu7.apps.googleusercontent.com",
           "client_type": 3
         }

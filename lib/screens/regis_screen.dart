@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/service/authen.dart';
 import 'package:lottie/lottie.dart';
 
 class RegisScreenPageView extends StatefulWidget {
@@ -25,6 +26,9 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
   final _formKeyPassword = GlobalKey<FormState>(); // key ของ FormPassword
   final _formKeyCPassword = GlobalKey<FormState>(); // key ของ FormCPassword
 
+  bool isLoading = false;
+  int current_page = 0;
+
   @override
   void initState() {
     super.initState();
@@ -47,10 +51,10 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
+        leading: current_page != 4? IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            if (_pageController.page == 0) {
+            if (current_page == 0) {
               context.pop();
             } else {
               _pageController.previousPage(
@@ -59,12 +63,20 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               );
             }
           },
+        ) : IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.transparent),
+          onPressed: () {
+          },
         ),
       ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // ปิดการปัดด้วยนิ้ว
-        onPageChanged: (index) {},
+        onPageChanged: (index) {
+          setState(() {
+            current_page = index;
+          });
+        },
         children: [
           _buildStepContent(
             messageTopic: "ฮัลโหลล ~\nชื่อของเธอคืออะไรหรอ ?",
@@ -92,6 +104,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               }
               return null;
             },
+            isLoading: isLoading,
           ),
           _buildStepContent(
             messageTopic: "ขออีเมลเธอหน่อยได้ไหม\nเอาไว้ติดต่อเรื่องสำคัญน่ะ",
@@ -119,6 +132,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
 
               return null;
             },
+            isLoading: isLoading,
           ),
           _buildStepContent(
             messageTopic: "มาตั้งรหัสผ่านกัน\nเอาแบบลับขั้นสุดยอดเลยนะ",
@@ -143,6 +157,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               }
               return null;
             },
+            isLoading: isLoading,
           ),
           _buildStepContent(
             messageTopic: "มาลองทวนรหัสผ่านเมื่อกี้กัน\nเผื่อเธอลืมน่ะ XD",
@@ -150,18 +165,61 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             inputController: _confirmPasswordController,
             hinttext: "Confirm Password",
             buttonText: 'ลงทะเบียน',
-            onButtonPressed: () {
+            onButtonPressed: () async {
               if (_formKeyCPassword.currentState!.validate()) {
-
+                setState(() {
+                  isLoading = true;
+                });
                 //ไว้เอาส่ง API
-                print(_usernameController.text);
-                print(_emailController.text);
-                print(_passwordController.text);
-
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
+                final data = await register(
+                  _usernameController.text,
+                  _emailController.text,
+                  _passwordController.text,
+                  _confirmPasswordController.text,
                 );
+
+                if (data['success']) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        data['message'],
+                        style: GoogleFonts.mali(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      backgroundColor: Color(0xFF78B465),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                  await Future.delayed(Duration(seconds: 2));
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        data['message'],
+                        style: GoogleFonts.mali(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      backgroundColor: Color(0xFFFD7D7E),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+                setState(() {
+                  isLoading = false;
+                });
+
               }
             },
             validator: (value) {
@@ -176,18 +234,20 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               }
               return null;
             },
+            isLoading: isLoading,
           ),
           _buildStepContent(
-            messageTopic: "เยี่ยมเลยตอนนี้เรารู้จักกันแล้วนะ\nไปลองล็อคอินกัน !!",
+            messageTopic:
+                "เยี่ยมเลยตอนนี้เรารู้จักกันแล้วนะ\nไปลองล็อคอินกัน !!",
             formkey: null,
             inputController: null,
             hinttext: "",
             buttonText: 'ไปกันต่ออ',
             onButtonPressed: () {
-
               context.go('/login');
             },
             isEnd: true,
+            isLoading: isLoading,
           ),
         ],
       ),
@@ -204,6 +264,7 @@ Widget _buildStepContent({
   required String hinttext,
   required String buttonText,
   required VoidCallback onButtonPressed,
+  required bool isLoading,
 }) {
   return SingleChildScrollView(
     padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -246,34 +307,37 @@ Widget _buildStepContent({
             },
           ),
         ),
-        
-        if(!isEnd) Container(
-          margin: const EdgeInsets.only(top: 40.0),
-          child: Form(
-            key: formkey,
-            child: TextFormField(
-              controller: inputController,
-              validator: validator,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
-              ],
-              decoration: InputDecoration(
-                hintText: hinttext,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide.none,
+
+        if (!isEnd)
+          Container(
+            margin: const EdgeInsets.only(top: 40.0),
+            child: Form(
+              key: formkey,
+              child: TextFormField(
+                controller: inputController,
+                validator: validator,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[a-zA-Z0-9@._\-]'),
+                  ),
+                ],
+                decoration: InputDecoration(
+                  hintText: hinttext,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 15.0,
+                    horizontal: 20.0,
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 15.0,
-                  horizontal: 20.0,
-                ),
+                style: GoogleFonts.mali(fontSize: 16),
               ),
-              style: GoogleFonts.mali(fontSize: 16),
             ),
           ),
-        ),
 
         Container(
           margin: EdgeInsets.only(top: 30.0),
@@ -289,14 +353,17 @@ Widget _buildStepContent({
                 ),
                 elevation: 0,
               ),
-              child: Text(
-                buttonText,
-                style: GoogleFonts.mali(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child:
+                  isLoading
+                      ? Lottie.asset('assets/animations/loading.json')
+                      : Text(
+                        buttonText,
+                        style: GoogleFonts.mali(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
             ),
           ),
         ),
