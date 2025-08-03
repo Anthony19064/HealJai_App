@@ -22,7 +22,7 @@ import 'providers/userProvider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env");
 
   runApp(
     MultiProvider(
@@ -53,12 +53,6 @@ final GoRouter _router = GoRouter(
         );
       },
       routes: [
-        GoRoute(
-          path: '/chat',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: ChatScreen());
-          },
-        ),
         GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
@@ -101,6 +95,12 @@ final GoRouter _router = GoRouter(
       path: '/forget_pass',
       pageBuilder: (context, state) {
         return NoTransitionPage(child: ForgetPassword());
+      },
+    ),
+    GoRoute(
+      path: '/chat',
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: ChatScreen());
       },
     ),
   ],
