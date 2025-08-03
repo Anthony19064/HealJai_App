@@ -29,9 +29,7 @@ class _BottomNavState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     final navState = Provider.of<NavState>(context);
     
-    return BounceInUp(
-      duration: Duration(milliseconds: 800),
-      child: Container(
+    return Container(
         color: const Color(0xFFFFF7EB),
         child: Container(
           height: 60,
@@ -74,7 +72,6 @@ class _BottomNavState extends State<BottomNavBar> {
                 }).toList(),
           ),
         ),
-      ),
     );
   }
 }
