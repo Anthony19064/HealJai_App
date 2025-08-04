@@ -6,12 +6,12 @@ import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
-import '../Widgets/LoginPage/InputField.dart';
-import '../Widgets//LoginPage/SocialLogin.dart';
+import '../../Widgets/LoginPage/InputField.dart';
+import '../../Widgets/LoginPage/SocialLogin.dart';
 
-import '../service/authen.dart';
-import '../service/token.dart';
-import '../providers/userProvider.dart';
+import '../../service/authen.dart';
+import '../../service/token.dart';
+import '../../providers/userProvider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

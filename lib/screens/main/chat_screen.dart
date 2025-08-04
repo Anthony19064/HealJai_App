@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
-import '../Widgets/bottom_nav.dart';
+import '../../Widgets/bottom_nav.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -113,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         'พระจันทร์คือเพื่อนเล่าเรื่องของพระอาทิตย์ ทุกครั้งที่พระจันทร์มีเรื่องไม่สบายใจ หรืออยากปรึกษาอะไรอีกอย่าง พระจันทร์มักจะมาเล่าให้พระอาทิตย์ฟังเสมอ เพราะพระอาทิตย์คือเซฟโซนให้พระจันทร์เสมอมา',
                     imagePath: 'assets/images/moon.png',
                     bgColor: _moonBgColor,
-                    color: _moonColor,
+                    color: _dynamicColor,
                   ),
                   _buildRolePage(
                     roleName: 'พระอาทิตย์',
@@ -121,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         'พระอาทิตย์คือเพื่อนรับฟังของพระจันทร์เสมอมา พระอาทิตย์รับฟังเรื่องราวของพระจันทร์อย่างเข้าใจ พระอาทิตย์ก็จะไม่ตัดสินว่าพระจันทร์ถูกหรือผิด เพราะพระอาทิตย์คือเซฟโซนของพระจันทร์เสมอมา',
                     imagePath: 'assets/images/sun.png',
                     bgColor: _sunBgColor,
-                    color: _sunColor,
+                    color: _dynamicColor,
                   ),
                 ],
               ),
@@ -145,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
             GestureDetector(
               onTap: _onMatchPressedCallbacks[_currentPage],
               child: AnimatedContainer(
-                 duration: Duration(milliseconds: 300),
+                duration: Duration(milliseconds: 300),
                 width: 100,
                 height: 45,
                 decoration: BoxDecoration(
@@ -186,13 +186,15 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Image.asset(imagePath, height: 250, fit: BoxFit.contain),
           const SizedBox(height: 10),
-          Text(
-            roleName,
+          AnimatedDefaultTextStyle(
+            duration: Duration(milliseconds: 300),
             style: GoogleFonts.mali(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: color,
             ),
+
+            child: Text(roleName),
           ),
           const SizedBox(height: 30),
           Text(
