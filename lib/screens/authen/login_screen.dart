@@ -6,12 +6,12 @@ import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
-import '../../Widgets/LoginPage/InputField.dart';
-import '../../Widgets/LoginPage/SocialLogin.dart';
+import 'package:healjai_project/Widgets/LoginPage/InputField.dart';
+import 'package:healjai_project/Widgets/LoginPage/SocialLogin.dart';
 
-import '../../service/authen.dart';
-import '../../service/token.dart';
-import '../../providers/userProvider.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/token.dart';
+import 'package:healjai_project/providers/userProvider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           children: [
             // รูปโลโก้
@@ -73,8 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
               duration: Duration(milliseconds: 800),
               delay: const Duration(milliseconds: 200),
               child: Container(
-                width: 230,
-                height: 230,
+                width: MediaQuery.of(context).size.width * 0.6,
+                height: MediaQuery.of(context).size.height * 0.25,
                 child: Transform.scale(
                   scale: 0.8,
                   child: RiveAnimation.asset('assets/animations/mascot.riv'),
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
               duration: Duration(milliseconds: 800),
               child: Container(
                 height: 40,
-                margin: EdgeInsets.only(bottom: 10),
+                margin: EdgeInsets.only(bottom: 15),
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   Container(
-                    margin: EdgeInsets.only(bottom: 10),
+                    margin: EdgeInsets.only(bottom: 5),
                     child: Stack(
                       children: [
                         Container(

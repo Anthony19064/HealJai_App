@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../service/authen.dart';
-import '../providers/userProvider.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/providers/userProvider.dart';
 
 class HeaderSection extends StatefulWidget {
   const HeaderSection({super.key});

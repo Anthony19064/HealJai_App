@@ -28,7 +28,7 @@ class _InputFieldState extends State<InputField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: EdgeInsets.only(bottom: 7, top: 10),
+          margin: EdgeInsets.only(bottom: 10),
           child: Text(
             widget.labelText,
             style: GoogleFonts.mali(
