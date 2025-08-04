@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:animate_do/animate_do.dart';
 
 
-import '../data_Lists/data_BottomBar.dart';
-import '../providers/navProvider.dart';
+import 'package:healjai_project/data_Lists/data_BottomBar.dart';
+import 'package:healjai_project/providers/navProvider.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});

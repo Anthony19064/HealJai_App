@@ -20,6 +20,7 @@ import 'Widgets/header_section.dart';
 
 import 'providers/navProvider.dart';
 import 'providers/userProvider.dart';
+import 'providers/ResetProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => NavState()),
         ChangeNotifierProvider(create: (_) => UserInfo()),
+        ChangeNotifierProvider(create: (_) => ResetInfo()),
       ],
       child: const MyApp(),
     ),

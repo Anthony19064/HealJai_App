@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../service/authen.dart';
+import 'package:healjai_project/service/authen.dart';
 
 class UserInfo extends ChangeNotifier {
   String? userId;
