@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
@@ -30,11 +31,17 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _onMatchPressedCallbacks = [
-      () {
-        print('จับคู่บทบาทพระจันทร์!');
+      () async {
+        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.of(context).pop();
+        context.go('/chat/room/moon');
       },
-      () {
-        print('จับคู่บทบาทพระอาทิตย์!');
+      () async {
+        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.of(context).pop();
+        context.go('/chat/room/sun');
       },
     ];
   }
@@ -49,6 +56,47 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _currentPage = index;
     });
+  }
+
+  // **<<--- เพิ่มเมธอดใหม่สำหรับแสดง Loading dialog**
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // **<<--- แก้ไข: เปลี่ยนสีของ CircularProgressIndicator**
+                CircularProgressIndicator(color: _dynamicColor),
+                const SizedBox(height: 20),
+                Text(
+                  'กำลังจับคู่...',
+                  style: GoogleFonts.mali(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    // **<<--- แก้ไข: เปลี่ยนสีของข้อความ**
+                    color: _dynamicColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
