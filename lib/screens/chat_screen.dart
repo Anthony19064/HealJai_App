@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
-import '../Widgets/bottom_nav.dart'; 
+import '../Widgets/bottom_nav.dart';
+
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -15,7 +16,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentPage = 0;
 
-  static const Color _moonColor = Color(0xFFC0E0FF);
+  static const Color _moonColor = Color.fromARGB(255, 102, 227, 243);
   static const Color _sunColor = Color(0xFFFFA500);
   static const Color _moonBgColor = Color(0xFFFFF7EB);
   static const Color _sunBgColor = Color(0xFFFFF7EB);
@@ -30,11 +31,19 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _onMatchPressedCallbacks = [
-      () {
+      () async {
         print('จับคู่บทบาทพระจันทร์!');
+        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.of(context).pop();
+        context.go('/chat/room/moon');
       },
-      () {
+      () async {
         print('จับคู่บทบาทพระอาทิตย์!');
+        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.of(context).pop();
+        context.go('/chat/room/sun');
       },
     ];
   }
@@ -50,6 +59,47 @@ class _ChatScreenState extends State<ChatScreen> {
       _currentPage = index;
     });
   }
+
+  // **<<--- เพิ่มเมธอดใหม่สำหรับแสดง Loading dialog**
+  void _showLoadingDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // **<<--- แก้ไข: เปลี่ยนสีของ CircularProgressIndicator**
+              CircularProgressIndicator(color: _dynamicColor),
+              const SizedBox(height: 20),
+              Text(
+                'กำลังจับคู่...',
+                style: GoogleFonts.mali(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  // **<<--- แก้ไข: เปลี่ยนสีของข้อความ**
+                  color: _dynamicColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -158,9 +208,13 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           
           const SizedBox(height: 20),
+          
+
+          
         ],
+        
       ),
-      bottomNavigationBar: const BottomNavBar(), 
+      bottomNavigationBar: const BottomNavBar(),
     );
   }
 

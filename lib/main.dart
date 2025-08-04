@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'Screens/chat_screen.dart';
+import 'Screens/chatroom_screen.dart';
 import 'Screens/forget_password.dart';
 import 'Screens/game_screen.dart';
 import 'Screens/home_screen.dart';
@@ -102,6 +103,15 @@ final GoRouter _router = GoRouter(
       pageBuilder: (context, state) {
         return NoTransitionPage(child: ChatScreen());
       },
+      routes: [
+        GoRoute(
+          path: 'room/:role', // หน้าแชทจริงพร้อม path parameter
+          pageBuilder: (context, state) {
+            final role = state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
+            return NoTransitionPage(child: ChatRoomScreen(role: role));
+          },
+        ),
+      ],
     ),
   ],
 );
