@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../../Widgets/Forgotpassword/checkMail.dart';
+
 class ForgetPassword extends StatefulWidget {
   const ForgetPassword({super.key});
 
@@ -12,62 +14,35 @@ class ForgetPassword extends StatefulWidget {
 }
 
 class _ForgetPasswordState extends State<ForgetPassword> {
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final PageController _pageController = PageController();
 
-  final _formKeyEmail = GlobalKey<FormState>();
   final _formKeyOtp = GlobalKey<FormState>();
   final _formKeyPassword = GlobalKey<FormState>();
 
-  
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    
+
     _pages = [
-      _buildStepContent(
-        messageTopic: "เธอลืมรหัสผ่านเหรอ?",
-        messageSubTopic: "ไม่เป็นไรนะเรามาเปลี่ยนรหัสผ่านกัน",
-        formkey: _formKeyEmail,
-        inputController: _emailController,
-        hinttext: "อีเมลที่เคยใช้สมัคร",
-        labeltext: "Email",
-        buttonText: 'ส่งรหัสกู้คืน',
-        onButtonPressed: () {
-          if (_formKeyEmail.currentState!.validate()) {
-            _pageController.nextPage(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
-          }
-        },
-        validator: (value) {
-          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-          if (value == null || value.trim().isEmpty) {
-            return 'กรุณากรอกอีเมล';
-          }
-          if (!emailRegex.hasMatch(value.trim())) {
-            return 'รูปแบบอีเมลไม่ถูกต้อง';
-          }
-          return null;
-        },
-      ),
-      
-      // **ขั้นตอนที่ 2: กรอกรหัส OTP 
+      CheckEmail(pageController: _pageController),
+
+      // **ขั้นตอนที่ 2: กรอกรหัส OTP
       _buildStepContent(
         messageTopic: "เธอได้รหัสยืนยันไหม ?", // <<--- ข้อความใหม่
-        messageSubTopic: "เอารหัส 6 หลักที่ได้มากรอกด้านล่างได้เลยนะ", // <<--- เพิ่มข้อความย่อย
+        messageSubTopic:
+            "เอารหัส 6 หลักที่ได้มากรอกด้านล่างได้เลยนะ", // <<--- เพิ่มข้อความย่อย
         formkey: _formKeyOtp,
         inputController: _otpController,
         hinttext: "กรุณากรอกรหัส",
-        labeltext: "", 
-        buttonText: 'ถัดไป', 
+        labeltext: "",
+        buttonText: 'ถัดไป',
         isOtp: true,
         showResendButton: true,
         onResendPressed: () {
@@ -89,7 +64,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           return null;
         },
       ),
-      
+
       // **ขั้นตอนที่ 3: กรอก pass ใหม่
       _buildStepContent(
         messageTopic: "มาสร้างรหัสผ่านใหม่กัน",
@@ -144,8 +119,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
       ),
     ];
   }
-  
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,17 +130,9 @@ class _ForgetPasswordState extends State<ForgetPassword> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            if (_pageController.hasClients && _pageController.page?.round() == 0) {
-              context.pop();
-            } else {
-              _pageController.previousPage(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeIn,
-              );
-            }
+            context.go('/login');
           },
         ),
-        
       ),
       body: PageView(
         controller: _pageController,
@@ -202,7 +168,8 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           // **แก้ไขส่วนแสดงข้อความ**
           Container(
             margin: const EdgeInsets.only(top: 20.0),
-            child: Text( // <<--- ใช้ Text Widget ธรรมดาตามภาพ
+            child: Text(
+              // <<--- ใช้ Text Widget ธรรมดาตามภาพ
               messageTopic,
               style: GoogleFonts.mali(
                 fontSize: 22, // <<--- ปรับขนาดให้ใหญ่ขึ้น
@@ -224,15 +191,17 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 textAlign: TextAlign.center,
               ),
             ),
-          
-        
-          
+
           if (!isEnd) ...[
-            if (labeltext != null && !isOtp) 
+            if (labeltext != null && !isOtp)
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 0.0, top: 20.0, bottom: 8.0),
+                  padding: const EdgeInsets.only(
+                    left: 0.0,
+                    top: 20.0,
+                    bottom: 8.0,
+                  ),
                   child: Text(
                     labeltext,
                     style: GoogleFonts.mali(
@@ -245,7 +214,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               ),
 
             Container(
-              margin: EdgeInsets.only(top: isOtp ? 40.0 : 0.0), 
+              margin: EdgeInsets.only(top: isOtp ? 40.0 : 0.0),
               child: Form(
                 key: formkey,
                 child: Column(
@@ -258,7 +227,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         pinTheme: PinTheme(
                           shape: PinCodeFieldShape.box,
                           borderRadius: BorderRadius.circular(10),
-                          fieldHeight: 50,
+                          fieldHeight: 70,
                           fieldWidth: 45,
                           activeFillColor: Colors.white,
                           inactiveFillColor: Colors.white,
@@ -280,7 +249,9 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         validator: validator,
                         obscureText: isPassword,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9@._\-]'),
+                          ),
                         ],
                         decoration: InputDecoration(
                           hintText: hinttext,
@@ -297,13 +268,17 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         ),
                         style: GoogleFonts.mali(fontSize: 16),
                       ),
-                    
+
                     if (isPassword) ...[
                       const SizedBox(height: 20),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 0.0, top: 0.0, bottom: 8.0),
+                          padding: const EdgeInsets.only(
+                            left: 0.0,
+                            top: 0.0,
+                            bottom: 8.0,
+                          ),
                           child: Text(
                             'Comfirm New Password',
                             style: GoogleFonts.mali(
@@ -319,7 +294,9 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         validator: confirmPasswordValidator,
                         obscureText: true,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9@._\-]')),
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9@._\-]'),
+                          ),
                         ],
                         decoration: InputDecoration(
                           hintText: "Confirm New Password",
@@ -342,7 +319,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               ),
             ),
           ],
-          
+
           if (!isOtp) // **<<--- ซ่อนปุ่มส่งรหัสอีกครั้งถ้าไม่ใช่หน้า OTP**
             Container(
               margin: const EdgeInsets.only(top: 30.0),
@@ -369,7 +346,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 ),
               ),
             ),
-          
+
           if (isOtp) // **<<--- แสดงปุ่ม "ถัดไป" และปุ่มส่งรหัสอีกครั้ง**
             Column(
               children: [
@@ -415,10 +392,11 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                   ),
               ],
             ),
-            
+
           Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
         ],
       ),
     );
   }
 }
+

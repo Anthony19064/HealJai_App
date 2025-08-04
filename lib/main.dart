@@ -5,14 +5,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'Screens/chat_screen.dart';
-import 'Screens/forget_password.dart';
-import 'Screens/game_screen.dart';
-import 'Screens/home_screen.dart';
-import 'Screens/commu_screen.dart';
-import 'Screens/book_screen.dart';
-import 'Screens/login_screen.dart';
-import 'Screens/regis_screen.dart';
+import 'Screens/main/chat_screen.dart';
+import 'Screens/main/game_screen.dart';
+import 'Screens/main/home_screen.dart';
+import 'Screens/main/commu_screen.dart';
+import 'Screens/main/book_screen.dart';
+
+import 'Screens/authen/forget_password.dart';
+import 'Screens/authen/login_screen.dart';
+import 'Screens/authen/regis_screen.dart';
+
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
 
