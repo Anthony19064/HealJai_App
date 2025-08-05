@@ -50,6 +50,13 @@ class _CheckEmailState extends State<CheckEmail> {
               ),
             ),
             SizedBox(height: 50),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.6,
+              height: MediaQuery.of(context).size.height * 0.25,
+              child: Lottie.asset("assets/animations/cry.json"),
+            ),
+            SizedBox(height: 50),
+
             Container(
               width: double.infinity,
               child: Text(
@@ -68,7 +75,9 @@ class _CheckEmailState extends State<CheckEmail> {
               child: TextFormField(
                 controller: _emailController,
                 validator: (value) {
-                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
                   if (value == null || value.trim().isEmpty) {
                     return 'กรุณากรอกอีเมล';
                   }
@@ -119,7 +128,7 @@ class _CheckEmailState extends State<CheckEmail> {
                               isLoading = true;
                             });
                             final data = await checkMail(_emailController.text);
-        
+
                             if (data['success']) {
                               ResetProvider.setMail(_emailController.text);
                               final status = await send_OTP(
