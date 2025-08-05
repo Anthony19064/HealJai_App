@@ -42,8 +42,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         widget.role == 'moon' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
     _dynamicInfoText =
         widget.role == 'moon'
-            ? 'คุณเป็นผู้เล่าเรื่อง โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
-            : 'คุณเป็นผู้รับฟัง โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
+            ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
+            : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
   }
 
   Widget build(BuildContext context) {
@@ -71,15 +71,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            SizedBox(height: 20),
             Container(
-              width: double.infinity,
+              width: MediaQuery.of(context).size.width * 0.8,
               margin: const EdgeInsets.symmetric(horizontal: 20.0),
               padding: const EdgeInsets.symmetric(
                 horizontal: 10.0,
                 vertical: 10,
               ),
               decoration: BoxDecoration(
-                color: Color(0xFFFECF6A), // <<--- ใช้สี dynamic
+                color: _dynamicColor, // <<--- ใช้สี dynamic
                 borderRadius: BorderRadius.circular(20.0),
               ),
               child: Text(
@@ -233,7 +234,8 @@ class _MessageInputState extends State<MessageInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30),
+      // margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30),
+      margin: EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 10),
       child: TextFormField(
         controller: widget.inputController,
         decoration: InputDecoration(
