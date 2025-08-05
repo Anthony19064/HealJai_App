@@ -1,6 +1,8 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 // โมเดลสำหรับข้อความแชท
 class ChatMessage {
@@ -11,32 +13,42 @@ class ChatMessage {
   ChatMessage({required this.text, required this.sender, required this.time});
 }
 
-class ChatRoomScreen extends StatelessWidget {
+class ChatRoomScreen extends StatefulWidget {
   final String role;
-  
-  final List<ChatMessage> _messages = [
-    ChatMessage(text: 'สวัสดี', sender: 'partner', time: '22:21 น.'),
-    ChatMessage(text: 'สวัสดีครับ', sender: 'user', time: '22:21 น.'),
-    ChatMessage(text: 'เป็นไงบ้าง', sender: 'partner', time: '22:22 น.'),
-    ChatMessage(text: 'ก็พอได้อยู่ครับ', sender: 'user', time: '22:22 น.'),
-  ];
-
-  ChatRoomScreen({
-    super.key,
-    required this.role,
-  });
-
-  // <<--- เพิ่ม getters เพื่อกำหนดค่า dynamic ตาม role
-  Color get _dynamicColor => role == 'moon' ? const Color.fromARGB(255, 102, 227, 243) : const Color(0xFFFFA500);
-  Color get _dynamicInfoBgColor => role == 'moon' ? const Color(0xFFE6F7FF) : const Color(0xFFFEE8B7);
-  Color get _dynamicInfoTextColor => role == 'moon' ? const Color.fromARGB(255, 2, 146, 165): const Color(0xFFFFA500);
-  String get _dynamicInfoText => role == 'moon' 
-    ? 'คุณเป็นผู้เล่าเรื่อง โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)' 
-    : 'คุณเป็นผู้รับฟัง โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)';
+  ChatRoomScreen({super.key, required this.role});
 
   @override
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+}
+
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
+  late Color _dynamicColor;
+  late String _dynamicInfoText;
+  final TextEditingController MessageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  final List<ChatMessage> _messages =
+      [
+        ChatMessage(text: 'สวัสดี', sender: 'partner', time: '22:21 น.'),
+        ChatMessage(text: 'สวัสดีครับ', sender: 'user', time: '22:21 น.'),
+        ChatMessage(text: 'เป็นไงบ้าง', sender: 'partner', time: '22:22 น.'),
+        ChatMessage(text: 'ก็พอได้อยู่ครับ', sender: 'user', time: '22:22 น.'),
+      ].reversed.toList();
+
+  @override
+  void initState() {
+    super.initState();
+    _dynamicColor =
+        widget.role == 'moon' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
+    _dynamicInfoText =
+        widget.role == 'moon'
+            ? 'คุณเป็นผู้เล่าเรื่อง โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
+            : 'คุณเป็นผู้รับฟัง โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFFFF7EB),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -46,7 +58,7 @@ class ChatRoomScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          role == 'moon' ? 'พระจันทร์' : 'พระอาทิตย์',
+          widget.role == 'moon' ? 'พระจันทร์' : 'พระอาทิตย์',
           style: GoogleFonts.mali(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -55,53 +67,93 @@ class ChatRoomScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: _dynamicInfoBgColor, // <<--- ใช้สี dynamic
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: Text(
-              _dynamicInfoText, // <<--- ใช้ข้อความ dynamic
-              textAlign: TextAlign.center,
-              style: GoogleFonts.mali(
-                fontSize: 14,
-                color: _dynamicInfoTextColor, // <<--- ใช้สี dynamic
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Color(0xFFFECF6A), // <<--- ใช้สี dynamic
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: Text(
+                _dynamicInfoText, // <<--- ใช้ข้อความ dynamic
+                textAlign: TextAlign.center,
+                style: GoogleFonts.mali(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
               ),
             ),
-          ),
-          
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isUser = message.sender == 'user';
-                return _buildChatBubble(context, message, isUser);
+            SizedBox(height: 15),
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                reverse: true, // ทำให้ chat เริ่มจากข้างล่าง
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 0.0,
+                ),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final isUser = message.sender == 'user';
+                  return _buildChatBubble(context, message, isUser);
+                },
+              ),
+            ),
+
+            MessageInput(
+              inputController: MessageController,
+              dynamicColor: _dynamicColor,
+              onButtonPressed: () async {
+                String timeNow = DateFormat('HH:mm').format(DateTime.now());
+
+                if (MessageController.text.trim().isNotEmpty) {
+                  setState(() {
+                    _messages.insert(
+                      0,
+                      ChatMessage(
+                        text: MessageController.text,
+                        sender: "user",
+                        time: '$timeNow น.',
+                      ),
+                    );
+                    MessageController.clear();
+                  });
+                }
               },
             ),
-          ),
-          
-          _buildMessageInput(context),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildChatBubble(BuildContext context, ChatMessage message, bool isUser) {
+  Widget _buildChatBubble(
+    BuildContext context,
+    ChatMessage message,
+    bool isUser,
+  ) {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Column(
-          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+              mainAxisAlignment:
+                  isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
               children: [
                 if (!isUser)
                   const Padding(
@@ -113,15 +165,27 @@ class ChatRoomScreen extends StatelessWidget {
                     ),
                   ),
                 Container(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.7,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   decoration: BoxDecoration(
-                    color: isUser ? _dynamicColor : Colors.white, // <<--- ใช้สี dynamic
+                    color:
+                        isUser
+                            ? _dynamicColor
+                            : Colors.white, // <<--- ใช้สี dynamic
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   child: Text(
                     message.text,
-                    style: GoogleFonts.mali(fontSize: 16, color: const Color(0xFF464646)),
+                    style: GoogleFonts.mali(
+                      fontSize: 16,
+                      color: isUser ? Colors.white : Color(0xFF6C6C6C),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -129,14 +193,15 @@ class ChatRoomScreen extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(
                 top: 4.0,
-                right: isUser ? 0 : 48.0,
-                left: isUser ? 48.0 : 0,
+                right: isUser ? 0 : 50,
+                left: isUser ? 0 : 50,
               ),
               child: Text(
                 message.time,
                 style: GoogleFonts.mali(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: Color(0xFF939393),
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -145,45 +210,60 @@ class ChatRoomScreen extends StatelessWidget {
       ),
     );
   }
-
-Widget _buildMessageInput(BuildContext context) {
-  return Padding( // ระยะห่างกล่องข้อความกับขอบจอ
-    padding: const EdgeInsets.only(bottom: 30.0),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30.0),
-        border: Border.all(color: Colors.grey.shade300, width: 1.0),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'พิมพ์ข้อความที่นี่ . . . .',
-                hintStyle: GoogleFonts.mali(color: Colors.grey.shade500),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 8.0,
-                  horizontal: 0.0,
-                ),
-              ),
-              style: GoogleFonts.mali(fontSize: 16),
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              print('ข้อความถูกส่ง!');
-            },
-            icon: Icon(Icons.send, color: _dynamicColor),
-            iconSize: 24,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    ),
-  );
 }
+
+class MessageInput extends StatefulWidget {
+  final Color dynamicColor;
+  final VoidCallback onButtonPressed;
+  final TextEditingController inputController;
+
+  const MessageInput({
+    required this.dynamicColor,
+    required this.onButtonPressed,
+    required this.inputController,
+    super.key,
+  });
+
+  @override
+  State<MessageInput> createState() => _MessageInputState();
+}
+
+class _MessageInputState extends State<MessageInput> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30),
+      child: TextFormField(
+        controller: widget.inputController,
+        decoration: InputDecoration(
+          hintText: 'พิมพ์ข้อความที่นี่ . . . .',
+          hintStyle: GoogleFonts.mali(
+            color: Color(0xFFC3C3C3),
+            fontWeight: FontWeight.w600,
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: widget.dynamicColor, width: 2),
+          ),
+          fillColor: Colors.white, // สีพื้นหลัง
+          filled: true,
+          suffixIcon: IconButton(
+            icon: Icon(Icons.send, color: widget.dynamicColor),
+            onPressed: widget.onButtonPressed,
+            iconSize: 24,
+          ),
+        ),
+        style: GoogleFonts.mali(fontSize: 16),
+      ),
+    );
+  }
 }
