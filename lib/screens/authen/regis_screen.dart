@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -266,109 +267,112 @@ Widget _buildStepContent({
   required VoidCallback onButtonPressed,
   required bool isLoading,
 }) {
-  return SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          margin: const EdgeInsets.only(top: 20.0),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(color: Colors.grey.shade300, width: 1),
-            ),
-            child: Text(
-              messageTopic,
-              style: GoogleFonts.mali(
-                fontSize: 18,
-                height: 2.0,
-                color: Color(0xFF464646),
+  return ZoomIn(
+    duration: Duration(milliseconds: 500),
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            margin: const EdgeInsets.only(top: 20.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.0),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
               ),
-              textAlign: TextAlign.center,
+              child: Text(
+                messageTopic,
+                style: GoogleFonts.mali(
+                  fontSize: 18,
+                  height: 2.0,
+                  color: Color(0xFF464646),
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 40.0),
-          child: Lottie.asset(
-            'assets/animations/runing.json',
-            height: 200,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.image_not_supported,
-                size: 100,
-                color: Colors.grey,
-              );
-            },
-          ),
-        ),
-
-        if (!isEnd)
           Container(
             margin: const EdgeInsets.only(top: 40.0),
-            child: Form(
-              key: formkey,
-              child: TextFormField(
-                controller: inputController,
-                validator: validator,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'[a-zA-Z0-9@._\-]'),
+            child: Lottie.asset(
+              'assets/animations/runing.json',
+              height: 200,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.image_not_supported,
+                  size: 100,
+                  color: Colors.grey,
+                );
+              },
+            ),
+          ),
+    
+          if (!isEnd)
+            Container(
+              margin: const EdgeInsets.only(top: 40.0),
+              child: Form(
+                key: formkey,
+                child: TextFormField(
+                  controller: inputController,
+                  validator: validator,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'[a-zA-Z0-9@._\-]'),
+                    ),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: hinttext,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 15.0,
+                      horizontal: 20.0,
+                    ),
                   ),
-                ],
-                decoration: InputDecoration(
-                  hintText: hinttext,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
+                  style: GoogleFonts.mali(fontSize: 16),
+                ),
+              ),
+            ),
+    
+          Container(
+            margin: EdgeInsets.only(top: 30.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: onButtonPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF78B465),
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 15.0,
-                    horizontal: 20.0,
-                  ),
+                  elevation: 0,
                 ),
-                style: GoogleFonts.mali(fontSize: 16),
-              ),
-            ),
-          ),
-
-        Container(
-          margin: EdgeInsets.only(top: 30.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: onButtonPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF78B465),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                elevation: 0,
-              ),
-              child:
-                  isLoading
-                      ? Lottie.asset('assets/animations/loading.json')
-                      : Text(
-                        buttonText,
-                        style: GoogleFonts.mali(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                child:
+                    isLoading
+                        ? Lottie.asset('assets/animations/loading.json')
+                        : Text(
+                          buttonText,
+                          style: GoogleFonts.mali(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+              ),
             ),
           ),
-        ),
-        Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
-      ],
+          Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
+        ],
+      ),
     ),
   );
 }

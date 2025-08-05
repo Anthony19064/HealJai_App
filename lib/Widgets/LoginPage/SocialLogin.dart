@@ -63,7 +63,7 @@ class _SocialLoginState extends State<Sociallogin> {
                   widget.text, 
                   style: GoogleFonts.mali(
                     color: Color(0xFF464646),
-                    fontSize: 16,
+                    fontSize: 19,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
