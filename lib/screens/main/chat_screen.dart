@@ -107,7 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Container(
           child: Column(
             children: [
-              SizedBox(height: MediaQuery.of(context).size.height * 0.015),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.030),
               ZoomIn(
                 duration: Duration(milliseconds: 500),
                 child: Column(
