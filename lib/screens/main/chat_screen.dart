@@ -1,8 +1,9 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
+import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
 import '../../service/socket.dart';
@@ -21,17 +22,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
   static const Color _moonColor = Color(0xFF7FD8EB);
   static const Color _sunColor = Color(0xFFFE9526);
-  static const Color _moonBgColor = Color(0xFFFFF7EB);
-  static const Color _sunBgColor = Color(0xFFFFF7EB);
+  static const Color _moonBgColor = Color(0xFF0C1A28);
+  static const Color _sunBgColor = Color(0xFF1D5B99);
 
-  Color get _dynamicColor => _currentPage == 0 ? _moonColor : _sunColor;
-  Color get _dynamicBgColor => _currentPage == 0 ? _moonBgColor : _sunBgColor;
-  String get _roleName => _currentPage == 0 ? 'พระจันทร์' : 'พระอาทิตย์';
+  Color get _dynamicColor => _currentPage == 0 ? _sunColor : _moonColor;
+  Color get _dynamicBgColor => _currentPage == 0 ? _sunBgColor : _moonBgColor;
+  String get _roleName => _currentPage == 0 ? 'พระอาทิตย์' : 'พระจันทร์';
 
   late final List<VoidCallback> _onMatchPressedCallbacks;
 
   final socket = SocketService();
   late final Chatprovider chatProvider;
+
+  StateMachineController? _controller;
+  SMIInput<double>? _stateNumInput;
 
   @override
   void initState() {
@@ -43,16 +47,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _onMatchPressedCallbacks = [
       () async {
-        await _showLoadingDialog(); // โชว์ Dialog
-        chatProvider.setRole('talker');
-        await socket.waitUntilConnected();
-        socket.matchChat("talker");
+        // await _showLoadingDialog(); // โชว์ Dialog
+        // chatProvider.setRole('talker');
+        // await socket.waitUntilConnected();
+        // socket.matchChat("talker");
+        context.go('/chat/room/moon');
       },
       () async {
-        await _showLoadingDialog(); // โชว์ Dialog
-        chatProvider.setRole('listener');
-        await socket.waitUntilConnected();
-        socket.matchChat("listener");
+        // await _showLoadingDialog(); // โชว์ Dialog
+        // chatProvider.setRole('listener');
+        // await socket.waitUntilConnected();
+        // socket.matchChat("listener");
+        context.go('/chat/room/sun');
       },
     ];
   }
@@ -70,6 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPage = index;
+      _stateNumInput?.value = index.toDouble();
     });
   }
 
@@ -144,9 +151,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _dynamicBgColor,
-      body: SafeArea(
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: _dynamicBgColor),
+      duration: const Duration(milliseconds: 2000),
+      builder: (context, color, child) {
+        return Scaffold(
+          backgroundColor: color,
+          body: child,
+          bottomNavigationBar: const BottomNavBar(),
+        );
+      },
+      child: SafeArea(
         child: Container(
           child: Column(
             children: [
@@ -155,17 +170,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 duration: Duration(milliseconds: 500),
                 child: Column(
                   children: [
-                    AnimatedDefaultTextStyle(
-                      duration: Duration(milliseconds: 300),
-                      style: GoogleFonts.mali(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: _dynamicColor,
-                      ),
-                      child: Text('แชทกับผู้ใช้'),
-                    ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.030,
+                      height: MediaQuery.of(context).size.height * 0.010,
                     ),
                     Container(
                       width: MediaQuery.of(context).size.width * 0.7,
@@ -200,33 +206,53 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
-
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05), // สูง 5%
+              ZoomIn(
+                duration: Duration(milliseconds: 500),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.35,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: RiveAnimation.asset(
+                    'assets/animations/Role.riv',
+                    onInit: (artboard) {
+                      final controller = StateMachineController.fromArtboard(
+                        artboard,
+                        'ChatHomeState',
+                      );
+                      if (controller != null) {
+                        artboard.addController(controller);
+                        _controller = controller;
+                
+                        _stateNumInput = controller.findInput<double>('StateNum');
+                        if (_stateNumInput == null) {
+                          print("❌ ไม่พบตัวแปร StateNum");
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05), // สูง 5%
               Container(
-                height: MediaQuery.of(context).size.height * 0.5,
+                height: 70,
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: _onPageChanged,
                   children: [
                     _buildRolePage(
-                      roleName: 'พระจันทร์',
-                      description:
-                          'พระจันทร์คือเพื่อนเล่าเรื่องของพระอาทิตย์ ทุกครั้งที่พระจันทร์มีเรื่องไม่สบายใจ หรืออยากปรึกษาอะไรอีกอย่าง พระจันทร์มักจะมาเล่าให้พระอาทิตย์ฟังเสมอ เพราะพระอาทิตย์คือเซฟโซนให้พระจันทร์เสมอมา',
-                      imagePath: 'assets/images/moon.png',
-                      bgColor: _moonBgColor,
+                      roleName: 'พระอาทิตย์',
+                      bgColor: _sunBgColor,
                       color: _dynamicColor,
                     ),
                     _buildRolePage(
-                      roleName: 'พระอาทิตย์',
-                      description:
-                          'พระอาทิตย์คือเพื่อนรับฟังของพระจันทร์เสมอมา พระอาทิตย์รับฟังเรื่องราวของพระจันทร์อย่างเข้าใจ พระอาทิตย์ก็จะไม่ตัดสินว่าพระจันทร์ถูกหรือผิด เพราะพระอาทิตย์คือเซฟโซนของพระจันทร์เสมอมา',
-                      imagePath: 'assets/images/sun.png',
-                      bgColor: _sunBgColor,
+                      roleName: 'พระจันทร์',
+                      bgColor: _moonBgColor,
                       color: _dynamicColor,
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 10),
+
               ZoomIn(
                 duration: Duration(milliseconds: 500),
                 child: Column(
@@ -276,14 +302,11 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(),
     );
   }
 
   Widget _buildRolePage({
     required String roleName,
-    required String description,
-    required String imagePath,
     required Color bgColor,
     required Color color,
   }) {
@@ -293,12 +316,6 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
           children: [
-            Image.asset(
-              imagePath,
-              height: MediaQuery.of(context).size.height * 0.25,
-              width: MediaQuery.of(context).size.width * 0.5,
-              fit: BoxFit.contain,
-            ),
             const SizedBox(height: 10),
             AnimatedDefaultTextStyle(
               duration: Duration(milliseconds: 300),
@@ -307,21 +324,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
-
               child: Text(roleName),
-            ),
-            const SizedBox(height: 30),
-            Text(
-              "   $description",
-              textAlign: TextAlign.left,
-
-              style: GoogleFonts.mali(
-                fontSize: 15,
-                color: const Color(0xFF464646),
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.5,
-                height: 2,
-              ),
             ),
           ],
         ),
