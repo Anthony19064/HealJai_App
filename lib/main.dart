@@ -23,6 +23,7 @@ import 'Widgets/header_section.dart';
 import 'providers/navProvider.dart';
 import 'providers/userProvider.dart';
 import 'providers/ResetProvider.dart';
+import 'providers/chatProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,9 +33,10 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => NavState()),
-        ChangeNotifierProvider(create: (_) => UserInfo()),
-        ChangeNotifierProvider(create: (_) => ResetInfo()),
+        ChangeNotifierProvider(create: (_) => Navprovider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => ResetProvider()),
+        ChangeNotifierProvider(create: (_) => Chatprovider()),
       ],
       child: const MyApp(),
     ),

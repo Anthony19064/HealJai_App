@@ -26,10 +26,9 @@ class _BottomNavState extends State<BottomNavBar> {
   }
 
   Widget build(BuildContext context) {
-    final navState = Provider.of<NavState>(context);
+    final navInfo = Provider.of<Navprovider>(context);
     
     return Container(
-        color: const Color(0xFFFFF7EB),
         child: Container(
           height: 60,
           margin: const EdgeInsets.only(bottom: 35, left: 20, right: 20),
@@ -45,11 +44,11 @@ class _BottomNavState extends State<BottomNavBar> {
                 Bottom_data.asMap().entries.map((entry) {
                   int index = entry.key;
                   var item = entry.value;
-                  bool isSelected = navState.selectedIndex == index;
+                  bool isSelected = navInfo.selectedIndex == index;
         
                   return GestureDetector(
                     onTap: () {
-                      navState.setIndex(index);
+                      navInfo.setIndex(index);
                       context.go(item['path']);
                     },
                     child: AnimatedContainer(

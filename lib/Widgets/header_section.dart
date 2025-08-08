@@ -22,7 +22,7 @@ class _HeaderSectionState extends State<HeaderSection> {
 
   @override
   Widget build(BuildContext context) {
-    final userInfo = Provider.of<UserInfo>(context);
+    final userInfo = Provider.of<UserProvider>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 10, bottom: 20),
