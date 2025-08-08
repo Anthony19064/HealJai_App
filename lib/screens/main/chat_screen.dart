@@ -2,8 +2,11 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
+import '../../service/socket.dart';
+import '../../providers/chatProvider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -27,29 +30,41 @@ class _ChatScreenState extends State<ChatScreen> {
 
   late final List<VoidCallback> _onMatchPressedCallbacks;
 
+  final socket = SocketService();
+  late final Chatprovider chatProvider;
+
   @override
   void initState() {
     super.initState();
+    chatProvider = Provider.of<Chatprovider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      socket.initSocket(context); // ทำงานหลังสร้าง Ui เสร็จ
+    });
+
     _onMatchPressedCallbacks = [
       () async {
-        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
-        await Future.delayed(const Duration(seconds: 2));
-        Navigator.of(context).pop();
-        context.go('/chat/room/moon');
+        await _showLoadingDialog(); // โชว์ Dialog
+        chatProvider.setRole('talker');
+        await socket.waitUntilConnected();
+        socket.matchChat("talker");
       },
       () async {
-        _showLoadingDialog(); // <<-- เรียกใช้เมธอดใหม่
-        await Future.delayed(const Duration(seconds: 2));
-        Navigator.of(context).pop();
-        context.go('/chat/room/sun');
+        await _showLoadingDialog(); // โชว์ Dialog
+        chatProvider.setRole('listener');
+        await socket.waitUntilConnected();
+        socket.matchChat("listener");
       },
     ];
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
+    _pageController.dispose();
+    socket.cancelMatch();
+    chatProvider.clearRoomId(notify: false);
+    chatProvider.clearRole(notify: false);
+    chatProvider.clearListMessage(notify: false);
   }
 
   void _onPageChanged(int index) {
@@ -59,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // **<<--- เพิ่มเมธอดใหม่สำหรับแสดง Loading dialog**
-  void _showLoadingDialog() {
+  Future<void> _showLoadingDialog() async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -71,24 +86,52 @@ class _ChatScreenState extends State<ChatScreen> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           child: Container(
+            width: double.infinity,
+            height: 300,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // **<<--- แก้ไข: เปลี่ยนสีของ CircularProgressIndicator**
+                SizedBox(height: 40),
                 CircularProgressIndicator(color: _dynamicColor),
-                const SizedBox(height: 20),
+                const SizedBox(height: 60),
                 Text(
-                  'กำลังจับคู่...',
+                  'กำลังจับคู่ให้น้าา ...',
                   style: GoogleFonts.mali(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     // **<<--- แก้ไข: เปลี่ยนสีของข้อความ**
                     color: _dynamicColor,
+                  ),
+                ),
+                SizedBox(height: 30),
+                GestureDetector(
+                  onTap: () {
+                    socket.cancelMatch();
+                    chatProvider.clearRole();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: 200,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFD7D7E),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "ยกเลิกจับคู่",
+                        style: GoogleFonts.mali(
+                          fontSize: 17,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],

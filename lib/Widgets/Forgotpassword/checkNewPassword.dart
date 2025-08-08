@@ -23,7 +23,7 @@ class _NewPasswordState extends State<NewPassword> {
 
   @override
   Widget build(BuildContext context) {
-    final resetProvider = Provider.of<ResetInfo>(context);
+    final resetInfo = Provider.of<ResetProvider>(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -192,7 +192,7 @@ class _NewPasswordState extends State<NewPassword> {
                               isLoading = true;
                             });
                             final data = await reset_Password(
-                              resetProvider.mail,
+                              resetInfo.mail,
                               _passwordController.text,
                             );
                             if (data['success']) {

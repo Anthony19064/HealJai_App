@@ -23,7 +23,7 @@ class _CheckEmailState extends State<CheckEmail> {
 
   @override
   Widget build(BuildContext context) {
-    final ResetProvider = Provider.of<ResetInfo>(context);
+    final ResetInfo = Provider.of<ResetProvider>(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -130,7 +130,7 @@ class _CheckEmailState extends State<CheckEmail> {
                             final data = await checkMail(_emailController.text);
 
                             if (data['success']) {
-                              ResetProvider.setMail(_emailController.text);
+                              ResetInfo.setMail(_emailController.text);
                               final status = await send_OTP(
                                 _emailController.text,
                               );

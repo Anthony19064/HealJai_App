@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class NavState extends ChangeNotifier {
+class Navprovider extends ChangeNotifier {
   int selectedIndex = 2; 
 
   void setIndex(int index) {

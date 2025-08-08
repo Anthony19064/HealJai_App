@@ -2,16 +2,10 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/chatProvider.dart';
 import 'package:intl/intl.dart';
-
-// โมเดลสำหรับข้อความแชท
-class ChatMessage {
-  final String text;
-  final String sender; // 'user' or 'partner'
-  final String time;
-
-  ChatMessage({required this.text, required this.sender, required this.time});
-}
+import 'package:provider/provider.dart';
+import '../service/socket.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String role;
@@ -26,24 +20,29 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late String _dynamicInfoText;
   final TextEditingController MessageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final Chatprovider chatProvider;
 
-  final List<ChatMessage> _messages =
-      [
-        ChatMessage(text: 'สวัสดี', sender: 'partner', time: '22:21 น.'),
-        ChatMessage(text: 'สวัสดีครับ', sender: 'user', time: '22:21 น.'),
-        ChatMessage(text: 'เป็นไงบ้าง', sender: 'partner', time: '22:22 น.'),
-        ChatMessage(text: 'ก็พอได้อยู่ครับ', sender: 'user', time: '22:22 น.'),
-      ].reversed.toList();
+  final socket = SocketService();
 
   @override
   void initState() {
     super.initState();
+    chatProvider = Provider.of<Chatprovider>(context, listen: false);
     _dynamicColor =
-        widget.role == 'moon' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
+        widget.role == 'talker' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
     _dynamicInfoText =
-        widget.role == 'moon'
+        widget.role == 'talker'
             ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
             : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    socket.endChat();
+    chatProvider.clearRoomId(notify: false);
+    chatProvider.clearRole(notify: false);
+    chatProvider.clearListMessage(notify: false);
   }
 
   Widget build(BuildContext context) {
@@ -56,10 +55,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => {
+                socket.endChat(),
+                chatProvider.clearRole(),
+                chatProvider.clearRoomId(),
+                chatProvider.clearListMessage(),
+                context.go('/chat'),
+              },
         ),
         title: Text(
-          widget.role == 'moon' ? 'พระจันทร์' : 'พระอาทิตย์',
+          widget.role == 'talker' ? 'พระจันทร์' : 'พระอาทิตย์',
           style: GoogleFonts.mali(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -96,19 +102,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
             SizedBox(height: 15),
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                reverse: true, // ทำให้ chat เริ่มจากข้างล่าง
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 0.0,
-                ),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[index];
-                  final isUser = message.sender == 'user';
-                  return _buildChatBubble(context, message, isUser);
+              child: Consumer<Chatprovider>(
+                builder: (context, chatProvider, child) {
+                  final _messages = chatProvider.messages.reversed.toList();
+                  return ListView.builder(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    reverse: true, // ทำให้ chat เริ่มจากข้างล่าง
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 0.0,
+                    ),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final obj_message = _messages[index];
+                      final isUser = obj_message.sender == 'user';
+                      return _buildChatBubble(context, obj_message, isUser);
+                    },
+                  );
                 },
               ),
             ),
@@ -117,20 +128,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               inputController: MessageController,
               dynamicColor: _dynamicColor,
               onButtonPressed: () async {
-                String timeNow = DateFormat('HH:mm').format(DateTime.now());
+                String time = DateFormat('HH:mm').format(DateTime.now());
+                final messageUser = MessageController.text;
+                final role = widget.role;
+                final roomId = chatProvider.roomId;
 
                 if (MessageController.text.trim().isNotEmpty) {
-                  setState(() {
-                    _messages.insert(
-                      0,
-                      ChatMessage(
-                        text: MessageController.text,
-                        sender: "user",
-                        time: '$timeNow น.',
-                      ),
-                    );
-                    MessageController.clear();
-                  });
+                  socket.sendMessage(roomId!, messageUser, time, role);
+                  chatProvider.addMessage(messageUser, "user", time);
+                  MessageController.clear();
                 }
               },
             ),
@@ -163,7 +169,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.person, color: Color(0xFFC0E0FF)),
+                      child: Icon(
+                        Icons.person,
+                        color: Color(0xFFC0E0FF),
+                      ), // icon รูปโปร
                     ),
                   ),
                 Container(

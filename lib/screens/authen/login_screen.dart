@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userInfo = Provider.of<UserInfo>(context);
+    final userInfo = Provider.of<UserProvider>(context);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,

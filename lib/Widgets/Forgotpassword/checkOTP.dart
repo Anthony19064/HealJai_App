@@ -24,7 +24,7 @@ class _CheckOTPState extends State<CheckOTP> {
 
   @override
   Widget build(BuildContext context) {
-    final resetProvider = Provider.of<ResetInfo>(context);
+    final ResetInfo = Provider.of<ResetProvider>(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -102,7 +102,7 @@ class _CheckOTPState extends State<CheckOTP> {
                               isLoading = true;
                             });
                             final data = await verify_OTP(
-                              resetProvider.mail,
+                              ResetInfo.mail,
                               _OTPController.text,
                             );
                             if (data['success']) {
@@ -188,7 +188,7 @@ class _CheckOTPState extends State<CheckOTP> {
                     setState(() {
                       isLoading = true;
                     });
-                    final data = await send_OTP(resetProvider.mail);
+                    final data = await send_OTP(ResetInfo.mail);
                     if (data['success']) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
