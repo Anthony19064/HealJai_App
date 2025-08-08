@@ -43,7 +43,7 @@ class CustomExitDialog extends StatelessWidget {
               imagePath,
               height: 80,
               width: 80,
-              errorBuilder: (context, error, stackTrace) {
+              errorBuilder: (context, error, stackTrace) { //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
                 return Icon(Icons.sentiment_dissatisfied,
                     size: 80, color: primaryColor);
               },

@@ -48,8 +48,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Future<void> _showExitConfirmationDialog() async {
     // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
     final String imagePath = widget.role == 'talker'
-        ? 'assets/images/sad_moon.png' 
-        : 'assets/images/sad_sun.png'; 
+        ? 'assets/images/moon.png' 
+        : 'assets/images/sunsss.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
     final Color primaryColor = _dynamicColor;
 
     return showDialog<void>(
