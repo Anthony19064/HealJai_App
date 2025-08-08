@@ -51,14 +51,14 @@ class _ChatScreenState extends State<ChatScreen> {
         // chatProvider.setRole('talker');
         // await socket.waitUntilConnected();
         // socket.matchChat("talker");
-        context.go('/chat/room/moon');
+        context.go('/chat/room/listener');
       },
       () async {
         // await _showLoadingDialog(); // โชว์ Dialog
         // chatProvider.setRole('listener');
         // await socket.waitUntilConnected();
         // socket.matchChat("listener");
-        context.go('/chat/room/sun');
+        context.go('/chat/room/talker');
       },
     ];
   }
