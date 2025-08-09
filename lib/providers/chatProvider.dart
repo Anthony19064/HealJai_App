@@ -18,11 +18,13 @@ class Chatprovider extends ChangeNotifier {
 
   void setRoomId(String id) {
     roomId = id;
+    print(roomId);
     notifyListeners();
   }
 
   void setRole(String roleUser) {
     role = roleUser;
+    print(role);
     notifyListeners();
   }
 
