@@ -206,7 +206,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05), // สูง 5%
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05,
+              ), // สูง 5%
               ZoomIn(
                 duration: Duration(milliseconds: 500),
                 child: SizedBox(
@@ -222,8 +224,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (controller != null) {
                         artboard.addController(controller);
                         _controller = controller;
-                
-                        _stateNumInput = controller.findInput<double>('StateNum');
+
+                        _stateNumInput = controller.findInput<double>(
+                          'StateNum',
+                        );
                         if (_stateNumInput == null) {
                           print("❌ ไม่พบตัวแปร StateNum");
                         }
@@ -232,7 +236,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05), // สูง 5%
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05,
+              ), // สูง 5%
               Container(
                 height: 70,
                 child: PageView(

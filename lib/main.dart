@@ -114,7 +114,8 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'room/:role', // หน้าแชทจริงพร้อม path parameter
           pageBuilder: (context, state) {
-            final role = state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
+            final role =
+                state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
             return NoTransitionPage(child: ChatRoomScreen(role: role));
           },
         ),
