@@ -11,16 +11,19 @@ String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
-
   factory SocketService() => _instance;
-
   SocketService._internal();
 
   late IO.Socket _socket;
+  bool _isInitialized = false;
 
   void initSocket(BuildContext context) {
+    if (_isInitialized) {
+      print('Socket already initialized');
+      return;
+    }
+
     final chatProvider = context.read<Chatprovider>();
-    final navigator = Navigator.of(context);
     final router = GoRouter.of(context);
 
     _socket = IO.io(apiURL, <String, dynamic>{
@@ -37,21 +40,20 @@ class SocketService {
     _socket.on('matched', (roomId) {
       final role = chatProvider.role;
       chatProvider.setRoomId(roomId); // บันทึก roomId
-      if (navigator.canPop()) {
-        navigator.pop(); // ปิด dialog
+      if (router.canPop()) {
+        router.pop(); // ปิด dialog
       }
       Future.microtask(() {
         router.go('/chat/room/$role'); // ไปหน้าแชทตาม Role
       });
     });
 
-    _socket.on('receiveMessage', (data){
+    _socket.on('receiveMessage', (data) {
       print('ได้รับข้อความ');
       final message = data['message'];
       final Sender = data['sender'];
       final time = data['time'];
       chatProvider.addMessage(message, Sender, time);
-
     });
 
     _socket.on('chatDisconnected', (_) {
@@ -71,13 +73,25 @@ class SocketService {
     });
   }
 
+  void dispose() {
+    if (_isInitialized) {
+      _socket.off('connect');
+      _socket.off('matched');
+      _socket.off('receiveMessage');
+      _socket.off('chatDisconnected');
+      _socket.disconnect();
+      _isInitialized = false;
+      print('🧹 Socket disposed');
+    }
+  }
+
   //ส่งข้อความ
   void sendMessage(String roomId, String message, String time, String role) {
-    _socket.emit('sendMessage',{
+    _socket.emit('sendMessage', {
       'roomId': roomId,
       'message': message,
-      'time' : time,
-      'role' : role
+      'time': time,
+      'role': role,
     });
   }
 
@@ -89,6 +103,7 @@ class SocketService {
 
   //ยกเลิกจับคู่
   void cancelMatch() {
+    print('ยกเลิกจับคู่แล้ว');
     _socket.emit('cancleRegister');
   }
 
