@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import 'package:healjai_project/Widgets/WelcomeSection.dart';
+import '../../Widgets/WelcomeSection.dart';
+import '../../Widgets/DailyActivityCard.dart';
+
 
 
 
@@ -62,6 +65,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   CarouselController.animateToPage(index);
                 },
               ),
+              SizedBox(height: 10),
+              Text(
+                "กิจกรรมประจำวัน",
+                style: GoogleFonts.mali(
+                  color: Color(0xFF78B465),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                ),
+              ),
+              SizedBox(height: 10),
+              // ใช้ Row สำหรับกิจกรรม
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // ใช้ DailyActivityCard แทน _buildActivityCard
+                  DailyActivityCard(title: 'บันทึกอารมณ์', icon: Icons.sentiment_satisfied),
+                  DailyActivityCard(title: 'กิจกรรม', icon: Icons.add_box),
+                  DailyActivityCard(title: 'แจ้งเตือน', icon: Icons.notifications),
+                ],
+              ),
             ],
           ),
         ),
@@ -69,5 +92,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-
