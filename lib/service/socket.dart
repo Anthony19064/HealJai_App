@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +18,6 @@ class SocketService {
 
   void initSocket(BuildContext context) {
     if (_isInitialized) {
-      print('Socket already initialized');
       return;
     }
 
@@ -33,23 +31,23 @@ class SocketService {
 
     _socket.connect();
 
-    _socket.on('connect', (_) {
-      print('✅ Socket connected');
-    });
-
     _socket.on('matched', (roomId) {
       final role = chatProvider.role;
+
+      //clearค่าเก่า
+      chatProvider.clearRoomId(notify: false);
+      chatProvider.clearListMessage(notify: false);
+
       chatProvider.setRoomId(roomId); // บันทึก roomId
       if (router.canPop()) {
         router.pop(); // ปิด dialog
       }
       Future.microtask(() {
-        router.go('/chat/room/$role'); // ไปหน้าแชทตาม Role
+        router.push('/chat/room/$role'); // ไปหน้าแชทตาม Role
       });
     });
 
     _socket.on('receiveMessage', (data) {
-      print('ได้รับข้อความ');
       final message = data['message'];
       final Sender = data['sender'];
       final time = data['time'];
@@ -57,7 +55,6 @@ class SocketService {
     });
 
     _socket.on('chatDisconnected', (_) {
-      print('จบบทสนทนาจากอีกฝั่ง');
       chatProvider.clearRoomId();
       chatProvider.clearListMessage();
       chatProvider.clearRole();
@@ -71,6 +68,8 @@ class SocketService {
     _socket.onDisconnect((_) {
       print('⚠️ Socket disconnected');
     });
+
+    _isInitialized = true; // ป้องกันการ register event handler ซ้ำ
   }
 
   void dispose() {
@@ -97,26 +96,17 @@ class SocketService {
 
   //จับคู่แชท
   void matchChat(String role) {
-    print('กำลังจับคู่');
     _socket.emit('register', role);
   }
 
   //ยกเลิกจับคู่
   void cancelMatch() {
-    print('ยกเลิกจับคู่แล้ว');
-    _socket.emit('cancleRegister');
+    _socket.emit('cancelRegister');
   }
 
   //จบบทสนทนา
   void endChat() {
     _socket.emit('endChat');
-  }
-
-  //ตัดการเชื่อมต่อกับ socket.io
-  void disconnect() {
-    if (_socket.connected) {
-      _socket.disconnect();
-    }
   }
 
   bool get isConnected => _socket.connected; // ✅ เช็คว่าเชื่อมแล้วไหม

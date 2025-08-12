@@ -55,14 +55,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed:
-              () => {
-                socket.endChat(),
-                chatProvider.clearRole(),
-                chatProvider.clearRoomId(),
-                chatProvider.clearListMessage(),
-                context.go('/chat'),
-              },
+          onPressed: () {
+            socket.endChat(); // จบบทสนทนา
+            chatProvider.clearRoomId(notify: false);
+            chatProvider.clearRole(notify: false);
+            chatProvider.clearListMessage(notify: false);
+            context.pop();
+          },
         ),
         title: Text(
           widget.role == 'talker' ? 'พระจันทร์' : 'พระอาทิตย์',

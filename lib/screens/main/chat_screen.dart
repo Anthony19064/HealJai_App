@@ -66,6 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
     _pageController.dispose();
     socket.cancelMatch();
+    socket.dispose(); // ปิด socket และ unregister event handler
     chatProvider.clearRoomId(notify: false);
     chatProvider.clearRole(notify: false);
     chatProvider.clearListMessage(notify: false);
@@ -184,7 +185,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             if (controller != null) {
                               artboard.addController(controller);
                               _controller = controller;
-                      
+
                               _stateNumInput = controller.findInput<double>(
                                 'State',
                               );
