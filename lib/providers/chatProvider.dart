@@ -18,18 +18,15 @@ class Chatprovider extends ChangeNotifier {
 
   void setRoomId(String id) {
     roomId = id;
-    print(roomId);
     notifyListeners();
   }
 
   void setRole(String roleUser) {
     role = roleUser;
-    print(role);
     notifyListeners();
   }
 
   void addMessage(String message,String Sender, String time) {
-    print('addMessage called: $message at $time');
     _messages.add(ChatMessage(text: message, sender: Sender, time: '$time น.'));
     notifyListeners();
   }
@@ -37,18 +34,15 @@ class Chatprovider extends ChangeNotifier {
   void clearRoomId({bool notify = true}) {
     roomId = null;
     if (notify) notifyListeners();
-    // print(roomId);
   }
 
   void clearRole({bool notify = true}) {
     role = null;
     if (notify) notifyListeners();
-    // print(roomId);
   }
 
   void clearListMessage({bool notify = true}){
     _messages = [];
     if (notify) notifyListeners();
-    // print(_messages);
   }
 }
