@@ -238,7 +238,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: _dynamicColor,
                               fontWeight: FontWeight.w700,
                             ),
-                            child: Text('เลือกบทบาทของคุณ :)'),
+                            child: Text('เลือกบทบาทของคุณ'),
                           ),
                         ),
                       ],
