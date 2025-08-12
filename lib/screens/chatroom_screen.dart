@@ -49,7 +49,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
     final String imagePath = widget.role == 'talker'
         ? 'assets/images/moon.png' 
-        : 'assets/images/sunsss.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
+        : 'assets/images/sun.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
     final Color primaryColor = _dynamicColor;
 
     return showDialog<void>(
@@ -71,7 +71,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
             // ปิด Dialog ก่อน แล้วค่อยเปลี่ยนหน้า
             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-            if (context.mounted) context.go('/chat');
+            if (context.mounted) context.pop();
           },
         );
       },

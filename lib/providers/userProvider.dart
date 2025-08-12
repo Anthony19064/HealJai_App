@@ -7,7 +7,7 @@ class UserProvider extends ChangeNotifier {
   String? userMail;
   String? userPhoto;
 
-  UserInfo() {
+  UserProvider() {
     setUserInfo();
   }
 
