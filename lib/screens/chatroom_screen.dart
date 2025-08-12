@@ -6,6 +6,7 @@ import 'package:healjai_project/providers/chatProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../service/socket.dart';
+import '../Widgets/chatroompage/custom_dialogpopup.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String role;
@@ -30,10 +31,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     chatProvider = Provider.of<Chatprovider>(context, listen: false);
     _dynamicColor =
         widget.role == 'talker' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
-    _dynamicInfoText =
-        widget.role == 'talker'
-            ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
-            : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
+    _dynamicInfoText = widget.role == 'talker'
+        ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
+        : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
   }
 
   @override
@@ -45,106 +45,140 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     chatProvider.clearListMessage(notify: false);
   }
 
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFFFF7EB),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            socket.endChat(); // จบบทสนทนา
-            chatProvider.clearRoomId(notify: false);
-            chatProvider.clearRole(notify: false);
-            chatProvider.clearListMessage(notify: false);
-            context.pop();
+  Future<void> _showExitConfirmationDialog() async {
+    // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
+    final String imagePath = widget.role == 'talker'
+        ? 'assets/images/moon.png' 
+        : 'assets/images/sunsss.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
+    final Color primaryColor = _dynamicColor;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // อนุญาตให้กดข้างนอกเพื่อปิดได้
+      builder: (BuildContext dialogContext) {
+        return CustomExitDialog(
+          imagePath: imagePath,
+          primaryColor: primaryColor,
+          onCancel: () {
+            Navigator.of(dialogContext).pop(); // ปิด Dialog
           },
-        ),
-        title: Text(
-          widget.role == 'talker' ? 'พระจันทร์' : 'พระอาทิตย์',
-          style: GoogleFonts.mali(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: _dynamicColor, // <<--- ใช้สี dynamic
+          onConfirm: () {
+            // ทำ Action เดิม
+            socket.endChat();
+            chatProvider.clearRole();
+            chatProvider.clearRoomId();
+            chatProvider.clearListMessage();
+
+            // ปิด Dialog ก่อน แล้วค่อยเปลี่ยนหน้า
+            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+            if (context.mounted) context.go('/chat');
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        _showExitConfirmationDialog();
+        // ไม่ต้องทำอะไรอัตโนมัติ
+        return false;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        backgroundColor: const Color(0xFFFFF7EB),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            onPressed: _showExitConfirmationDialog,
           ),
+          title: Text(
+            widget.role == 'talker' ? 'พระจันทร์' : 'พระอาทิตย์',
+            style: GoogleFonts.mali(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: _dynamicColor,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: _dynamicColor, // <<--- ใช้สี dynamic
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: Text(
-                _dynamicInfoText, // <<--- ใช้ข้อความ dynamic
-                textAlign: TextAlign.center,
-                style: GoogleFonts.mali(
-                  fontSize: 12,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
+        body: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: _dynamicColor,
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: Text(
+                  _dynamicInfoText,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.mali(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 15),
-            Expanded(
-              child: Consumer<Chatprovider>(
-                builder: (context, chatProvider, child) {
-                  final _messages = chatProvider.messages.reversed.toList();
-                  return ListView.builder(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    reverse: true, // ทำให้ chat เริ่มจากข้างล่าง
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 0.0,
-                    ),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final obj_message = _messages[index];
-                      final isUser = obj_message.sender == 'user';
-                      return _buildChatBubble(context, obj_message, isUser);
-                    },
-                  );
+              SizedBox(height: 15),
+              Expanded(
+                child: Consumer<Chatprovider>(
+                  builder: (context, chatProvider, child) {
+                    final _messages = chatProvider.messages.reversed.toList();
+                    return ListView.builder(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 0.0,
+                      ),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final obj_message = _messages[index];
+                        final isUser = obj_message.sender == 'user';
+                        return _buildChatBubble(context, obj_message, isUser);
+                      },
+                    );
+                  },
+                ),
+              ),
+              MessageInput(
+                inputController: MessageController,
+                dynamicColor: _dynamicColor,
+                onButtonPressed: () async {
+                  String time = DateFormat('HH:mm').format(DateTime.now());
+                  final messageUser = MessageController.text;
+                  final role = widget.role;
+                  final roomId = chatProvider.roomId;
+
+                  if (MessageController.text.trim().isNotEmpty) {
+                    socket.sendMessage(roomId!, messageUser, time, role);
+                    chatProvider.addMessage(messageUser, "user", time);
+                    MessageController.clear();
+                  }
                 },
               ),
-            ),
-
-            MessageInput(
-              inputController: MessageController,
-              dynamicColor: _dynamicColor,
-              onButtonPressed: () async {
-                String time = DateFormat('HH:mm').format(DateTime.now());
-                final messageUser = MessageController.text;
-                final role = widget.role;
-                final roomId = chatProvider.roomId;
-
-                if (MessageController.text.trim().isNotEmpty) {
-                  socket.sendMessage(roomId!, messageUser, time, role);
-                  chatProvider.addMessage(messageUser, "user", time);
-                  MessageController.clear();
-                }
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-
+// ข้อความ
   Widget _buildChatBubble(
     BuildContext context,
     ChatMessage message,
@@ -171,7 +205,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       child: Icon(
                         Icons.person,
                         color: Color(0xFFC0E0FF),
-                      ), // icon รูปโปร
+                      ),
                     ),
                   ),
                 Container(
@@ -183,10 +217,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     vertical: 12.0,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        isUser
-                            ? _dynamicColor
-                            : Colors.white, // <<--- ใช้สี dynamic
+                    color: isUser ? _dynamicColor : Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   child: Text(
@@ -222,6 +253,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 }
 
+//ช่องกรอกข้อความ
 class MessageInput extends StatefulWidget {
   final Color dynamicColor;
   final VoidCallback onButtonPressed;
@@ -242,7 +274,6 @@ class _MessageInputState extends State<MessageInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30),
       margin: EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 10),
       child: TextFormField(
         controller: widget.inputController,
@@ -265,7 +296,7 @@ class _MessageInputState extends State<MessageInput> {
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide(color: widget.dynamicColor, width: 2),
           ),
-          fillColor: Colors.white, // สีพื้นหลัง
+          fillColor: Colors.white,
           filled: true,
           suffixIcon: IconButton(
             icon: Icon(Icons.send, color: widget.dynamicColor),
@@ -278,3 +309,4 @@ class _MessageInputState extends State<MessageInput> {
     );
   }
 }
+
