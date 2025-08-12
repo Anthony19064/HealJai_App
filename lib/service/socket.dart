@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -11,16 +10,18 @@ String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
-
   factory SocketService() => _instance;
-
   SocketService._internal();
 
   late IO.Socket _socket;
+  bool _isInitialized = false;
 
   void initSocket(BuildContext context) {
+    if (_isInitialized) {
+      return;
+    }
+
     final chatProvider = context.read<Chatprovider>();
-    final navigator = Navigator.of(context);
     final router = GoRouter.of(context);
 
     _socket = IO.io(apiURL, <String, dynamic>{
@@ -30,32 +31,30 @@ class SocketService {
 
     _socket.connect();
 
-    _socket.on('connect', (_) {
-      print('✅ Socket connected');
-    });
-
     _socket.on('matched', (roomId) {
       final role = chatProvider.role;
+
+      //clearค่าเก่า
+      chatProvider.clearRoomId(notify: false);
+      chatProvider.clearListMessage(notify: false);
+
       chatProvider.setRoomId(roomId); // บันทึก roomId
-      if (navigator.canPop()) {
-        navigator.pop(); // ปิด dialog
+      if (router.canPop()) {
+        router.pop(); // ปิด dialog
       }
       Future.microtask(() {
-        router.go('/chat/room/$role'); // ไปหน้าแชทตาม Role
+        router.push('/chat/room/$role'); // ไปหน้าแชทตาม Role
       });
     });
 
-    _socket.on('receiveMessage', (data){
-      print('ได้รับข้อความ');
+    _socket.on('receiveMessage', (data) {
       final message = data['message'];
       final Sender = data['sender'];
       final time = data['time'];
       chatProvider.addMessage(message, Sender, time);
-
     });
 
     _socket.on('chatDisconnected', (_) {
-      print('จบบทสนทนาจากอีกฝั่ง');
       chatProvider.clearRoomId();
       chatProvider.clearListMessage();
       chatProvider.clearRole();
@@ -69,39 +68,45 @@ class SocketService {
     _socket.onDisconnect((_) {
       print('⚠️ Socket disconnected');
     });
+
+    _isInitialized = true; // ป้องกันการ register event handler ซ้ำ
+  }
+
+  void dispose() {
+    if (_isInitialized) {
+      _socket.off('connect');
+      _socket.off('matched');
+      _socket.off('receiveMessage');
+      _socket.off('chatDisconnected');
+      _socket.disconnect();
+      _isInitialized = false;
+      print('🧹 Socket disposed');
+    }
   }
 
   //ส่งข้อความ
   void sendMessage(String roomId, String message, String time, String role) {
-    _socket.emit('sendMessage',{
+    _socket.emit('sendMessage', {
       'roomId': roomId,
       'message': message,
-      'time' : time,
-      'role' : role
+      'time': time,
+      'role': role,
     });
   }
 
   //จับคู่แชท
   void matchChat(String role) {
-    print('กำลังจับคู่');
     _socket.emit('register', role);
   }
 
   //ยกเลิกจับคู่
   void cancelMatch() {
-    _socket.emit('cancleRegister');
+    _socket.emit('cancelRegister');
   }
 
   //จบบทสนทนา
   void endChat() {
     _socket.emit('endChat');
-  }
-
-  //ตัดการเชื่อมต่อกับ socket.io
-  void disconnect() {
-    if (_socket.connected) {
-      _socket.disconnect();
-    }
   }
 
   bool get isConnected => _socket.connected; // ✅ เช็คว่าเชื่อมแล้วไหม
