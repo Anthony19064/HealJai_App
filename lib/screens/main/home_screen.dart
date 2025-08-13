@@ -4,11 +4,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+
 import '../../Widgets/WelcomeSection.dart';
-import '../../Widgets/DailyActivityCard.dart';
-
-
-
+import '../../Widgets/activities_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,74 +16,54 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   int activeIndex = 0;
-  CarouselSliderController CarouselController = CarouselSliderController();
-
+  final CarouselSliderController _carouselController = CarouselSliderController();
+  @override
   Widget build(BuildContext context) {
-
     return ZoomIn(
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       child: Container(
-        margin: EdgeInsets.only(top: 25),
-        child: FractionallySizedBox(
-          widthFactor: 0.9,
-          child: Column(
-            children: [
-              CarouselSlider.builder(
-                carouselController: CarouselController,
-                itemCount: welcomeSlideList.length,
-                itemBuilder: (context, index, realIndex) {
-                  return welcomeSlideList[index];
-                },
-                options: CarouselOptions(
-                  height: 300,
-                  autoPlay: true,
-                  viewportFraction: 1.0,
-                  enlargeCenterPage: false,
-                  onPageChanged:
-                      (index, reason) => setState(() => activeIndex = index),
+        margin: const EdgeInsets.only(top: 25),
+        child: SingleChildScrollView(
+          child: FractionallySizedBox(
+            widthFactor: 0.9,
+            child: Column(
+              children: [
+                CarouselSlider.builder(
+                  carouselController: _carouselController,
+                  itemCount: welcomeSlideList.length,
+                  itemBuilder: (context, index, realIndex) {
+                    return welcomeSlideList[index];
+                  },
+                  options: CarouselOptions(
+                    height: 300,
+                    autoPlay: true,
+                    viewportFraction: 1.0,
+                    enlargeCenterPage: false,
+                    onPageChanged: (index, reason) =>
+                        setState(() => activeIndex = index),
+                  ),
                 ),
-              ),
-              SizedBox(height: 20),
-              AnimatedSmoothIndicator(
-                activeIndex: activeIndex,
-                count: welcomeSlideList.length,
-                effect: WormEffect(
-                  dotHeight: 12,
-                  dotWidth: 12,
-                  activeDotColor: Color(0xFF78B465),
-                  dotColor: Colors.grey.shade300,
+                const SizedBox(height: 20),
+                AnimatedSmoothIndicator(
+                  activeIndex: activeIndex,
+                  count: welcomeSlideList.length,
+                  effect: WormEffect(
+                    dotHeight: 12,
+                    dotWidth: 12,
+                    activeDotColor: const Color(0xFF78B465),
+                    dotColor: Colors.grey.shade300,
+                  ),
+                  onDotClicked: (index) {
+                    _carouselController.animateToPage(index);
+                  },
                 ),
-                onDotClicked: (index) {
-                  CarouselController.animateToPage(index);
-                },
-              ),
-              SizedBox(height: 10),
-              Text(
-                "กิจกรรมประจำวัน",
-                style: GoogleFonts.mali(
-                  color: Color(0xFF78B465),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                ),
-              ),
-              SizedBox(height: 10),
-              // ใช้ Row สำหรับกิจกรรม
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // ใช้ DailyActivityCard แทน _buildActivityCard
-                  DailyActivityCard(title: 'บันทึกอารมณ์', icon: Icons.sentiment_satisfied),
-                  DailyActivityCard(title: 'กิจกรรม', icon: Icons.add_box),
-                  DailyActivityCard(title: 'แจ้งเตือน', icon: Icons.notifications),
-                ],
-              ),
-            ],
+                const SizedBox(height: 20),
+                
+                // 👇 3. เรียกใช้ Class Widget ใหม่ที่เราสร้างขึ้น
+                const ActivitiesSection(),
+              ],
+            ),
           ),
         ),
       ),
