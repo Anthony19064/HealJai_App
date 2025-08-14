@@ -52,23 +52,25 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: current_page != 4? IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (current_page == 0) {
-              context.pop();
-            } else {
-              _pageController.previousPage(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeIn,
-              );
-            }
-          },
-        ) : IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.transparent),
-          onPressed: () {
-          },
-        ),
+        leading:
+            current_page != 4
+                ? IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () {
+                    if (current_page == 0) {
+                      context.pop();
+                    } else {
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeIn,
+                      );
+                    }
+                  },
+                )
+                : IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.transparent),
+                  onPressed: () {},
+                ),
       ),
       body: PageView(
         controller: _pageController,
@@ -79,7 +81,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
           });
         },
         children: [
-          _buildStepContent(
+          StepContent(
             messageTopic: "ฮัลโหลล ~\nชื่อของเธอคืออะไรหรอ ?",
             formkey: _formKeyUsername,
             inputController: _usernameController,
@@ -106,8 +108,9 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               return null;
             },
             isLoading: isLoading,
+            isPassword: false,
           ),
-          _buildStepContent(
+          StepContent(
             messageTopic: "ขออีเมลเธอหน่อยได้ไหม\nเอาไว้ติดต่อเรื่องสำคัญน่ะ",
             formkey: _formKeyEmail,
             inputController: _emailController,
@@ -134,8 +137,9 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               return null;
             },
             isLoading: isLoading,
+            isPassword: false,
           ),
-          _buildStepContent(
+          StepContent(
             messageTopic: "มาตั้งรหัสผ่านกัน\nเอาแบบลับขั้นสุดยอดเลยนะ",
             formkey: _formKeyPassword,
             inputController: _passwordController,
@@ -159,8 +163,9 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               return null;
             },
             isLoading: isLoading,
+            isPassword: true,
           ),
-          _buildStepContent(
+          StepContent(
             messageTopic: "มาลองทวนรหัสผ่านเมื่อกี้กัน\nเผื่อเธอลืมน่ะ XD",
             formkey: _formKeyCPassword,
             inputController: _confirmPasswordController,
@@ -220,7 +225,6 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
                 setState(() {
                   isLoading = false;
                 });
-
               }
             },
             validator: (value) {
@@ -236,8 +240,9 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
               return null;
             },
             isLoading: isLoading,
+            isPassword: true,
           ),
-          _buildStepContent(
+          StepContent(
             messageTopic:
                 "เยี่ยมเลยตอนนี้เรารู้จักกันแล้วนะ\nไปลองล็อคอินกัน !!",
             formkey: null,
@@ -249,6 +254,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
             },
             isEnd: true,
             isLoading: isLoading,
+            isPassword: false,
           ),
         ],
       ),
@@ -256,123 +262,168 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
   }
 }
 
-Widget _buildStepContent({
-  bool isEnd = false,
-  required String messageTopic,
-  required GlobalKey? formkey,
-  required TextEditingController? inputController,
-  FormFieldValidator<String>? validator,
-  required String hinttext,
-  required String buttonText,
-  required VoidCallback onButtonPressed,
-  required bool isLoading,
-}) {
-  return ZoomIn(
-    duration: Duration(milliseconds: 500),
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(top: 20.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20.0),
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-              ),
-              child: Text(
-                messageTopic,
-                style: GoogleFonts.mali(
-                  fontSize: 18,
-                  height: 2.0,
-                  color: Color(0xFF464646),
+
+class StepContent extends StatefulWidget {
+  final String messageTopic;
+  final GlobalKey? formkey;
+  final TextEditingController? inputController;
+  final FormFieldValidator<String>? validator;
+  final String hinttext;
+  final String buttonText;
+  final VoidCallback onButtonPressed;
+  final bool isEnd;
+  final bool isLoading;
+  final bool isPassword;
+
+  const StepContent({
+    super.key,
+    required this.messageTopic,
+    required this.formkey,
+    required this.inputController,
+    this.validator = null,
+    required this.hinttext,
+    required this.buttonText,
+    required this.onButtonPressed,
+    this.isEnd = false,
+    required this.isLoading,
+    required this.isPassword,
+  });
+
+  @override
+  State<StepContent> createState() => _StepContentState();
+}
+
+class _StepContentState extends State<StepContent> {
+  bool passwordState = true;
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return ZoomIn(
+      duration: Duration(milliseconds: 500),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              margin: const EdgeInsets.only(top: 20.0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  widget.messageTopic,
+                  style: GoogleFonts.mali(
+                    fontSize: 18,
+                    height: 2.0,
+                    color: Color(0xFF464646),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(top: 40.0),
-            child: Lottie.asset(
-              'assets/animations/runing.json',
-              height: 200,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.image_not_supported,
-                  size: 100,
-                  color: Colors.grey,
-                );
-              },
-            ),
-          ),
-    
-          if (!isEnd)
             Container(
               margin: const EdgeInsets.only(top: 40.0),
-              child: Form(
-                key: formkey,
-                child: TextFormField(
-                  controller: inputController,
-                  validator: validator,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[a-zA-Z0-9@._\-]'),
+              child: Lottie.asset(
+                'assets/animations/runing.json',
+                height: 200,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.image_not_supported,
+                    size: 100,
+                    color: Colors.grey,
+                  );
+                },
+              ),
+            ),
+
+            if (!widget.isEnd)
+              Container(
+                margin: const EdgeInsets.only(top: 40.0),
+                child: Form(
+                  key: widget.formkey,
+                  child: TextFormField(
+                    obscureText: widget.isPassword ? passwordState : false,
+                    controller: widget.inputController,
+                    validator: widget.validator,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-Z0-9@._\-]'),
+                      ),
+                    ],
+                    decoration: InputDecoration(
+                      hintText: widget.hinttext,
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 15.0,
+                        horizontal: 20.0,
+                      ),
+
+                      suffixIcon:
+                          widget.isPassword
+                              ? IconButton(
+                                icon: Icon(
+                                  passwordState
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Color(0xFF5C5C5C),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordState = !passwordState;
+                                  });
+                                },
+                              )
+                              : null,
                     ),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: hinttext,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
+                    style: GoogleFonts.mali(fontSize: 16),
+                  ),
+                ),
+              ),
+
+            Container(
+              margin: EdgeInsets.only(top: 30.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: widget.onButtonPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF78B465),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 15.0,
-                      horizontal: 20.0,
-                    ),
+                    elevation: 0,
                   ),
-                  style: GoogleFonts.mali(fontSize: 16),
-                ),
-              ),
-            ),
-    
-          Container(
-            margin: EdgeInsets.only(top: 30.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: onButtonPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF78B465),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  elevation: 0,
-                ),
-                child:
-                    isLoading
-                        ? Lottie.asset('assets/animations/loading.json')
-                        : Text(
-                          buttonText,
-                          style: GoogleFonts.mali(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                  child:
+                      widget.isLoading
+                          ? Lottie.asset('assets/animations/loading.json')
+                          : Text(
+                            widget.buttonText,
+                            style: GoogleFonts.mali(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                ),
               ),
             ),
-          ),
-          Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
-        ],
+            Container(height: 40, margin: const EdgeInsets.only(bottom: 0.0)),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

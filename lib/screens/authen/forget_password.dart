@@ -17,6 +17,7 @@ class ForgetPassword extends StatefulWidget {
 class _ForgetPasswordState extends State<ForgetPassword> {
   final PageController _pageController = PageController();
   late final List<Widget> _pages;
+  int current_page = 0;
 
   @override
   void initState() {
@@ -38,16 +39,27 @@ class _ForgetPasswordState extends State<ForgetPassword> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            context.go('/login');
-          },
-        ),
+        leading:
+            current_page != 3
+                ? IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () {
+                    context.go('/login');
+                  },
+                )
+                : IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.transparent),
+                  onPressed: () {},
+                ),
       ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() {
+            current_page = index;
+          });
+        },
         children: _pages,
       ),
     );

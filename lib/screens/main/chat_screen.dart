@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
 import 'package:healjai_project/Widgets/bottom_nav.dart';
-import '../../service/socket.dart';
-import '../../providers/chatProvider.dart';
+import 'package:healjai_project/service/socket.dart';
+import 'package:healjai_project/providers/chatProvider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -26,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   static const Color _sunBgColor = Color(0xFF1D5B99);
 
   Color get _dynamicColor => _currentPage == 0 ? _moonColor : _sunColor;
-  Color get _dynamicBgColor => _currentPage == 0 ? _moonBgColor : _sunBgColor;
+  Color get _dynamicBgColor => _currentPage == 0 ? _moonBgColor : const Color.fromARGB(255, 69, 132, 196);
   String get _roleName => _currentPage == 0 ? 'พระจันทร์' : 'พระอาทิตย์';
 
   late final List<VoidCallback> _onMatchPressedCallbacks;
