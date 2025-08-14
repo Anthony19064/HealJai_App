@@ -16,6 +16,7 @@ import 'Screens/authen/login_screen.dart';
 import 'Screens/authen/regis_screen.dart';
 
 import 'screens/chatroom_screen.dart';
+import 'screens/mood_tracker_screen.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -85,6 +86,10 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: BookScreen());
           },
         ),
+         GoRoute(
+          path: '/mood-tracker', // ตั้งชื่อ path
+          builder: (context, state) => const MoodTrackerScreen(),
+    ),
       ],
     ),
     GoRoute(
@@ -114,7 +119,8 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'room/:role', // หน้าแชทจริงพร้อม path parameter
           pageBuilder: (context, state) {
-            final role = state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
+            final role =
+                state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
             return NoTransitionPage(child: ChatRoomScreen(role: role));
           },
         ),
