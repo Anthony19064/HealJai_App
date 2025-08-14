@@ -31,9 +31,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     chatProvider = Provider.of<Chatprovider>(context, listen: false);
     _dynamicColor =
         widget.role == 'talker' ? Color(0xFF7FD8EB) : Color(0xFFFFA500);
-    _dynamicInfoText = widget.role == 'talker'
-        ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
-        : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
+    _dynamicInfoText =
+        widget.role == 'talker'
+            ? 'โปรดใช้คำสุภาพกับคู่สนทนาของคุณนะ :)'
+            : 'โปรดรับฟังคู่สนทนาโดยไม่ตัดสินนะ :)';
   }
 
   @override
@@ -43,39 +44,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     chatProvider.clearRoomId(notify: false);
     chatProvider.clearRole(notify: false);
     chatProvider.clearListMessage(notify: false);
-  }
-
-  Future<void> _showExitConfirmationDialog() async {
-    // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
-    final String imagePath = widget.role == 'talker'
-        ? 'assets/images/moon.png' 
-        : 'assets/images/sun.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
-    final Color primaryColor = _dynamicColor;
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // อนุญาตให้กดข้างนอกเพื่อปิดได้
-      builder: (BuildContext dialogContext) {
-        return CustomExitDialog(
-          imagePath: imagePath,
-          primaryColor: primaryColor,
-          onCancel: () {
-            Navigator.of(dialogContext).pop(); // ปิด Dialog
-          },
-          onConfirm: () {
-            // ทำ Action เดิม
-            socket.endChat();
-            chatProvider.clearRole();
-            chatProvider.clearRoomId();
-            chatProvider.clearListMessage();
-
-            // ปิด Dialog ก่อน แล้วค่อยเปลี่ยนหน้า
-            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-            if (context.mounted) context.pop();
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -178,7 +146,42 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
     );
   }
-// ข้อความ
+
+  Future<void> _showExitConfirmationDialog() async {
+    // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
+    final String imagePath =
+        widget.role == 'talker'
+            ? 'assets/images/moon.png'
+            : 'assets/images/sun.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
+    final Color primaryColor = _dynamicColor;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // อนุญาตให้กดข้างนอกเพื่อปิดได้
+      builder: (BuildContext dialogContext) {
+        return CustomExitDialog(
+          imagePath: imagePath,
+          primaryColor: primaryColor,
+          onCancel: () {
+            Navigator.of(dialogContext).pop(); // ปิด Dialog
+          },
+          onConfirm: () {
+            // ทำ Action เดิม
+            socket.endChat();
+            chatProvider.clearRole();
+            chatProvider.clearRoomId();
+            chatProvider.clearListMessage();
+
+            // ปิด Dialog ก่อน แล้วค่อยเปลี่ยนหน้า
+            if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+            if (context.mounted) context.pop();
+          },
+        );
+      },
+    );
+  }
+
+  // ข้อความ
   Widget _buildChatBubble(
     BuildContext context,
     ChatMessage message,
@@ -202,10 +205,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        color: Color(0xFFC0E0FF),
-                      ),
+                      child: Icon(Icons.person, color: Color(0xFFC0E0FF)),
                     ),
                   ),
                 Container(
@@ -309,4 +309,3 @@ class _MessageInputState extends State<MessageInput> {
     );
   }
 }
-

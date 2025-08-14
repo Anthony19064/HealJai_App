@@ -20,6 +20,8 @@ class _NewPasswordState extends State<NewPassword> {
   final TextEditingController _CPasswordController = TextEditingController();
   final _formKeyPassword = GlobalKey<FormState>();
   bool isLoading = false;
+  bool _passwordState = true;
+  bool _CpasswordState = true;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +70,13 @@ class _NewPasswordState extends State<NewPassword> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
+                    style: GoogleFonts.mali(
+                      fontSize: 17,
+                      color: Color(0xFF464646),
+                      fontWeight: FontWeight.w700,
+                    ),
                     controller: _passwordController,
+                    obscureText: _passwordState,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'กรุณากรอกรหัสผ่านใหม่';
@@ -112,6 +120,20 @@ class _NewPasswordState extends State<NewPassword> {
                       ),
                       fillColor: Colors.white, // สีพื้นหลัง
                       filled: true,
+
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _passwordState
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Color(0xFF5C5C5C),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _passwordState = !_passwordState;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(height: 30),
@@ -129,7 +151,13 @@ class _NewPasswordState extends State<NewPassword> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
+                    style: GoogleFonts.mali(
+                      fontSize: 17,
+                      color: Color(0xFF464646),
+                      fontWeight: FontWeight.w700,
+                    ),
                     controller: _CPasswordController,
+                    obscureText: _CpasswordState,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'กรุณายืนยันรหัสผ่านใหม่';
@@ -173,6 +201,20 @@ class _NewPasswordState extends State<NewPassword> {
                       ),
                       fillColor: Colors.white, // สีพื้นหลัง
                       filled: true,
+
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _CpasswordState
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Color(0xFF5C5C5C),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _CpasswordState = !_CpasswordState;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ],

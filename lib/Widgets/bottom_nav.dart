@@ -31,7 +31,7 @@ class _BottomNavState extends State<BottomNavBar> {
     return Container(
         child: Container(
           height: 60,
-          margin: const EdgeInsets.only(bottom: 35, left: 20, right: 20),
+          margin: const EdgeInsets.only(bottom: 35, left: 20, right: 20, top: 10),
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Color(0xFFE0E0E0), width: 2),

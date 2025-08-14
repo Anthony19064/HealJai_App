@@ -36,7 +36,7 @@ class _WelcomeSectionState extends State<WelcomeSection> {
               style: GoogleFonts.mali(
                 color: Color(0xFF78B465),
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
+                fontSize: 22,
               ),
             ),
             SpinPerfect(
