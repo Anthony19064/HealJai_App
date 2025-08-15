@@ -44,10 +44,14 @@ void main() async {
   );
 }
 
+
+final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
     ShellRoute(
+      navigatorKey: shellNavigatorKey,
       pageBuilder: (context, state, child) {
         return NoTransitionPage(
           child: Scaffold(
@@ -86,10 +90,10 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: BookScreen());
           },
         ),
-         GoRoute(
+        GoRoute(
           path: '/mood-tracker', // ตั้งชื่อ path
           builder: (context, state) => const MoodTrackerScreen(),
-    ),
+        ),
       ],
     ),
     GoRoute(

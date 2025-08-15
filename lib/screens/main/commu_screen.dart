@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:google_fonts/google_fonts.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
-// ==========================================================
-// 1. Model: Post
-// ==========================================================
+// สมมติว่ามีหน้าสำหรับแก้ไขโพสต์
+class EditPostScreen extends StatelessWidget {
+  final Post post;
+  const EditPostScreen({super.key, required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('แก้ไขโพสต์', style: GoogleFonts.mali())),
+      body: Center(
+        child: Text('กำลังแก้ไข: ${post.postText}', style: GoogleFonts.mali()),
+      ),
+    );
+  }
+}
+
+
 class Post {
   final String id;
   final String username;
@@ -27,9 +41,6 @@ class Post {
   }) : comments = comments ?? [];
 }
 
-// ==========================================================
-// 2. Screen: StatefulWidget
-// ==========================================================
 class CommuScreen extends StatefulWidget {
   const CommuScreen({super.key});
 
@@ -83,35 +94,103 @@ class _CommuScreenState extends State<CommuScreen> {
       builder: (context) {
         final commentController = TextEditingController();
         return AlertDialog(
-          title: Text('แสดงความคิดเห็น', style: GoogleFonts.mali()), 
+          title: Text('แสดงความคิดเห็น', style: GoogleFonts.mali()),
           content: TextField(
             controller: commentController,
             autofocus: true,
-            style: GoogleFonts.mali(), 
+            style: GoogleFonts.mali(),
             decoration: InputDecoration(
               hintText: "ความคิดเห็นของคุณ...",
-              hintStyle: GoogleFonts.mali(), 
+              hintStyle: GoogleFonts.mali(),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('ยกเลิก', style: GoogleFonts.mali()), 
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('ยกเลิก', style: GoogleFonts.mali())),
             TextButton(
               onPressed: () {
-                if(commentController.text.isNotEmpty) {
+                if (commentController.text.isNotEmpty) {
                   setState(() {
                     post.comments.add(commentController.text);
                   });
                 }
                 Navigator.pop(context);
               },
-              child: Text('ส่ง', style: GoogleFonts.mali()), 
+              child: Text('ส่ง', style: GoogleFonts.mali()),
             ),
           ],
         );
-      }
+      },
+    );
+  }
+
+  void _showPostOptions(Post post) {
+    showModalBottomSheet(
+      context: context,
+      barrierColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        List<Widget> options = [];
+
+        if (post.username == 'Me') {
+          options.addAll([
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
+              onTap: () {
+                // 1. สั่งปิด BottomSheet ก่อน
+                Navigator.pop(context);
+
+                // 2. จากนั้นค่อยสั่งให้เปลี่ยนไปหน้าใหม่
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => EditPostScreen(post: post)),
+                // );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text('ลบโพสต์', style: GoogleFonts.mali(color: Colors.red)),
+              onTap: () {
+                setState(() {
+                  _posts.removeWhere((p) => p.id == post.id);
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ]);
+        }
+
+        options.add(
+          ListTile(
+            leading: const Icon(Icons.report),
+            title: Text('รายงาน', style: GoogleFonts.mali()),
+            onTap: () {
+              print('Report post: ${post.id}');
+              Navigator.pop(context);
+            },
+          ),
+        );
+
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF7EB),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: Wrap(
+            children: options,
+          ),
+        );
+      },
     );
   }
 
@@ -132,6 +211,7 @@ class _CommuScreenState extends State<CommuScreen> {
             post: post,
             onLikePressed: () => _toggleLike(post.id),
             onCommentPressed: () => _showCommentDialog(post),
+            onMoreOptionsPressed: () => _showPostOptions(post),
           );
         },
       ),
@@ -139,30 +219,21 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 }
 
-// ==========================================================
-// 3. Widget: CreatePostInput
-// ==========================================================
 class CreatePostInput extends StatefulWidget {
   final Function(String) onPost;
-
-  const CreatePostInput({
-    super.key,
-    required this.onPost,
-  });
-
+  const CreatePostInput({super.key, required this.onPost});
   @override
   State<CreatePostInput> createState() => _CreatePostInputState();
 }
 
 class _CreatePostInputState extends State<CreatePostInput> {
   final _controller = TextEditingController();
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   void _handlePost() {
     widget.onPost(_controller.text);
     _controller.clear();
@@ -174,42 +245,38 @@ class _CreatePostInputState extends State<CreatePostInput> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: kCardBorderColor, width: 2.5),
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: kCardBorderColor, width: 2.5)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Column(
+          const Column(
             children: [
-              const CircleAvatar(
-                radius: 22,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '09.03 น.',
-                style: GoogleFonts.mali(color: kTimestampColor, fontSize: 12), 
-              ),
+              CircleAvatar(
+                  radius: 22,
+                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1')),
+              SizedBox(height: 4),
+              Text('09.03 น.',
+                  style:
+                      TextStyle(color: kTimestampColor, fontSize: 12)),
             ],
           ),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: _controller,
-              style: GoogleFonts.mali(), 
+              style: GoogleFonts.mali(),
               decoration: InputDecoration(
-                filled: true,
-                fillColor: kDmBubbleColor,
-                hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
-                hintStyle: GoogleFonts.mali(), 
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+                  filled: true,
+                  fillColor: kDmBubbleColor,
+                  hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
+                  hintStyle: GoogleFonts.mali(),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none)),
               minLines: 1,
               maxLines: 4,
             ),
@@ -222,9 +289,10 @@ class _CreatePostInputState extends State<CreatePostInput> {
               iconSize: 32,
               color: kLikeButtonBorderColor,
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: BorderSide(color: kLikeButtonBorderColor.withOpacity(0.5), width: 1.5)
-              ),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(
+                      color: kLikeButtonBorderColor.withOpacity(0.5),
+                      width: 1.5)),
             ),
           )
         ],
@@ -233,12 +301,8 @@ class _CreatePostInputState extends State<CreatePostInput> {
   }
 }
 
-// ==========================================================
-// 4. Widget: UserPostCard และอื่นๆ
-// ==========================================================
 const Color kCardBorderColor = Color(0xFFCDE5CF);
 const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
-// ... (ค่าสีอื่นๆ เหมือนเดิม)
 const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
 const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
 const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
@@ -249,25 +313,26 @@ const Color kTextColor = Color(0xFF333333);
 const Color kTimestampColor = Colors.grey;
 const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
-
 class UserPostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLikePressed;
   final VoidCallback onCommentPressed;
-
+  final VoidCallback onMoreOptionsPressed;
   const UserPostCard({
     super.key,
     required this.post,
     required this.onLikePressed,
     required this.onCommentPressed,
+    required this.onMoreOptionsPressed,
   });
-
   @override
   Widget build(BuildContext context) {
     final likeIcon = post.isLiked ? Icons.favorite : Icons.favorite_border;
     final likeColor = post.isLiked ? Colors.red : kIconColor;
-    final likeBorderColor = post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
-    final likeBackgroundColor = post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
+    final likeBorderColor =
+        post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
+    final likeBackgroundColor =
+        post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -281,31 +346,35 @@ class UserPostCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(radius: 22, backgroundImage: NetworkImage(post.avatarUrl)),
+              CircleAvatar(
+                  radius: 22, backgroundImage: NetworkImage(post.avatarUrl)),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    post.username,
-                    style: GoogleFonts.mali(fontWeight: FontWeight.bold, fontSize: 16, color: kTextColor), 
-                  ),
+                  Text(post.username,
+                      style: GoogleFonts.mali(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: kTextColor)),
                   const SizedBox(height: 2),
-                  Text(
-                    post.timeAgo,
-                    style: GoogleFonts.mali(color: kTimestampColor, fontSize: 13), 
-                  ),
+                  Text(post.timeAgo,
+                      style: GoogleFonts.mali(
+                          color: kTimestampColor, fontSize: 13)),
                 ],
               ),
               const Spacer(),
-              Icon(Icons.more_horiz, color: kTextColor.withOpacity(0.8), size: 30),
+              IconButton(
+                icon: Icon(Icons.more_horiz,
+                    color: kTextColor.withOpacity(0.8), size: 30),
+                onPressed: onMoreOptionsPressed,
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            post.postText,
-            style: GoogleFonts.mali(fontSize: 15, color: kTextColor, height: 1.4), 
-          ),
+          Text(post.postText,
+              style:
+                  GoogleFonts.mali(fontSize: 15, color: kTextColor, height: 1.4)),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -343,33 +412,28 @@ class InteractionButton extends StatelessWidget {
   final String label;
   final Color borderColor;
   final Color backgroundColor;
-
-  const InteractionButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.borderColor,
-    required this.backgroundColor,
-    this.iconColor,
-  });
-
+  const InteractionButton(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.borderColor,
+      required this.backgroundColor,
+      this.iconColor});
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.5)),
       child: Row(
         children: [
           Icon(icon, size: 18, color: iconColor ?? kIconColor),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.mali(color: kIconColor, fontWeight: FontWeight.w600), 
-          ),
+          Text(label,
+              style: GoogleFonts.mali(
+                  color: kIconColor, fontWeight: FontWeight.w600)),
         ],
       ),
     );
