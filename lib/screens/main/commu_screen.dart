@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:io'; // Import dart:io เพื่อใช้ File
+import 'package:image_picker/image_picker.dart'; // Import image_picker
 
 // สมมติว่ามีหน้าสำหรับแก้ไขโพสต์
 class EditPostScreen extends StatelessWidget {
@@ -18,6 +20,17 @@ class EditPostScreen extends StatelessWidget {
   }
 }
 
+class Comment {
+  final String username;
+  final String avatarUrl;
+  final String text;
+
+  Comment({
+    required this.username,
+    required this.avatarUrl,
+    required this.text,
+  });
+}
 
 class Post {
   final String id;
@@ -27,7 +40,9 @@ class Post {
   String postText;
   int likes;
   bool isLiked;
-  List<String> comments;
+  List<Comment> comments;
+  int reposts;
+  String? imageUrl; // 1. เพิ่ม imageUrl
 
   Post({
     required this.id,
@@ -37,7 +52,9 @@ class Post {
     required this.postText,
     this.likes = 0,
     this.isLiked = false,
-    List<String>? comments,
+    List<Comment>? comments,
+    this.reposts = 0,
+    this.imageUrl, // 1. เพิ่ม imageUrl
   }) : comments = comments ?? [];
 }
 
@@ -57,12 +74,25 @@ class _CommuScreenState extends State<CommuScreen> {
       timeAgo: '1d ago',
       postText: 'Ex text post . . . . . .',
       likes: 15,
-      comments: ['Great post!', 'Love it!'],
+      reposts: 5,
+      comments: [
+        Comment(
+          username: 'User_2',
+          avatarUrl: 'https://i.pravatar.cc/150?img=25',
+          text: 'Great post!',
+        ),
+        Comment(
+          username: 'User_3',
+          avatarUrl: 'https://i.pravatar.cc/150?img=32',
+          text: 'Love it!',
+        ),
+      ],
     ),
   ];
 
-  void _addPost(String text) {
-    if (text.isNotEmpty) {
+  // 5. แก้ไขฟังก์ชัน _addPost ให้รับ imagePath
+  void _addPost(String text, String? imagePath) {
+    if (text.isNotEmpty || imagePath != null) {
       setState(() {
         final newPost = Post(
           id: 'post_${Random().nextInt(9999)}',
@@ -70,6 +100,7 @@ class _CommuScreenState extends State<CommuScreen> {
           avatarUrl: 'https://i.pravatar.cc/150?img=1',
           timeAgo: 'Just now',
           postText: text,
+          imageUrl: imagePath, // <-- เก็บ path รูป
         );
         _posts.insert(0, newPost);
       });
@@ -88,39 +119,42 @@ class _CommuScreenState extends State<CommuScreen> {
     });
   }
 
+  void _incrementReposts(String postId) {
+    setState(() {
+      final post = _posts.firstWhere((p) => p.id == postId);
+      post.reposts++;
+    });
+    _showSuccessSnackBar('Reposted!');
+  }
+
   void _showCommentDialog(Post post) {
     showDialog(
       context: context,
       builder: (context) {
-        final commentController = TextEditingController();
-        return AlertDialog(
-          title: Text('แสดงความคิดเห็น', style: GoogleFonts.mali()),
-          content: TextField(
-            controller: commentController,
-            autofocus: true,
-            style: GoogleFonts.mali(),
-            decoration: InputDecoration(
-              hintText: "ความคิดเห็นของคุณ...",
-              hintStyle: GoogleFonts.mali(),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text('ยกเลิก', style: GoogleFonts.mali())),
-            TextButton(
-              onPressed: () {
-                if (commentController.text.isNotEmpty) {
-                  setState(() {
-                    post.comments.add(commentController.text);
-                  });
-                }
-                Navigator.pop(context);
-              },
-              child: Text('ส่ง', style: GoogleFonts.mali()),
-            ),
-          ],
+        return _CommentsDialog(
+          post: post,
+          onCommentAdded: () {
+            setState(() {});
+          },
         );
       },
     );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.mali(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      backgroundColor: Colors.green[600],
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _showPostOptions(Post post) {
@@ -128,49 +162,51 @@ class _CommuScreenState extends State<CommuScreen> {
       context: context,
       barrierColor: Colors.transparent,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (modalContext) {
         List<Widget> options = [];
-
         if (post.username == 'Me') {
           options.addAll([
             ListTile(
               leading: const Icon(Icons.edit),
               title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
               onTap: () {
-                // 1. สั่งปิด BottomSheet ก่อน
-                Navigator.pop(context);
-
-                // 2. จากนั้นค่อยสั่งให้เปลี่ยนไปหน้าใหม่
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => EditPostScreen(post: post)),
-                // );
+                Navigator.pop(modalContext);
+                _showSuccessSnackBar('TODO: เปิดหน้าแก้ไขโพสต์');
               },
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
               title: Text('ลบโพสต์', style: GoogleFonts.mali(color: Colors.red)),
               onTap: () {
+                Navigator.pop(modalContext);
                 setState(() {
                   _posts.removeWhere((p) => p.id == post.id);
                 });
-                Navigator.pop(context);
+                _showSuccessSnackBar('ลบโพสต์สำเร็จ');
               },
             ),
           ]);
         }
-
         options.add(
           ListTile(
             leading: const Icon(Icons.report),
             title: Text('รายงาน', style: GoogleFonts.mali()),
             onTap: () {
-              print('Report post: ${post.id}');
-              Navigator.pop(context);
+              Navigator.pop(modalContext);
+              _showSuccessSnackBar('รายงานโพสต์แล้ว');
             },
           ),
         );
-
+        options.add(
+          ListTile(
+            leading: const Icon(Icons.save),
+            title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
+            onTap: () {
+              Navigator.pop(modalContext);
+              _showSuccessSnackBar('บันทึกโพสต์แล้ว');
+            },
+          ),
+        );
         return Container(
           decoration: BoxDecoration(
             color: const Color(0xFFFFF7EB),
@@ -186,9 +222,7 @@ class _CommuScreenState extends State<CommuScreen> {
               ),
             ],
           ),
-          child: Wrap(
-            children: options,
-          ),
+          child: Wrap(children: options),
         );
       },
     );
@@ -212,6 +246,7 @@ class _CommuScreenState extends State<CommuScreen> {
             onLikePressed: () => _toggleLike(post.id),
             onCommentPressed: () => _showCommentDialog(post),
             onMoreOptionsPressed: () => _showPostOptions(post),
+            onRepostPressed: () => _incrementReposts(post.id),
           );
         },
       ),
@@ -219,8 +254,161 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 }
 
+class _CommentsDialog extends StatefulWidget {
+  final Post post;
+  final VoidCallback onCommentAdded;
+
+  const _CommentsDialog({required this.post, required this.onCommentAdded});
+
+  @override
+  State<_CommentsDialog> createState() => _CommentsDialogState();
+}
+
+class _CommentsDialogState extends State<_CommentsDialog> {
+  final _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  void _submitComment() {
+    if (_commentController.text.isNotEmpty) {
+      final newComment = Comment(
+        username: 'Me',
+        avatarUrl: 'https://i.pravatar.cc/150?img=1',
+        text: _commentController.text,
+      );
+
+      setState(() {
+        widget.post.comments.add(newComment);
+      });
+      widget.onCommentAdded();
+      _commentController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Color(0xFFFFF7EB),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Text(
+        'ความคิดเห็น',
+        style: GoogleFonts.mali(
+          color: Color(0xFF78B465),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: widget.post.comments.isEmpty
+                  ? Center(
+                      child: Text(
+                        'ยังไม่มีความคิดเห็น',
+                        style: GoogleFonts.mali(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: widget.post.comments.length,
+                      itemBuilder: (context, index) {
+                        final comment = widget.post.comments[index];
+                        final cardColor = index.isEven
+                            ? Colors.white
+                            : const Color(0xFFF1F8E9);
+
+                        return Card(
+                          color: cardColor,
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    comment.avatarUrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        comment.username,
+                                        style: GoogleFonts.mali(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        comment.text,
+                                        style: GoogleFonts.mali(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _commentController,
+              autofocus: true,
+              style: GoogleFonts.mali(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: "แสดงความคิดเห็นของคุณ...",
+                hintStyle: GoogleFonts.mali(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.send, color: Color(0xFF78B465)),
+                  onPressed: _submitComment,
+                ),
+              ),
+              onSubmitted: (_) => _submitComment(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'ปิด',
+            style: GoogleFonts.mali(
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF78B465),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 4. แก้ไข CreatePostInput ทั้งหมด
 class CreatePostInput extends StatefulWidget {
-  final Function(String) onPost;
+  final Function(String text, String? imagePath) onPost;
   const CreatePostInput({super.key, required this.onPost});
   @override
   State<CreatePostInput> createState() => _CreatePostInputState();
@@ -228,102 +416,157 @@ class CreatePostInput extends StatefulWidget {
 
 class _CreatePostInputState extends State<CreatePostInput> {
   final _controller = TextEditingController();
+  File? _selectedImage;
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
   void _handlePost() {
-    widget.onPost(_controller.text);
+    widget.onPost(_controller.text, _selectedImage?.path);
     _controller.clear();
+    setState(() {
+      _selectedImage = null;
+    });
     FocusScope.of(context).unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: kCardBorderColor, width: 2.5)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
         children: [
-          const Column(
+          if (_selectedImage != null)
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.file(
+                    _selectedImage!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black54,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                      onPressed: () => setState(() => _selectedImage = null),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (_selectedImage != null) const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              CircleAvatar(
-                  radius: 22,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1')),
-              SizedBox(height: 4),
-              Text('09.03 น.',
-                  style:
-                      TextStyle(color: kTimestampColor, fontSize: 12)),
+              const Column(
+                children: [
+                  CircleAvatar(
+                      radius: 22,
+                      backgroundImage:
+                          NetworkImage('https://i.pravatar.cc/150?img=1')),
+                  SizedBox(height: 4),
+                  Text('ตอนนี้',
+                      style: TextStyle(color: kTimestampColor, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  style: GoogleFonts.mali(),
+                  decoration: InputDecoration(
+                      filled: true,
+                      fillColor: kDmBubbleColor,
+                      hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
+                      hintStyle: GoogleFonts.mali(),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none)),
+                  minLines: 1,
+                  maxLines: 4,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.image_outlined, color: Colors.grey[600]),
+                onPressed: _pickImage,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 4.0),
+                child: IconButton(
+                  onPressed: _handlePost,
+                  icon: const Icon(Icons.favorite),
+                  iconSize: 32,
+                  color: kLikeButtonBorderColor,
+                  style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: BorderSide(
+                          color: kLikeButtonBorderColor.withOpacity(0.5),
+                          width: 1.5)),
+                ),
+              )
             ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              style: GoogleFonts.mali(),
-              decoration: InputDecoration(
-                  filled: true,
-                  fillColor: kDmBubbleColor,
-                  hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
-                  hintStyle: GoogleFonts.mali(),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none)),
-              minLines: 1,
-              maxLines: 4,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: IconButton(
-              onPressed: _handlePost,
-              icon: const Icon(Icons.favorite),
-              iconSize: 32,
-              color: kLikeButtonBorderColor,
-              style: IconButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: BorderSide(
-                      color: kLikeButtonBorderColor.withOpacity(0.5),
-                      width: 1.5)),
-            ),
-          )
         ],
       ),
     );
   }
 }
 
+
 const Color kCardBorderColor = Color(0xFFCDE5CF);
 const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
 const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
 const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
 const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
-const Color kShareButtonBorderColor = Color(0xFFC7C5FF);
-const Color kShareButtonBackgroundColor = Color(0xFFF2F1FF);
+const Color kRepostButtonBorderColor = Color(0xFFC7C5FF);
+const Color kRepostButtonBackgroundColor = Color(0xFFF2F1FF);
 const Color kIconColor = Color(0xFF757575);
 const Color kTextColor = Color(0xFF333333);
 const Color kTimestampColor = Colors.grey;
 const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
+// 6. แก้ไข UserPostCard
 class UserPostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLikePressed;
   final VoidCallback onCommentPressed;
   final VoidCallback onMoreOptionsPressed;
+  final VoidCallback onRepostPressed;
+
   const UserPostCard({
     super.key,
     required this.post,
     required this.onLikePressed,
     required this.onCommentPressed,
     required this.onMoreOptionsPressed,
+    required this.onRepostPressed,
   });
   @override
   Widget build(BuildContext context) {
@@ -347,34 +590,70 @@ class UserPostCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                  radius: 22, backgroundImage: NetworkImage(post.avatarUrl)),
+                radius: 22,
+                backgroundImage: NetworkImage(post.avatarUrl),
+              ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(post.username,
-                      style: GoogleFonts.mali(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: kTextColor)),
+                  Text(
+                    post.username,
+                    style: GoogleFonts.mali(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: kTextColor,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(post.timeAgo,
-                      style: GoogleFonts.mali(
-                          color: kTimestampColor, fontSize: 13)),
+                  Text(
+                    post.timeAgo,
+                    style: GoogleFonts.mali(
+                      color: kTimestampColor,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
               const Spacer(),
               IconButton(
-                icon: Icon(Icons.more_horiz,
-                    color: kTextColor.withOpacity(0.8), size: 30),
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: kTextColor.withOpacity(0.8),
+                  size: 30,
+                ),
                 onPressed: onMoreOptionsPressed,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(post.postText,
-              style:
-                  GoogleFonts.mali(fontSize: 15, color: kTextColor, height: 1.4)),
+          
+          if (post.imageUrl != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15.0),
+                child: Image.file(
+                  File(post.imageUrl!),
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+
+          if (post.postText.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Text(
+                post.postText,
+                style: GoogleFonts.mali(
+                  fontSize: 15,
+                  color: kTextColor,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          
           const SizedBox(height: 16),
           Row(
             children: [
@@ -398,6 +677,16 @@ class UserPostCard extends StatelessWidget {
                   backgroundColor: kCommentButtonBackgroundColor,
                 ),
               ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: onRepostPressed,
+                child: InteractionButton(
+                  icon: Icons.repeat,
+                  label: post.reposts.toString(),
+                  borderColor: kRepostButtonBorderColor,
+                  backgroundColor: kRepostButtonBackgroundColor,
+                ),
+              ),
             ],
           ),
         ],
@@ -412,28 +701,34 @@ class InteractionButton extends StatelessWidget {
   final String label;
   final Color borderColor;
   final Color backgroundColor;
-  const InteractionButton(
-      {super.key,
-      required this.icon,
-      required this.label,
-      required this.borderColor,
-      required this.backgroundColor,
-      this.iconColor});
+  const InteractionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.borderColor,
+    required this.backgroundColor,
+    this.iconColor,
+  });
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.5)),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
       child: Row(
         children: [
           Icon(icon, size: 18, color: iconColor ?? kIconColor),
           const SizedBox(width: 6),
-          Text(label,
-              style: GoogleFonts.mali(
-                  color: kIconColor, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: GoogleFonts.mali(
+              color: kIconColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
