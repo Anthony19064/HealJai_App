@@ -22,47 +22,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return ZoomIn(
       duration: const Duration(milliseconds: 500),
       child: SingleChildScrollView(
-        child: Container(
-          margin: const EdgeInsets.only(top: 10),
-          child: SingleChildScrollView(
-            child: FractionallySizedBox(
-              widthFactor: 0.9,
-              child: Column(
-                children: [
-                  CarouselSlider.builder(
-                    carouselController: _carouselController,
-                    itemCount: welcomeSlideList.length,
-                    itemBuilder: (context, index, realIndex) {
-                      return welcomeSlideList[index];
-                    },
-                    options: CarouselOptions(
-                      height: 300,
-                      autoPlay: true,
-                      viewportFraction: 1.0,
-                      enlargeCenterPage: false,
-                      onPageChanged: (index, reason) =>
-                          setState(() => activeIndex = index),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  AnimatedSmoothIndicator(
-                    activeIndex: activeIndex,
-                    count: welcomeSlideList.length,
-                    effect: WormEffect(
-                      dotHeight: 12,
-                      dotWidth: 12,
-                      activeDotColor: const Color(0xFF78B465),
-                      dotColor: Colors.grey.shade300,
-                    ),
-                    onDotClicked: (index) {
-                      _carouselController.animateToPage(index);
-                    },
-                  ),
-                  const SizedBox(height: 50),
-                  DiarySection(),
-                ],
+        child: FractionallySizedBox(
+          widthFactor: 0.9,
+          child: Column(
+            children: [
+              CarouselSlider.builder(
+                carouselController: _carouselController,
+                itemCount: welcomeSlideList.length,
+                itemBuilder: (context, index, realIndex) {
+                  return welcomeSlideList[index];
+                },
+                options: CarouselOptions(
+                  height: 300,
+                  autoPlay: true,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: false,
+                  onPageChanged: (index, reason) =>
+                      setState(() => activeIndex = index),
+                ),
               ),
-            ),
+              const SizedBox(height: 10),
+              AnimatedSmoothIndicator(
+                activeIndex: activeIndex,
+                count: welcomeSlideList.length,
+                effect: WormEffect(
+                  dotHeight: 12,
+                  dotWidth: 12,
+                  activeDotColor: const Color(0xFF78B465),
+                  dotColor: Colors.grey.shade300,
+                ),
+                onDotClicked: (index) {
+                  _carouselController.animateToPage(index);
+                },
+              ),
+              const SizedBox(height: 50),
+              DiarySection(),
+            ],
           ),
         ),
       ),

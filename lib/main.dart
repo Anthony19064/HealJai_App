@@ -141,6 +141,12 @@ final GoRouter _router = GoRouter(
         ),
       ],
     ),
+    GoRoute(
+      path: '/mood-tracker', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: MoodTrackerScreen());
+      },
+    ),
   ],
 );
 
