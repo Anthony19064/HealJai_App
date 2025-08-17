@@ -91,10 +91,6 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: BookScreen());
           },
         ),
-        GoRoute(
-          path: '/mood-tracker',
-          builder: (context, state) => const MoodTrackerScreen(),
-        ),
       ],
     ),
     

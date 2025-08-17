@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -8,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
+
 
 Future<Map<String, dynamic>> signInwithEmail(
   String email,
@@ -19,7 +19,7 @@ Future<Map<String, dynamic>> signInwithEmail(
     body: jsonEncode({'mail': email, 'password': password}),
   );
   final data = jsonDecode(response.body);
-  
+
   return data;
 }
 
