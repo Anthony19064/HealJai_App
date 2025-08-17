@@ -17,6 +17,8 @@ import 'Screens/authen/regis_screen.dart';
 
 import 'screens/chatroom_screen.dart';
 import 'screens/mood_tracker_screen.dart';
+// vvvv 1. เพิ่ม import สำหรับหน้ารายละเอียดบทความ vvvv
+import 'screens/article_detail_screen.dart'; 
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -44,10 +46,13 @@ void main() async {
   );
 }
 
+final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
     ShellRoute(
+      navigatorKey: shellNavigatorKey,
       pageBuilder: (context, state, child) {
         return NoTransitionPage(
           child: Scaffold(
@@ -86,12 +91,23 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: BookScreen());
           },
         ),
-         GoRoute(
-          path: '/mood-tracker', // ตั้งชื่อ path
+        GoRoute(
+          path: '/mood-tracker',
           builder: (context, state) => const MoodTrackerScreen(),
-    ),
+        ),
       ],
     ),
+    
+    // vvvv 2. เพิ่ม GoRoute สำหรับหน้ารายละเอียดบทความ vvvv
+    GoRoute(
+      path: '/book/:title', //:title คือ path parameter
+      builder: (context, state) {
+        // ดึงค่า title จาก path ที่ส่งมา
+        final title = state.pathParameters['title']!;
+        return ArticleDetailScreen(title: title);
+      },
+    ),
+
     GoRoute(
       path: '/login',
       pageBuilder: (context, state) {
@@ -117,10 +133,9 @@ final GoRouter _router = GoRouter(
       },
       routes: [
         GoRoute(
-          path: 'room/:role', // หน้าแชทจริงพร้อม path parameter
+          path: 'room/:role',
           pageBuilder: (context, state) {
-            final role =
-                state.pathParameters['role']!; // ดึงค่าบทบาทจาก path parameter
+            final role = state.pathParameters['role']!;
             return NoTransitionPage(child: ChatRoomScreen(role: role));
           },
         ),
