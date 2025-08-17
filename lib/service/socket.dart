@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/service/token.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:provider/provider.dart';
 import '../providers/chatProvider.dart';
@@ -16,20 +17,27 @@ class SocketService {
   late IO.Socket _socket;
   bool _isInitialized = false;
 
-  void initSocket(BuildContext context) {
+  void initSocket(BuildContext context) async {
     if (_isInitialized) {
       return;
     }
 
     final chatProvider = context.read<Chatprovider>();
     final router = GoRouter.of(context);
+    String? token = await getJWTToken();
 
     _socket = IO.io(apiURL, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
 
+    _socket.disconnect();
+    _socket.auth = {'token': token};
     _socket.connect();
+
+    _socket.on('unauthorized', (data) {
+      print('⛔️ Unauthorized: $data');
+    });
 
     _socket.on('matched', (roomId) {
       final role = chatProvider.role;

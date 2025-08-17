@@ -1,11 +1,33 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-Future<void> saveToken(String token) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('JWT_Token', token);
+AndroidOptions _getAndroidOptions() =>
+    const AndroidOptions(encryptedSharedPreferences: true);
+
+final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+
+Future<void> saveJWTToken(String token) async {
+  await storage.delete(key: 'jwt_token');
+  await storage.write(key: 'jwt_token', value: token);
 }
 
-Future<String?> getToken() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('JWT_Token');
+Future<void> deleteJWTToken() async {
+  await storage.delete(key: 'jwt_token');
+}
+
+Future<String?> getJWTToken() async {
+  String? token = await storage.read(key: 'jwt_token');
+  return token;
+}
+
+Future<bool> checkToken(BuildContext context, int statusCode) async {
+  if (statusCode == 401 || statusCode == 403) {
+    await storage.delete(key: 'jwt_token');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่')),
+    );
+    Navigator.pushReplacementNamed(context, '/login');
+    return false;
+  }
+  return true;
 }
