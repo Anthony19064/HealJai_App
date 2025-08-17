@@ -86,10 +86,6 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: BookScreen());
           },
         ),
-         GoRoute(
-          path: '/mood-tracker', // ตั้งชื่อ path
-          builder: (context, state) => const MoodTrackerScreen(),
-    ),
       ],
     ),
     GoRoute(
@@ -125,6 +121,12 @@ final GoRouter _router = GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/mood-tracker', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: MoodTrackerScreen());
+      },
     ),
   ],
 );

@@ -36,7 +36,7 @@ class _DiarySectionState extends State<DiarySection> {
                   ActivityIcon: "assets/icons/MoodIcon.svg",
                   ActivityName: "อารมณ์",
                   ActivityPress: () {
-                    context.go('/mood-tracker');
+                    context.push('/mood-tracker');
                     print("อารมณ์");
                   },
                 ),
@@ -207,12 +207,12 @@ class _DiaryTaskState extends State<DiaryTask> {
               ),
               onPressed: () {
                 // โค้ดทดลองเพิ่มค่าหลอด Progress
-                // setState(() {
-                //   if (taskCount < totalTask) {
-                //     taskCount += 1;
-                //     taskPercent = taskCount / totalTask;
-                //   }
-                // });
+                setState(() {
+                  if (taskCount < totalTask) {
+                    taskCount += 1;
+                    taskPercent = taskCount / totalTask;
+                  }
+                });
               },
               child: Text(
                 "รับ",

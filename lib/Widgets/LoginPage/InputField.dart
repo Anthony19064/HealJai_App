@@ -6,6 +6,7 @@ class InputField extends StatefulWidget {
   final bool isPassword;
   final TextEditingController? input_Controller;
   final FormFieldValidator<String>? validator;
+  final Function(String)? onChanged;
 
   const InputField({
     Key? key,
@@ -13,6 +14,7 @@ class InputField extends StatefulWidget {
     this.isPassword = false,
     this.input_Controller,
     required this.validator,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -41,6 +43,7 @@ class _InputFieldState extends State<InputField> {
         TextFormField(
           obscureText: widget.isPassword ? _passwordState : false,
           validator: widget.validator,
+          onChanged: widget.onChanged,
           controller: widget.input_Controller,
           decoration: InputDecoration(
             border: OutlineInputBorder(

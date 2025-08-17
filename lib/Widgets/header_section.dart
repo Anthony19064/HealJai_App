@@ -50,16 +50,16 @@ class _HeaderSectionState extends State<HeaderSection> {
                 }
               },
               child: Container(
-                width: 55,
-                height: 55,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.25),
                       spreadRadius: 0,
-                      blurRadius: 7,
-                      offset: Offset(0, 8), // เงาด้านล่าง
+                      blurRadius: 3,
+                      offset: Offset(0, 1), // เงาด้านล่าง
                     ),
                   ],
                   border: Border.all(

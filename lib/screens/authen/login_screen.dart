@@ -28,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController(); // ตัวเก็บค่า password
 
   bool isLoading = false;
+  StateMachineController? _controller;
+  SMIInput<bool>? _isTyping;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +79,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: MediaQuery.of(context).size.height * 0.25,
                 child: Transform.scale(
                   scale: 0.8,
-                  child: RiveAnimation.asset('assets/animations/mascot.riv'),
+                  child: RiveAnimation.asset(
+                          'assets/animations/goose_login.riv',
+                          onInit: (artboard) {
+                            final controller =
+                                StateMachineController.fromArtboard(
+                                  artboard,
+                                  'LoginState',
+                                );
+                            if (controller != null) {
+                              artboard.addController(controller);
+                              _controller = controller;
+
+                              _isTyping = controller.findInput<bool>(
+                                'isTyping',
+                              );
+                              _isTyping?.value = false;
+                              if (_isTyping == null) {
+                                print("❌ ไม่พบตัวแปร StateNum");
+                              }
+                            }
+                          },
+                        ),
                 ),
               ),
             ),
@@ -91,6 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       labelText: 'email',
                       input_Controller: usernameController,
                       isPassword: false,
+                      onChanged:(value) {
+                        if(value.isNotEmpty){
+                          _isTyping?.value = true; 
+                        }
+                      },
                       validator: (value) {
                         final emailRegex = RegExp(
                           r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -358,5 +386,3 @@ class ButtonRegister extends StatelessWidget {
     );
   }
 }
-
-
