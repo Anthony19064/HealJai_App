@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/chatProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../service/socket.dart';
-import '../Widgets/chatroompage/custom_dialogpopup.dart';
+import '../../service/socket.dart';
+import '../../Widgets/chatroompage/custom_dialogpopup.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String role;
@@ -149,10 +149,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   Future<void> _showExitConfirmationDialog() async {
     // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
-    final String imagePath =
+    final String role =
         widget.role == 'talker'
-            ? 'assets/images/moon.png'
-            : 'assets/images/sun.png'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
+            ? 'moonLeave'
+            : 'sunLeave'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
     final Color primaryColor = _dynamicColor;
 
     return showDialog<void>(
@@ -160,7 +160,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       barrierDismissible: true, // อนุญาตให้กดข้างนอกเพื่อปิดได้
       builder: (BuildContext dialogContext) {
         return CustomExitDialog(
-          imagePath: imagePath,
+          animationRole: role,
           primaryColor: primaryColor,
           onCancel: () {
             Navigator.of(dialogContext).pop(); // ปิด Dialog

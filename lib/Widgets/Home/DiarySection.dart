@@ -36,8 +36,7 @@ class _DiarySectionState extends State<DiarySection> {
                   ActivityIcon: "assets/icons/MoodIcon.svg",
                   ActivityName: "อารมณ์",
                   ActivityPress: () {
-                    context.push('/mood-tracker');
-                    print("อารมณ์");
+                    context.push('/moodDiary');
                   },
                 ),
               ),
@@ -48,7 +47,7 @@ class _DiarySectionState extends State<DiarySection> {
                   ActivityIcon: "assets/icons/QuestionIcon.svg",
                   ActivityName: "คำถาม",
                   ActivityPress: () {
-                    print("คำถาม");
+                    context.push('/questionDiary');
                   },
                 ),
               ),
@@ -59,7 +58,7 @@ class _DiarySectionState extends State<DiarySection> {
                   ActivityIcon: "assets/icons/LifeIcon.svg",
                   ActivityName: "เรื่องราว",
                   ActivityPress: () {
-                    print("เรื่องราว");
+                    context.push('/storyDiary');
                   },
                 ),
               ),
@@ -67,7 +66,6 @@ class _DiarySectionState extends State<DiarySection> {
           ),
           SizedBox(height: 30),
           DiaryTask(),
-          SizedBox(height: 100,)
         ],
       ),
     );
@@ -148,14 +146,20 @@ class DiaryTask extends StatefulWidget {
 }
 
 class _DiaryTaskState extends State<DiaryTask> {
-  double taskPercent = 0;
-  int taskCount = 0;
+  double taskPercent = 0.60; // 0.00 ถึง 1 
+  int taskCount = 2;
   int totalTask = 3;
+
+  // โค้ดทดลองเพิ่มค่าหลอด Progress
+  // if (taskCount < totalTask) {
+  //   taskCount += 1;
+  //   taskPercent = taskCount / totalTask;
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.all(20),
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -173,55 +177,23 @@ class _DiaryTaskState extends State<DiaryTask> {
             ),
           ),
           SizedBox(height: 20),
-          FractionallySizedBox(
-            widthFactor: 0.95,
-            child: Container(
-              child: LinearPercentIndicator(
-                lineHeight: 30.0,
-                percent: taskPercent,
-                backgroundColor: Colors.grey.shade300,
-                progressColor: Color(0xFF78B465),
-                center: Text(
-                  "${taskCount}/3",
-                  style: GoogleFonts.mali(
-                    color: Color(0xFF464646),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                animation: true,
-                animationDuration: 500,
-                barRadius: Radius.circular(20),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-          SizedBox(
-            width: 100,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15), // ปรับขอบมนตรงนี้
-                ),
-                backgroundColor: Color(0xFF78B465),
-              ),
-              onPressed: () {
-                // โค้ดทดลองเพิ่มค่าหลอด Progress
-                setState(() {
-                  if (taskCount < totalTask) {
-                    taskCount += 1;
-                    taskPercent = taskCount / totalTask;
-                  }
-                });
-              },
-              child: Text(
-                "รับ",
+          Container(
+            child: LinearPercentIndicator(
+              lineHeight: 30.0,
+              percent: taskPercent,
+              backgroundColor: Colors.grey.shade300,
+              progressColor: Color(0xFF78B465),
+              center: Text(
+                "${taskCount}/3",
                 style: GoogleFonts.mali(
-                  color: Colors.white,
-                  fontSize: 16,
+                  color: taskPercent > 0.3?  Color(0xFFFFFFFF) : Color(0xFF464646),
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              animation: true,
+              animationDuration: 500,
+              barRadius: Radius.circular(20),
             ),
           ),
         ],

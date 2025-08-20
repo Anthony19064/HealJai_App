@@ -53,7 +53,7 @@ class _CheckEmailState extends State<CheckEmail> {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.6,
               height: MediaQuery.of(context).size.height * 0.25,
-              child: Lottie.asset("assets/animations/cry.json"),
+              child: Lottie.asset("assets/animations/lotties/cry.json"),
             ),
             SizedBox(height: 50),
 
@@ -189,7 +189,7 @@ class _CheckEmailState extends State<CheckEmail> {
                 ),
                 child:
                     isLoading
-                        ? Lottie.asset('assets/animations/loading.json')
+                        ? Lottie.asset('assets/animations/lotties/loading.json')
                         : Text(
                           "ส่งรหัสยืนยัน",
                           style: GoogleFonts.mali(

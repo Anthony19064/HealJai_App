@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 
 AndroidOptions _getAndroidOptions() =>
     const AndroidOptions(encryptedSharedPreferences: true);
@@ -26,7 +27,7 @@ Future<bool> checkToken(BuildContext context, int statusCode) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่')),
     );
-    Navigator.pushReplacementNamed(context, '/login');
+    context.go('/login');
     return false;
   }
   return true;

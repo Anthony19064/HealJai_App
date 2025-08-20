@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/screens/subPage/questionDiary_screen.dart';
+import 'package:healjai_project/screens/subPage/storyDiary_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -15,10 +17,9 @@ import 'Screens/authen/forget_password.dart';
 import 'Screens/authen/login_screen.dart';
 import 'Screens/authen/regis_screen.dart';
 
-import 'screens/chatroom_screen.dart';
-import 'screens/mood_tracker_screen.dart';
-// vvvv 1. เพิ่ม import สำหรับหน้ารายละเอียดบทความ vvvv
-import 'screens/article_detail_screen.dart'; 
+import 'screens/subPage/chatroom_screen.dart';
+import 'screens/subPage/moodDiary_screen.dart';
+import 'screens/subPage/article_detail_screen.dart'; 
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -94,15 +95,8 @@ final GoRouter _router = GoRouter(
       ],
     ),
     
-    // vvvv 2. เพิ่ม GoRoute สำหรับหน้ารายละเอียดบทความ vvvv
-    GoRoute(
-      path: '/book/:title', //:title คือ path parameter
-      builder: (context, state) {
-        // ดึงค่า title จาก path ที่ส่งมา
-        final title = state.pathParameters['title']!;
-        return ArticleDetailScreen(title: title);
-      },
-    ),
+    // หน้าที่ไม่อยากให้มีด้านบนให้เพิ่มลงด้านล่างนี้
+    
 
     GoRoute(
       path: '/login',
@@ -138,9 +132,29 @@ final GoRouter _router = GoRouter(
       ],
     ),
     GoRoute(
-      path: '/mood-tracker', 
+      path: '/book/:title', //:title คือ path parameter
       pageBuilder: (context, state) {
-        return NoTransitionPage(child: MoodTrackerScreen());
+        // ดึงค่า title จาก path ที่ส่งมา
+        final title = state.pathParameters['title']!;
+        return NoTransitionPage(child: ArticleDetailScreen(title: title));
+      },
+    ),
+    GoRoute(
+      path: '/moodDiary', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: MoodDiaryScreen());
+      },
+    ),
+    GoRoute(
+      path: '/questionDiary', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: QuestionDiary());
+      },
+    ),
+    GoRoute(
+      path: '/storyDiary', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: StoryDiary());
       },
     ),
   ],

@@ -330,7 +330,7 @@ class _StepContentState extends State<StepContent> {
             Container(
               margin: const EdgeInsets.only(top: 40.0),
               child: Lottie.asset(
-                'assets/animations/runing.json',
+                'assets/animations/lotties/runing.json',
                 height: 200,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
