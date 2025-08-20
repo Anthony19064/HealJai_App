@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:io'; // Import dart:io เพื่อใช้ File
-import 'package:image_picker/image_picker.dart'; // Import image_picker
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:photo_view/photo_view.dart'; 
 
 // สมมติว่ามีหน้าสำหรับแก้ไขโพสต์
 class EditPostScreen extends StatelessWidget {
@@ -15,6 +16,52 @@ class EditPostScreen extends StatelessWidget {
       appBar: AppBar(title: Text('แก้ไขโพสต์', style: GoogleFonts.mali())),
       body: Center(
         child: Text('กำลังแก้ไข: ${post.postText}', style: GoogleFonts.mali()),
+      ),
+    );
+  }
+}
+
+// หน้าสำหรับดูรูปภาพ 
+class PhotoViewScreen extends StatelessWidget {
+  final String imagePath;
+
+  const PhotoViewScreen({super.key, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(
+              Icons.close,
+              color: Colors.white, // 1. สีไอคอนเป็นสีขาว
+              // 2. ใช้ shadows สร้างเอฟเฟกต์ขอบสีดำ
+              shadows: const [
+                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(1.5, 1.5)),
+                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(-1.5, -1.5)),
+                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(1.5, -1.5)),
+                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(-1.5, 1.5)),
+              ],
+            ),
+          ),
+        ],
+      ),
+      body: Container(
+        color: Colors.grey[900],
+        child: PhotoView(
+          imageProvider: FileImage(File(imagePath)),
+          minScale: PhotoViewComputedScale.contained,
+          maxScale: PhotoViewComputedScale.covered * 2.0,
+          heroAttributes: PhotoViewHeroAttributes(tag: imagePath),
+        ),
       ),
     );
   }
@@ -42,7 +89,7 @@ class Post {
   bool isLiked;
   List<Comment> comments;
   int reposts;
-  String? imageUrl; // 1. เพิ่ม imageUrl
+  String? imageUrl;
 
   Post({
     required this.id,
@@ -54,7 +101,7 @@ class Post {
     this.isLiked = false,
     List<Comment>? comments,
     this.reposts = 0,
-    this.imageUrl, // 1. เพิ่ม imageUrl
+    this.imageUrl,
   }) : comments = comments ?? [];
 }
 
@@ -90,7 +137,6 @@ class _CommuScreenState extends State<CommuScreen> {
     ),
   ];
 
-  // 5. แก้ไขฟังก์ชัน _addPost ให้รับ imagePath
   void _addPost(String text, String? imagePath) {
     if (text.isNotEmpty || imagePath != null) {
       setState(() {
@@ -100,7 +146,7 @@ class _CommuScreenState extends State<CommuScreen> {
           avatarUrl: 'https://i.pravatar.cc/150?img=1',
           timeAgo: 'Just now',
           postText: text,
-          imageUrl: imagePath, // <-- เก็บ path รูป
+          imageUrl: imagePath,
         );
         _posts.insert(0, newPost);
       });
@@ -128,8 +174,11 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 
   void _showCommentDialog(Post post) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.transparent,
       builder: (context) {
         return _CommentsDialog(
           post: post,
@@ -145,13 +194,14 @@ class _CommuScreenState extends State<CommuScreen> {
     final snackBar = SnackBar(
       content: Text(
         message,
-        style: GoogleFonts.mali(color: Colors.white, fontWeight: FontWeight.bold),
+        style: GoogleFonts.mali(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       backgroundColor: Colors.green[600],
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -176,7 +226,10 @@ class _CommuScreenState extends State<CommuScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text('ลบโพสต์', style: GoogleFonts.mali(color: Colors.red)),
+              title: Text(
+                'ลบโพสต์',
+                style: GoogleFonts.mali(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(modalContext);
                 setState(() {
@@ -291,80 +344,108 @@ class _CommentsDialogState extends State<_CommentsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Color(0xFFFFF7EB),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text(
-        'ความคิดเห็น',
-        style: GoogleFonts.mali(
-          color: Color(0xFF78B465),
-          fontWeight: FontWeight.bold,
-        ),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      content: SizedBox(
-        width: double.maxFinite,
+      child: Container(
+        height: 500,
+        padding: const EdgeInsets.all(16.0),
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFF7EB),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(62, 0, 0, 0),
+              blurRadius: 20,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'ความคิดเห็น',
+                  style: GoogleFonts.mali(
+                    color: Color(0xFF78B465),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const Divider(),
             Expanded(
-              child: widget.post.comments.isEmpty
-                  ? Center(
-                      child: Text(
-                        'ยังไม่มีความคิดเห็น',
-                        style: GoogleFonts.mali(color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: widget.post.comments.length,
-                      itemBuilder: (context, index) {
-                        final comment = widget.post.comments[index];
-                        final cardColor = index.isEven
-                            ? Colors.white
-                            : const Color(0xFFF1F8E9);
+              child:
+                  widget.post.comments.isEmpty
+                      ? Center(
+                          child: Text(
+                            'ยังไม่มีความคิดเห็น',
+                            style: GoogleFonts.mali(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: widget.post.comments.length,
+                          itemBuilder: (context, index) {
+                            final comment = widget.post.comments[index];
+                            final cardColor =
+                                index.isEven
+                                    ? Colors.white
+                                    : const Color(0xFFF1F8E9);
 
-                        return Card(
-                          color: cardColor,
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    comment.avatarUrl,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        comment.username,
-                                        style: GoogleFonts.mali(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                            return Card(
+                              color: cardColor,
+                              elevation: 2,
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        comment.avatarUrl,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        comment.text,
-                                        style: GoogleFonts.mali(),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            comment.username,
+                                            style: GoogleFonts.mali(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            comment.text,
+                                            style: GoogleFonts.mali(),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                              ),
+                            );
+                          },
+                        ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -390,23 +471,10 @@ class _CommentsDialogState extends State<_CommentsDialog> {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'ปิด',
-            style: GoogleFonts.mali(
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF78B465),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
 
-// 4. แก้ไข CreatePostInput ทั้งหมด
 class CreatePostInput extends StatefulWidget {
   final Function(String text, String? imagePath) onPost;
   const CreatePostInput({super.key, required this.onPost});
@@ -449,9 +517,10 @@ class _CreatePostInputState extends State<CreatePostInput> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: kCardBorderColor, width: 2.5)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: kCardBorderColor, width: 2.5),
+      ),
       child: Column(
         children: [
           if (_selectedImage != null)
@@ -472,7 +541,11 @@ class _CreatePostInputState extends State<CreatePostInput> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       onPressed: () => setState(() => _selectedImage = null),
                     ),
                   ),
@@ -486,12 +559,16 @@ class _CreatePostInputState extends State<CreatePostInput> {
               const Column(
                 children: [
                   CircleAvatar(
-                      radius: 22,
-                      backgroundImage:
-                          NetworkImage('https://i.pravatar.cc/150?img=1')),
+                    radius: 22,
+                    backgroundImage: NetworkImage(
+                      'https://i.pravatar.cc/150?img=1',
+                    ),
+                  ),
                   SizedBox(height: 4),
-                  Text('ตอนนี้',
-                      style: TextStyle(color: kTimestampColor, fontSize: 12)),
+                  Text(
+                    'ตอนนี้',
+                    style: TextStyle(color: kTimestampColor, fontSize: 12),
+                  ),
                 ],
               ),
               const SizedBox(width: 12),
@@ -500,15 +577,19 @@ class _CreatePostInputState extends State<CreatePostInput> {
                   controller: _controller,
                   style: GoogleFonts.mali(),
                   decoration: InputDecoration(
-                      filled: true,
-                      fillColor: kDmBubbleColor,
-                      hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
-                      hintStyle: GoogleFonts.mali(),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none)),
+                    filled: true,
+                    fillColor: kDmBubbleColor,
+                    hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
+                    hintStyle: GoogleFonts.mali(),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                   minLines: 1,
                   maxLines: 4,
                 ),
@@ -525,12 +606,14 @@ class _CreatePostInputState extends State<CreatePostInput> {
                   iconSize: 32,
                   color: kLikeButtonBorderColor,
                   style: IconButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: BorderSide(
-                          color: kLikeButtonBorderColor.withOpacity(0.5),
-                          width: 1.5)),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(
+                      color: kLikeButtonBorderColor.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -538,7 +621,6 @@ class _CreatePostInputState extends State<CreatePostInput> {
     );
   }
 }
-
 
 const Color kCardBorderColor = Color(0xFFCDE5CF);
 const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
@@ -552,7 +634,6 @@ const Color kTextColor = Color(0xFF333333);
 const Color kTimestampColor = Colors.grey;
 const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
-// 6. แก้ไข UserPostCard
 class UserPostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLikePressed;
@@ -626,21 +707,6 @@ class UserPostCard extends StatelessWidget {
               ),
             ],
           ),
-          
-          if (post.imageUrl != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
-                child: Image.file(
-                  File(post.imageUrl!),
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
           if (post.postText.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
@@ -653,7 +719,30 @@ class UserPostCard extends StatelessWidget {
                 ),
               ),
             ),
-          
+          if (post.imageUrl != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PhotoViewScreen(imagePath: post.imageUrl!),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15.0),
+                  child: Image.file(
+                    File(post.imageUrl!),
+                    width: double.infinity,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
           const SizedBox(height: 16),
           Row(
             children: [
