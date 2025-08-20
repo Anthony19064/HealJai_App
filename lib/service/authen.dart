@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 final GoogleSignIn googleSignIn = GoogleSignIn();
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-
 Future<Map<String, dynamic>> signInwithEmail(
   String email,
   String password,
@@ -101,6 +100,11 @@ Future<Map<String, String?>> getUserLocal() async {
   return {'userName': name, 'userId': id, 'userMail': mail, 'userPhoto': photo};
 }
 
+Future<String?> getUserId() async {
+  final prefs = await SharedPreferences.getInstance(); // instance Local
+  return prefs.getString('userId');
+}
+
 Future<void> clearUserLocal() async {
   // Google
   if (await googleSignIn.isSignedIn()) {
@@ -116,4 +120,11 @@ Future<void> clearUserLocal() async {
   await prefs.remove('JWT_Token');
 
   print(" logout หมดแล้วจ้า ✅");
+}
+
+Future<bool> isUserLoggedin() async {
+  final prefs = await SharedPreferences.getInstance();
+  final id = prefs.getString('userId');
+
+  return id != null;
 }

@@ -291,7 +291,7 @@ class _NewPasswordState extends State<NewPassword> {
                 ),
                 child:
                     isLoading
-                        ? Lottie.asset('assets/animations/loading.json')
+                        ? Lottie.asset('assets/animations/lotties/loading.json')
                         : Text(
                           "ยืนยัน",
                           style: GoogleFonts.mali(

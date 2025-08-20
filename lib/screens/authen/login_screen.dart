@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController(); // ตัวเก็บค่า password
 
   bool isLoading = false;
-  StateMachineController? _controller;
+  // StateMachineController? _controller;
   SMIInput<bool>? _isTyping;
 
   @override
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Transform.scale(
                   scale: 0.8,
                   child: RiveAnimation.asset(
-                          'assets/animations/goose_login.riv',
+                          'assets/animations/rives/goose_login.riv',
                           onInit: (artboard) {
                             final controller =
                                 StateMachineController.fromArtboard(
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
                             if (controller != null) {
                               artboard.addController(controller);
-                              _controller = controller;
+                              // _controller = controller;
 
                               _isTyping = controller.findInput<bool>(
                                 'isTyping',
@@ -334,7 +334,7 @@ class ButtonLogin extends StatelessWidget {
           ),
           child:
               isLoading
-                  ? Lottie.asset('assets/animations/loading.json')
+                  ? Lottie.asset('assets/animations/lotties/loading.json')
                   : Text(
                     'Sign in',
                     style: GoogleFonts.mali(

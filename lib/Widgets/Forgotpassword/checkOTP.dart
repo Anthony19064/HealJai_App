@@ -159,7 +159,7 @@ class _CheckOTPState extends State<CheckOTP> {
                 ),
                 child:
                     isLoading
-                        ? Lottie.asset('assets/animations/loading.json')
+                        ? Lottie.asset('assets/animations/lotties/loading.json')
                         : Text(
                           "ยืนยัน",
                           style: GoogleFonts.mali(

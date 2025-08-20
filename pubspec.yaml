@@ -57,6 +57,8 @@ dependencies:
   percent_indicator: ^4.2.5
   image_picker: ^1.2.0
   flutter_secure_storage: ^9.2.4
+  dotted_border: ^3.1.0
+  dio: ^5.9.0
   photo_view: ^0.15.0
   
 dev_dependencies:
@@ -86,6 +88,8 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/animations/
+    - assets/animations/rives/
+    - assets/animations/lotties/
     - .env
     
 

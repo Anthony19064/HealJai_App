@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/service/authen.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
@@ -27,8 +28,10 @@ class _ChatScreenState extends State<ChatScreen> {
   static const Color _sunBgColor = Color(0xFF1D5B99);
 
   Color get _dynamicColor => _currentPage == 0 ? _moonColor : _sunColor;
-  Color get _dynamicBgColor => _currentPage == 0 ? _moonBgColor : const Color.fromARGB(255, 69, 132, 196);
-  String get _roleName => _currentPage == 0 ? 'พระจันทร์' : 'พระอาทิตย์';
+  Color get _dynamicBgColor =>
+      _currentPage == 0
+          ? _moonBgColor
+          : const Color.fromARGB(255, 69, 132, 196);
 
   late final List<VoidCallback> _onMatchPressedCallbacks;
 
@@ -48,16 +51,54 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _onMatchPressedCallbacks = [
       () async {
-        await _showLoadingDialog(); // โชว์ Dialog
-        chatProvider.setRole('talker');
-        await socket.waitUntilConnected();
-        socket.matchChat("talker");
+        final loginState = await isUserLoggedin();
+        if (loginState) {
+          await _showLoadingDialog(); // โชว์ Dialog
+          chatProvider.setRole('talker');
+          await socket.waitUntilConnected();
+          socket.matchChat("talker");
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'ต้องเข้าสู่ระบบก่อนน้า',
+                style: GoogleFonts.mali(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Color(0xFFFD7D7E),
+            ),
+          );
+        }
       },
       () async {
-        await _showLoadingDialog(); // โชว์ Dialog
-        chatProvider.setRole('listener');
-        await socket.waitUntilConnected();
-        socket.matchChat("listener");
+        final loginState = await isUserLoggedin();
+        if (loginState) {
+          await _showLoadingDialog(); // โชว์ Dialog
+          chatProvider.setRole('listener');
+          await socket.waitUntilConnected();
+          socket.matchChat("listener");
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'ต้องเข้าสู่ระบบก่อนน้า',
+                style: GoogleFonts.mali(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Color(0xFFFD7D7E),
+            ),
+          );
+        }
       },
     ];
   }
@@ -176,7 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         height: MediaQuery.of(context).size.height * 0.4,
                         width: MediaQuery.of(context).size.width * 0.9,
                         child: RiveAnimation.asset(
-                          'assets/animations/ChatRole.riv',
+                          'assets/animations/rives/ChatRole.riv',
                           onInit: (artboard) {
                             final controller =
                                 StateMachineController.fromArtboard(

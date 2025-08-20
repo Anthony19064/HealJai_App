@@ -24,7 +24,7 @@ class _SuccessResetState extends State<SuccessReset> {
             SizedBox(
               width: 300,
               height: 300,
-              child: Lottie.asset('assets/animations/congrat.json'),
+              child: Lottie.asset('assets/animations/lotties/congrat.json'),
             ),
             SizedBox(height: 50),
             Text(
