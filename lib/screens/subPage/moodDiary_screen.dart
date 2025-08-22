@@ -24,13 +24,17 @@ class MoodDiaryScreen extends StatefulWidget {
 }
 
 class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
+  final TextEditingController _moodController =
+      TextEditingController(); // ตัวเก็บค่า Value Mood
+
   bool isLoading = false;
   late final PageController _pageController;
   int _selectedMoodIndex = 3;
+  String _selectedMoodText = "เฉยๆ";
   final List<Mood> _moods = [
     Mood(
       value: 'ประหลาดใจ',
-      color: const Color(0xFFE89352),
+      color: const Color(0xFFF29C41),
       icon: SizedBox(
         width: 150,
         height: 150,
@@ -54,7 +58,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
     ),
     Mood(
       value: 'มีความสุข',
-      color: const Color(0xFFFFD966),
+      color: const Color(0xFFFFCC00),
       icon: SizedBox(
         width: 150,
         height: 150,
@@ -101,8 +105,8 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       ),
     ),
     Mood(
-      value: 'โกรธ',
-      color: const Color(0xFFFF7B7C),
+      value: 'โกธร',
+      color: const Color(0xFFEB4343),
       icon: SizedBox(
         width: 150,
         height: 150,
@@ -128,16 +132,20 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
     super.dispose();
   }
 
-  void _saveMood() async {
+  Future<void> _saveMood() async {
     setState(() {
       isLoading = true;
     });
+
     String? token = await getJWTToken();
     String? userId = await getUserId();
-
     if (userId != null) {
       final selectedMood = _moods[_selectedMoodIndex].value;
-      final data = await addDiaryMood(token, selectedMood);
+      final text =
+          _moodController.text.trim().isEmpty
+              ? "ไม่มีบันทึก"
+              : _moodController.text;
+      final data = await addDiaryMood(token, selectedMood, text);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -176,6 +184,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
         ),
       );
     }
+
     setState(() {
       isLoading = false;
     });
@@ -209,109 +218,166 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       body: ZoomIn(
         duration: Duration(milliseconds: 500),
         child: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-              // --- 1. หัวข้อ "วันนี้รู้สึกยังไงบ้าง ?" ---
-              Container(
-                width: MediaQuery.of(context).size.width * 0.7,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(width: 1, color: Color(0xFFE0E0E0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                // --- 1. หัวข้อ "วันนี้รู้สึกยังไงบ้าง ?" ---
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(width: 1, color: Color(0xFFE0E0E0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'วันนี้รู้สึกยังไงบ้าง ?',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.mali(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF78B465),
                     ),
-                  ],
+                  ),
                 ),
-                child: Text(
-                  'วันนี้รู้สึกยังไงบ้าง ?',
-                  textAlign: TextAlign.center,
+                SizedBox(height: MediaQuery.of(context).size.height * 0.04),
+                // --- 2. ส่วนเลื่อนเลือกอารมณ์ (PageView) ---
+                SizedBox(
+                  height:
+                      MediaQuery.of(context).size.height *
+                      0.4, //ความสูง card Mood
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _moods.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _selectedMoodIndex = index;
+                        _selectedMoodText = _moods[index].value;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return MoodCard(
+                        mood: _moods[index],
+                        isSelected: index == _selectedMoodIndex,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height:20),
+                Text(
+                  _selectedMoodText,
                   style: GoogleFonts.mali(
-                    fontSize: 18,
+                    color: _moods[_selectedMoodIndex].color,
+                    fontSize: 30,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF78B465),
                   ),
                 ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.06),
-              // --- 2. ส่วนเลื่อนเลือกอารมณ์ (PageView) ---
-              SizedBox(
-                height:
-                    MediaQuery.of(context).size.height *
-                    0.4, //ความสูง card Mood
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _moods.length,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _selectedMoodIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    return MoodCard(
-                      mood: _moods[index],
-                      isSelected: index == _selectedMoodIndex,
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 40),
+                const SizedBox(height: 30),
 
-              // --- 3. ปุ่มบันทึก ---
-              FractionallySizedBox(
-                widthFactor: 0.90,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton(
-                    onPressed: isLoading? null : _saveMood,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF78B465),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(13),
+                FractionallySizedBox(
+                  widthFactor: 0.9,
+                  child: TextFormField(
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    maxLength: 100,
+                    controller: _moodController,
+                    decoration: InputDecoration(
+                      hintText: "เขียนบันทึกได้น้า",
+                      hintStyle: GoogleFonts.mali(
+                        color: Color(0xFF919191),
+                        fontWeight: FontWeight.w700,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(13),
+                        borderSide: BorderSide(
+                          color: Color(0xFFE0E0E0),
+                          width: 2,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(13),
+                        borderSide: BorderSide(
+                          color: Color(0xFFE0E0E0),
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(13),
+                        borderSide: BorderSide(
+                          color: Color(0xFFB3B3B3),
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 20.0,
+                        horizontal: 20.0,
                       ),
                     ),
-                    child:
-                        isLoading
-                            ? Transform.scale(
-                              scale: 2,
-                              child: Lottie.asset(
-                                'assets/animations/lotties/loading.json',
-                              ),
-                            )
-                            : Text(
-                              'บันทึก',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.mali(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                    style: GoogleFonts.mali(
+                      color: Color(0xFF464646),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
-              ),
 
-              // --- 4. การ์ดสถิติรายเดือน ---
-              // const StatisticsCard(
-              //   consecutiveDays: 2,
-              //   missedDays: 4,
-              //   yesterdayMoodIcon: MoodIcon(
-              //     color: Color(0xFFC4B2F9),
-              //     face: '-_-',
-              //     size: 40,
-              //   ),
-              // ),
-            ],
+                const SizedBox(height: 20),
+
+                // --- 3. ปุ่มบันทึก ---
+                FractionallySizedBox(
+                  widthFactor: 0.90,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed:
+                          isLoading
+                              ? null
+                              : () async {
+                                await _saveMood();
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF78B465),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                      ),
+                      child:
+                          isLoading
+                              ? Transform.scale(
+                                scale: 2,
+                                child: Lottie.asset(
+                                  'assets/animations/lotties/loading.json',
+                                ),
+                              )
+                              : Text(
+                                'บันทึก',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.mali(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -335,7 +401,7 @@ class MoodCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: mood.color,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: mood.color, width: 5),
         boxShadow: [
@@ -351,99 +417,8 @@ class MoodCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           mood.icon,
-          SizedBox(height: 20),
-          Text(
-            mood.value,
-            style: GoogleFonts.mali(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? mood.color : Colors.transparent,
-            ),
-          ),
         ],
       ),
     );
   }
 }
-
-// class StatisticsCard extends StatelessWidget {
-//   final int consecutiveDays;
-//   final int missedDays;
-//   final Widget yesterdayMoodIcon;
-//   const StatisticsCard({
-//     super.key,
-//     required this.consecutiveDays,
-//     required this.missedDays,
-//     required this.yesterdayMoodIcon,
-//   });
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       margin: const EdgeInsets.symmetric(horizontal: 20),
-//       padding: const EdgeInsets.all(20),
-//       decoration: BoxDecoration(
-//         color: const Color(0xFFF7FBF7),
-//         borderRadius: BorderRadius.circular(20),
-//         border: Border.all(color: const Color(0xFFD4E9D7), width: 2),
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             'สถิติรายเดือน',
-//             style: GoogleFonts.mali(
-//               fontSize: 16,
-//               fontWeight: FontWeight.bold,
-//               color: const Color(0xFF5A8E61),
-//             ),
-//           ),
-//           const SizedBox(height: 15),
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceAround,
-//             children: [
-//               StatItem(
-//                 value: consecutiveDays.toString(),
-//                 label: 'วันต่อเนื่อง',
-//               ),
-//               StatItem(
-//                 value: missedDays.toString(),
-//                 label: 'วันที่ไม่ได้บันทึก',
-//               ),
-//               StatItem(customChild: yesterdayMoodIcon, label: 'อารมณ์เมื่อวาน'),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class StatItem extends StatelessWidget {
-//   final String? value;
-//   final String label;
-//   final Widget? customChild;
-//   const StatItem({
-//     super.key,
-//     this.value,
-//     required this.label,
-//     this.customChild,
-//   });
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         customChild ??
-//             Text(
-//               value!,
-//               style: GoogleFonts.mali(
-//                 fontSize: 32,
-//                 fontWeight: FontWeight.bold,
-//                 color: Colors.black54,
-//               ),
-//             ),
-//         const SizedBox(height: 5),
-//         Text(label, style: GoogleFonts.mali(fontSize: 12, color: Colors.grey)),
-//       ],
-//     );
-//   }
-// }

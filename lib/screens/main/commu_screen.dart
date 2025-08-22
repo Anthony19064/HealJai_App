@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:photo_view/photo_view.dart'; 
+import 'package:photo_view/photo_view.dart';
 
 // สมมติว่ามีหน้าสำหรับแก้ไขโพสต์
 class EditPostScreen extends StatelessWidget {
@@ -21,7 +21,7 @@ class EditPostScreen extends StatelessWidget {
   }
 }
 
-// หน้าสำหรับดูรูปภาพ 
+// หน้าสำหรับดูรูปภาพ
 class PhotoViewScreen extends StatelessWidget {
   final String imagePath;
 
@@ -42,26 +42,56 @@ class PhotoViewScreen extends StatelessWidget {
             },
             icon: Icon(
               Icons.close,
-              color: Colors.white, // 1. สีไอคอนเป็นสีขาว
+              color: Colors.black, // 1. สีไอคอนเป็นสีขาว
               // 2. ใช้ shadows สร้างเอฟเฟกต์ขอบสีดำ
-              shadows: const [
-                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(1.5, 1.5)),
-                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(-1.5, -1.5)),
-                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(1.5, -1.5)),
-                Shadow(color: Colors.black, blurRadius: 0, offset: Offset(-1.5, 1.5)),
-              ],
+              // shadows: const [
+              //   Shadow(
+              //     color: Colors.black,
+              //     blurRadius: 0,
+              //     offset: Offset(1.5, 1.5),
+              //   ),
+              //   Shadow(
+              //     color: Colors.black,
+              //     blurRadius: 0,
+              //     offset: Offset(-1.5, -1.5),
+              //   ),
+              //   Shadow(
+              //     color: Colors.black,
+              //     blurRadius: 0,
+              //     offset: Offset(1.5, -1.5),
+              //   ),
+              //   Shadow(
+              //     color: Colors.black,
+              //     blurRadius: 0,
+              //     offset: Offset(-1.5, 1.5),
+              //   ),
+              // ],
             ),
           ),
         ],
       ),
-      body: Container(
-        color: Colors.grey[900],
-        child: PhotoView(
-          imageProvider: FileImage(File(imagePath)),
-          minScale: PhotoViewComputedScale.contained,
-          maxScale: PhotoViewComputedScale.covered * 2.0,
-          heroAttributes: PhotoViewHeroAttributes(tag: imagePath),
-        ),
+      body: Stack(
+        children: [
+          // ชั้นแรก: พื้นหลัง + ตรวจจับการกดด้านนอก
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.pop(context); // ปิดหน้าจอ
+            },
+            child: Container(color: Color(0xFFFFF7EB)),
+          ),
+
+          // ชั้นสอง: รูปภาพเต็มจอ
+          PhotoView(
+            imageProvider: FileImage(File(imagePath)),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 2.0,
+            heroAttributes: PhotoViewHeroAttributes(tag: imagePath),
+            backgroundDecoration: BoxDecoration(
+              color: Colors.transparent, // ไม่ให้มีพื้นหลังดำ
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -389,63 +419,63 @@ class _CommentsDialogState extends State<_CommentsDialog> {
               child:
                   widget.post.comments.isEmpty
                       ? Center(
-                          child: Text(
-                            'ยังไม่มีความคิดเห็น',
-                            style: GoogleFonts.mali(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: widget.post.comments.length,
-                          itemBuilder: (context, index) {
-                            final comment = widget.post.comments[index];
-                            final cardColor =
-                                index.isEven
-                                    ? Colors.white
-                                    : const Color(0xFFF1F8E9);
-
-                            return Card(
-                              color: cardColor,
-                              elevation: 2,
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        comment.avatarUrl,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            comment.username,
-                                            style: GoogleFonts.mali(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            comment.text,
-                                            style: GoogleFonts.mali(),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                        child: Text(
+                          'ยังไม่มีความคิดเห็น',
+                          style: GoogleFonts.mali(color: Colors.grey),
                         ),
+                      )
+                      : ListView.builder(
+                        itemCount: widget.post.comments.length,
+                        itemBuilder: (context, index) {
+                          final comment = widget.post.comments[index];
+                          final cardColor =
+                              index.isEven
+                                  ? Colors.white
+                                  : const Color(0xFFF1F8E9);
+
+                          return Card(
+                            color: cardColor,
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      comment.avatarUrl,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          comment.username,
+                                          style: GoogleFonts.mali(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          comment.text,
+                                          style: GoogleFonts.mali(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -727,8 +757,10 @@ class UserPostCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          PhotoViewScreen(imagePath: post.imageUrl!),
+                      builder:
+                          (context) =>
+                              PhotoViewScreen(imagePath: post.imageUrl!),
+                      fullscreenDialog: true,
                     ),
                   );
                 },
