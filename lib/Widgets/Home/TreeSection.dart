@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rive/rive.dart';
 
 class TreeSection extends StatefulWidget {
   const TreeSection({super.key});
@@ -10,7 +12,6 @@ class TreeSection extends StatefulWidget {
 }
 
 class _TreeSectionState extends State<TreeSection> {
-
   int TreeAge = 15;
 
   @override
@@ -27,15 +28,22 @@ class _TreeSectionState extends State<TreeSection> {
               fontWeight: FontWeight.w700,
             ),
           ),
+
           Container(
             margin: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.020,
-              bottom: MediaQuery.of(context).size.height * 0.020,
+              top: MediaQuery.of(context).size.height * 0.10,
+              bottom: MediaQuery.of(context).size.height * 0.10,
             ),
-            width: MediaQuery.of(context).size.width * 0.6,
-            height: MediaQuery.of(context).size.height * 0.25,
-            child: Image.asset("assets/images/tree.png"),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.60,
+              height: 210,
+              child: RiveAnimation.asset(
+                'assets/animations/rives/tree.riv',
+                animations: ['Seedling_lv1'],
+              ),
+            ),
           ),
+
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -88,7 +96,7 @@ class _TreeSectionState extends State<TreeSection> {
           SizedBox(height: MediaQuery.of(context).size.height * 0.020),
           ElevatedButton(
             onPressed: () {
-              print("ดูบันทึก");
+              context.push('/diaryHistory');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF78B465),

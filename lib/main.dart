@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/screens/subPage/diaryHistory.dart';
 import 'package:healjai_project/screens/subPage/questionDiary_screen.dart';
 import 'package:healjai_project/screens/subPage/storyDiary_screen.dart';
 import 'package:provider/provider.dart';
@@ -155,6 +156,12 @@ final GoRouter _router = GoRouter(
       path: '/storyDiary', 
       pageBuilder: (context, state) {
         return NoTransitionPage(child: StoryDiary());
+      },
+    ),
+    GoRoute(
+      path: '/diaryHistory', 
+      pageBuilder: (context, state) {
+        return NoTransitionPage(child: Diaryhistory());
       },
     ),
   ],
