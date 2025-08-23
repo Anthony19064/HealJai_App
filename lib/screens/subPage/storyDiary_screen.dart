@@ -325,7 +325,7 @@ class _StoryCardState extends State<StoryCard> {
         ),
         child: Center(
           child: Text(
-            '${widget.indexStory + 1}. ${widget.info}',
+            widget.info,
             softWrap: true,
             style: GoogleFonts.mali(
               fontSize: 18,
