@@ -4,22 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:healjai_project/Widgets/bottom_nav.dart';
+import 'package:healjai_project/Widgets/header_section.dart';
 
-// สมมติว่ามีหน้าสำหรับแก้ไขโพสต์
-class EditPostScreen extends StatelessWidget {
-  final Post post;
-  const EditPostScreen({super.key, required this.post});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('แก้ไขโพสต์', style: GoogleFonts.mali())),
-      body: Center(
-        child: Text('กำลังแก้ไข: ${post.postText}', style: GoogleFonts.mali()),
-      ),
-    );
-  }
-}
 
 // หน้าสำหรับดูรูปภาพ
 class PhotoViewScreen extends StatelessWidget {
@@ -40,55 +27,29 @@ class PhotoViewScreen extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: Icon(
+            icon: const Icon(
               Icons.close,
-              color: Colors.black, // 1. สีไอคอนเป็นสีขาว
-              // 2. ใช้ shadows สร้างเอฟเฟกต์ขอบสีดำ
-              // shadows: const [
-              //   Shadow(
-              //     color: Colors.black,
-              //     blurRadius: 0,
-              //     offset: Offset(1.5, 1.5),
-              //   ),
-              //   Shadow(
-              //     color: Colors.black,
-              //     blurRadius: 0,
-              //     offset: Offset(-1.5, -1.5),
-              //   ),
-              //   Shadow(
-              //     color: Colors.black,
-              //     blurRadius: 0,
-              //     offset: Offset(1.5, -1.5),
-              //   ),
-              //   Shadow(
-              //     color: Colors.black,
-              //     blurRadius: 0,
-              //     offset: Offset(-1.5, 1.5),
-              //   ),
-              // ],
+              color: Colors.black,
             ),
           ),
         ],
       ),
       body: Stack(
         children: [
-          // ชั้นแรก: พื้นหลัง + ตรวจจับการกดด้านนอก
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              Navigator.pop(context); // ปิดหน้าจอ
+              Navigator.pop(context);
             },
-            child: Container(color: Color(0xFFFFF7EB)),
+            child: Container(color: const Color(0xFFFFF7EB)),
           ),
-
-          // ชั้นสอง: รูปภาพเต็มจอ
           PhotoView(
             imageProvider: FileImage(File(imagePath)),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2.0,
             heroAttributes: PhotoViewHeroAttributes(tag: imagePath),
-            backgroundDecoration: BoxDecoration(
-              color: Colors.transparent, // ไม่ให้มีพื้นหลังดำ
+            backgroundDecoration: const BoxDecoration(
+              color: Colors.transparent,
             ),
           ),
         ],
@@ -183,6 +144,18 @@ class _CommuScreenState extends State<CommuScreen> {
     }
   }
 
+  // ============== ฟังก์ชันใหม่สำหรับอัปเดตโพสต์ ==============
+  void _updatePost(Post postToUpdate, String newText, String? newImagePath) {
+    setState(() {
+      final postIndex = _posts.indexWhere((p) => p.id == postToUpdate.id);
+      if (postIndex != -1) {
+        _posts[postIndex].postText = newText;
+        _posts[postIndex].imageUrl = newImagePath;
+      }
+    });
+     _showSuccessSnackBar('แก้ไขโพสต์สำเร็จ');
+  }
+
   void _toggleLike(String postId) {
     setState(() {
       final post = _posts.firstWhere((p) => p.id == postId);
@@ -246,12 +219,13 @@ class _CommuScreenState extends State<CommuScreen> {
         List<Widget> options = [];
         if (post.username == 'Me') {
           options.addAll([
+            // ============== ▼▼▼ แก้ไข onTap ของปุ่ม "แก้ไขโพสต์" ▼▼▼ ==============
             ListTile(
               leading: const Icon(Icons.edit),
               title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
               onTap: () {
-                Navigator.pop(modalContext);
-                _showSuccessSnackBar('TODO: เปิดหน้าแก้ไขโพสต์');
+                Navigator.pop(modalContext); // ปิดเมนูตัวเลือก
+                _showEditPostModal(post); // เปิดหน้าต่างแก้ไข
               },
             ),
             ListTile(
@@ -311,31 +285,324 @@ class _CommuScreenState extends State<CommuScreen> {
     );
   }
 
+  // ฟังก์ชันสำหรับ "สร้าง" โพสต์
+  void _showCreatePostModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: FullScreenPostCreator(
+            // ไม่ส่ง postToEdit ไป = โหมดสร้างใหม่
+            onPost: (text, imagePath) {
+              _addPost(text, imagePath);
+            },
+          ),
+        );
+      },
+    );
+  }
+  
+  // ============== ▼▼▼ ฟังก์ชันใหม่สำหรับเปิด Modal "แก้ไข" ▼▼▼ ==============
+  void _showEditPostModal(Post postToEdit) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: FullScreenPostCreator(
+            postToEdit: postToEdit, // <--- ส่งโพสต์ที่ต้องการแก้ไขเข้าไป
+            onPost: (newText, newImagePath) {
+              _updatePost(postToEdit, newText, newImagePath);
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: _posts.length + 1,
-        separatorBuilder: (context, index) => const SizedBox(height: 20),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return CreatePostInput(onPost: _addPost);
-          }
-          final post = _posts[index - 1];
-          return UserPostCard(
-            post: post,
-            onLikePressed: () => _toggleLike(post.id),
-            onCommentPressed: () => _showCommentDialog(post),
-            onMoreOptionsPressed: () => _showPostOptions(post),
-            onRepostPressed: () => _incrementReposts(post.id),
-          );
-        },
+      bottomNavigationBar: const BottomNavBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const HeaderSection(),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0),
+                itemCount: _posts.length + 1,
+                separatorBuilder: (context, index) => const SizedBox(height: 20),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return PostCreationTrigger(
+                      onTap: _showCreatePostModal,
+                    );
+                  }
+                  final post = _posts[index - 1];
+                  return UserPostCard(
+                    post: post,
+                    onLikePressed: () => _toggleLike(post.id),
+                    onCommentPressed: () => _showCommentDialog(post),
+                    onMoreOptionsPressed: () => _showPostOptions(post),
+                    onRepostPressed: () => _incrementReposts(post.id),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+class PostCreationTrigger extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const PostCreationTrigger({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: kCardBorderColor, width: 2.5),
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 22,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
+                style: GoogleFonts.mali(color: Colors.grey[600]),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.favorite, color: kLikeButtonBorderColor),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==============  อัปเกรด FullScreenPostCreator  ==============
+class FullScreenPostCreator extends StatefulWidget {
+  final Function(String text, String? imagePath) onPost;
+  final Post? postToEdit; 
+
+  const FullScreenPostCreator({
+    super.key, 
+    required this.onPost, 
+    this.postToEdit, 
+  });
+
+  @override
+  State<FullScreenPostCreator> createState() => _FullScreenPostCreatorState();
+}
+
+class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
+  final _controller = TextEditingController();
+  File? _selectedImage;
+  bool _canPost = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // ตรวจสอบว่ามี postToEdit ถูกส่งมาหรือไม่ (เป็นโหมดแก้ไข)
+    if (widget.postToEdit != null) {
+      // ถ้าใช่, ให้กำหนดค่าเริ่มต้นให้ text และ รูปภาพ
+      _controller.text = widget.postToEdit!.postText;
+      if (widget.postToEdit!.imageUrl != null) {
+        _selectedImage = File(widget.postToEdit!.imageUrl!);
+      }
+    }
+
+    // listener ตัวเดิมใช้ได้เลย
+    _controller.addListener(() {
+      setState(() {
+        _canPost = _controller.text.isNotEmpty || _selectedImage != null;
+      });
+    });
+    // เช็คสถานะปุ่มโพสต์ครั้งแรก
+    _canPost = _controller.text.isNotEmpty || _selectedImage != null;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+        _canPost = true;
+      });
+    }
+  }
+
+  void _handlePost() {
+    if (!_canPost) return;
+    widget.onPost(_controller.text, _selectedImage?.path);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFFF7EB),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 40),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.black54),
+              onPressed: () => Navigator.pop(context),
+            ),
+            // เปลี่ยนหัวข้อตามโหมด (สร้าง/แก้ไข)
+            title: Text(
+              widget.postToEdit == null ? 'สร้างโพสต์ใหม่' : 'แก้ไขโพสต์',
+              style: GoogleFonts.mali(color: kTextColor)
+            ),
+            actions: [
+              TextButton(
+                onPressed: _canPost ? _handlePost : null,
+                child: Text(
+                  'โพสต์',
+                  style: GoogleFonts.mali(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: _canPost ? const Color(0xFF78B465) : Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  style: GoogleFonts.mali(fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: 'วันนี้มีเรื่องราวอะไรมาแบ่งปันบ้าง...',
+                    hintStyle: GoogleFonts.mali(),
+                    border: InputBorder.none,
+                  ),
+                  maxLines: null,
+                ),
+                const SizedBox(height: 20),
+                if (_selectedImage != null)
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.file(
+                          _selectedImage!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.black54,
+                          child: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                            onPressed: () => setState(() {
+                              _selectedImage = null;
+                              _canPost = _controller.text.isNotEmpty;
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: _pickImage,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.image_outlined,
+                                color: const Color(0xFF78B465),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'รูปภาพ',
+                                style: GoogleFonts.mali(
+                                  color: const Color(0xFF78B465),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 class _CommentsDialog extends StatefulWidget {
   final Post post;
@@ -391,7 +658,7 @@ class _CommentsDialogState extends State<_CommentsDialog> {
             BoxShadow(
               color: Color.fromARGB(62, 0, 0, 0),
               blurRadius: 20,
-              offset: const Offset(0, -10),
+              offset: Offset(0, -10),
             ),
           ],
         ),
@@ -403,7 +670,7 @@ class _CommentsDialogState extends State<_CommentsDialog> {
                 Text(
                   'ความคิดเห็น',
                   style: GoogleFonts.mali(
-                    color: Color(0xFF78B465),
+                    color: const Color(0xFF78B465),
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
@@ -416,66 +683,61 @@ class _CommentsDialogState extends State<_CommentsDialog> {
             ),
             const Divider(),
             Expanded(
-              child:
-                  widget.post.comments.isEmpty
-                      ? Center(
-                        child: Text(
-                          'ยังไม่มีความคิดเห็น',
-                          style: GoogleFonts.mali(color: Colors.grey),
-                        ),
-                      )
-                      : ListView.builder(
-                        itemCount: widget.post.comments.length,
-                        itemBuilder: (context, index) {
-                          final comment = widget.post.comments[index];
-                          final cardColor =
-                              index.isEven
-                                  ? Colors.white
-                                  : const Color(0xFFF1F8E9);
-
-                          return Card(
-                            color: cardColor,
-                            elevation: 2,
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                      comment.avatarUrl,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          comment.username,
-                                          style: GoogleFonts.mali(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          comment.text,
-                                          style: GoogleFonts.mali(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+              child: widget.post.comments.isEmpty
+                  ? Center(
+                      child: Text(
+                        'ยังไม่มีความคิดเห็น',
+                        style: GoogleFonts.mali(color: Colors.grey),
                       ),
+                    )
+                  : ListView.builder(
+                      itemCount: widget.post.comments.length,
+                      itemBuilder: (context, index) {
+                        final comment = widget.post.comments[index];
+                        final cardColor = index.isEven ? Colors.white : const Color(0xFFF1F8E9);
+
+                        return Card(
+                          color: cardColor,
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    comment.avatarUrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        comment.username,
+                                        style: GoogleFonts.mali(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        comment.text,
+                                        style: GoogleFonts.mali(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -505,165 +767,6 @@ class _CommentsDialogState extends State<_CommentsDialog> {
   }
 }
 
-class CreatePostInput extends StatefulWidget {
-  final Function(String text, String? imagePath) onPost;
-  const CreatePostInput({super.key, required this.onPost});
-  @override
-  State<CreatePostInput> createState() => _CreatePostInputState();
-}
-
-class _CreatePostInputState extends State<CreatePostInput> {
-  final _controller = TextEditingController();
-  File? _selectedImage;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  void _handlePost() {
-    widget.onPost(_controller.text, _selectedImage?.path);
-    _controller.clear();
-    setState(() {
-      _selectedImage = null;
-    });
-    FocusScope.of(context).unfocus();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: kCardBorderColor, width: 2.5),
-      ),
-      child: Column(
-        children: [
-          if (_selectedImage != null)
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.file(
-                    _selectedImage!,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.black54,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _selectedImage = null),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          if (_selectedImage != null) const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Column(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=1',
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'ตอนนี้',
-                    style: TextStyle(color: kTimestampColor, fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  style: GoogleFonts.mali(),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kDmBubbleColor,
-                    hintText: 'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
-                    hintStyle: GoogleFonts.mali(),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  minLines: 1,
-                  maxLines: 4,
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.image_outlined, color: Colors.grey[600]),
-                onPressed: _pickImage,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: IconButton(
-                  onPressed: _handlePost,
-                  icon: const Icon(Icons.favorite),
-                  iconSize: 32,
-                  color: kLikeButtonBorderColor,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: BorderSide(
-                      color: kLikeButtonBorderColor.withOpacity(0.5),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-const Color kCardBorderColor = Color(0xFFCDE5CF);
-const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
-const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
-const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
-const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
-const Color kRepostButtonBorderColor = Color(0xFFC7C5FF);
-const Color kRepostButtonBackgroundColor = Color(0xFFF2F1FF);
-const Color kIconColor = Color(0xFF757575);
-const Color kTextColor = Color(0xFF333333);
-const Color kTimestampColor = Colors.grey;
-const Color kDmBubbleColor = Color(0xFFC5E3C8);
-
 class UserPostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLikePressed;
@@ -683,10 +786,8 @@ class UserPostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final likeIcon = post.isLiked ? Icons.favorite : Icons.favorite_border;
     final likeColor = post.isLiked ? Colors.red : kIconColor;
-    final likeBorderColor =
-        post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
-    final likeBackgroundColor =
-        post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
+    final likeBorderColor = post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
+    final likeBackgroundColor = post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -757,9 +858,7 @@ class UserPostCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              PhotoViewScreen(imagePath: post.imageUrl!),
+                      builder: (context) => PhotoViewScreen(imagePath: post.imageUrl!),
                       fullscreenDialog: true,
                     ),
                   );
@@ -855,3 +954,17 @@ class InteractionButton extends StatelessWidget {
     );
   }
 }
+
+// ============== CONSTANTS ==============
+
+const Color kCardBorderColor = Color(0xFFCDE5CF);
+const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
+const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
+const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
+const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
+const Color kRepostButtonBorderColor = Color(0xFFC7C5FF);
+const Color kRepostButtonBackgroundColor = Color(0xFFF2F1FF);
+const Color kIconColor = Color(0xFF757575);
+const Color kTextColor = Color(0xFF333333);
+const Color kTimestampColor = Colors.grey;
+const Color kDmBubbleColor = Color(0xFFC5E3C8);
