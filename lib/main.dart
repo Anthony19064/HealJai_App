@@ -20,7 +20,8 @@ import 'Screens/authen/regis_screen.dart';
 
 import 'screens/subPage/chatroom_screen.dart';
 import 'screens/subPage/moodDiary_screen.dart';
-import 'screens/subPage/article_detail_screen.dart'; 
+import 'screens/subPage/article_detail_screen.dart';
+
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -81,12 +82,7 @@ final GoRouter _router = GoRouter(
             return NoTransitionPage(child: HomeScreen());
           },
         ),
-        GoRoute(
-          path: '/commu',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: CommuScreen());
-          },
-        ),
+        
         GoRoute(
           path: '/book',
           pageBuilder: (context, state) {
@@ -96,9 +92,6 @@ final GoRouter _router = GoRouter(
       ],
     ),
     
-    // หน้าที่ไม่อยากให้มีด้านบนให้เพิ่มลงด้านล่างนี้
-    
-
     GoRoute(
       path: '/login',
       pageBuilder: (context, state) {
@@ -131,7 +124,14 @@ final GoRouter _router = GoRouter(
           },
         ),
       ],
+    
     ),
+    GoRoute(
+          path: '/commu',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: CommuScreen());
+          },
+        ),
     GoRoute(
       path: '/book/:title', //:title คือ path parameter
       pageBuilder: (context, state) {
