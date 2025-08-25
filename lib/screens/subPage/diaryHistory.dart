@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:rive/rive.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flip_card/flip_card.dart';
-import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class Diaryhistory extends StatefulWidget {
