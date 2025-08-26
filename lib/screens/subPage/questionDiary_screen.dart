@@ -2,10 +2,13 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 import 'dart:math';
 
@@ -51,7 +54,7 @@ class _QuestionDiaryState extends State<QuestionDiary> {
     question = getRandomQuestion();
   }
 
- Future <void> SaveQuestion() async {
+  Future<void> SaveQuestion() async {
     setState(() {
       isLoading = true;
     });
@@ -61,7 +64,9 @@ class _QuestionDiaryState extends State<QuestionDiary> {
     if (userId != null) {
       final answer = _questionController.text;
       final data = await addDiaryQuestion(token, question, answer);
-
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Padding(
@@ -80,7 +85,6 @@ class _QuestionDiaryState extends State<QuestionDiary> {
               data['success'] == true ? Color(0xFF78B465) : Color(0xFFFD7D7E),
         ),
       );
-      
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -99,11 +103,12 @@ class _QuestionDiaryState extends State<QuestionDiary> {
           backgroundColor: Color(0xFFFD7D7E),
         ),
       );
-      
     }
-    setState(() {
-      isLoading = false;
-    });
+
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Future.delayed(Duration(seconds: 1));
+    context.pop();
   }
 
   @override
@@ -222,7 +227,7 @@ class _QuestionDiaryState extends State<QuestionDiary> {
                         onPressed:
                             isLoading
                                 ? null
-                                : () async{
+                                : () async {
                                   if (_questionFormKey.currentState!
                                       .validate()) {
                                     await SaveQuestion();

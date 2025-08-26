@@ -4,6 +4,23 @@ import 'package:http/http.dart' as http;
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
+Future<int?> getTaskCount(String? token, int day, int month, int year) async {
+  final response = await http.get(
+    Uri.parse('$apiURL/api/getTask/${day}/${month}/${year}'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+  final data = jsonDecode(response.body);
+  if (data['success'] == true) {
+    return data['data'] as int;
+  } else {
+    print("Error: ${response.statusCode}, ${response.body}");
+    return null;
+  }
+}
+
 Future<Map<String, dynamic>?> diaryInfo(
   String? token,
   int day,

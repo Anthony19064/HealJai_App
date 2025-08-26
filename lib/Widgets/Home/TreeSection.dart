@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
 class TreeSection extends StatefulWidget {
@@ -12,10 +14,10 @@ class TreeSection extends StatefulWidget {
 }
 
 class _TreeSectionState extends State<TreeSection> {
-  int TreeAge = 15;
-
   @override
   Widget build(BuildContext context) {
+    final TreeInfo = Provider.of<TreeProvider>(context);
+
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -72,7 +74,7 @@ class _TreeSectionState extends State<TreeSection> {
                   Container(
                     margin: EdgeInsets.only(left: 15, right: 15),
                     child: Text(
-                      "${TreeAge}",
+                      "${TreeInfo.TreeAge}",
                       style: GoogleFonts.mali(
                         color: Color(0xFF78B465),
                         fontSize: 30,
