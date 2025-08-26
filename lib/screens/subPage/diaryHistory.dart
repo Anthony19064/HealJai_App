@@ -79,7 +79,6 @@ class _DiaryhistoryState extends State<Diaryhistory> {
       int year = _focusedDay.year;
 
       final data = await diaryInfo(token, day, month, year);
-      // print(data?['mood']['value']);
       if (data != null) {
         setState(() {
           _moodInfo = data['mood']['value'];
@@ -87,7 +86,6 @@ class _DiaryhistoryState extends State<Diaryhistory> {
           _answer = data['question']['answer'];
           _storyInfo = data['story']['value'];
         });
-        print(_storyInfo);
       } else {
         setState(() {
           _moodInfo = [];
@@ -387,7 +385,6 @@ class _DiaryhistoryState extends State<Diaryhistory> {
               final moodAnimation =
                   _moodIcon[_moodInfo[index]['mood']]?[0]; // อนิเมชั่นของ Mood
               final time = DateTime.parse(_moodInfo[index]['time']).toLocal();
-              print(time);
               final timeString = DateFormat.Hm().format(time);
 
               return ZoomIn(

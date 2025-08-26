@@ -4,6 +4,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:healjai_project/Widgets/Home/WelcomeSection.dart';
 import 'package:healjai_project/Widgets/Home/DiarySection.dart';
 import 'package:healjai_project/Widgets/Home/TreeSection.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +16,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+      Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ZoomIn(

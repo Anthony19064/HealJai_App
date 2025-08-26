@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:provider/provider.dart';
 
 class DiarySection extends StatefulWidget {
   const DiarySection({super.key});
@@ -146,18 +148,12 @@ class DiaryTask extends StatefulWidget {
 }
 
 class _DiaryTaskState extends State<DiaryTask> {
-  double taskPercent = 0.60; // 0.00 ถึง 1 
-  int taskCount = 2;
-  int totalTask = 3;
-
-  // โค้ดทดลองเพิ่มค่าหลอด Progress
-  // if (taskCount < totalTask) {
-  //   taskCount += 1;
-  //   taskPercent = taskCount / totalTask;
-  // }
 
   @override
   Widget build(BuildContext context) {
+
+    final DiaryInfo = Provider.of<DiaryProvider>(context);
+
     return Container(
       padding: EdgeInsets.all(20),
       width: double.infinity,
@@ -180,13 +176,13 @@ class _DiaryTaskState extends State<DiaryTask> {
           Container(
             child: LinearPercentIndicator(
               lineHeight: 30.0,
-              percent: taskPercent,
+              percent: DiaryInfo.taskPercent,
               backgroundColor: Colors.grey.shade300,
               progressColor: Color(0xFF78B465),
               center: Text(
-                "${taskCount}/3",
+                "${DiaryInfo.taskCount}/${DiaryInfo.totalTask}",
                 style: GoogleFonts.mali(
-                  color: taskPercent > 0.3?  Color(0xFFFFFFFF) : Color(0xFF464646),
+                  color: DiaryInfo.taskPercent > 0.3?  Color(0xFFFFFFFF) : Color(0xFF464646),
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
