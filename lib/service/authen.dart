@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:healjai_project/service/apiCall.dart';
+import 'package:healjai_project/service/token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -57,6 +59,20 @@ Future<Map<String, dynamic>> signInWithGoogle() async {
   } catch (e) {
     print('Error during Google Sign-In: $e');
     return {};
+  }
+}
+
+Future<void> logout() async {
+  final userID = await getUserId();
+  final response = await http.post(
+    Uri.parse('$apiURL/api/logout'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'userId': userID}),
+  );
+  final data = jsonDecode(response.body);
+  if (data['success'] == true) {
+    await clearUserLocal(); // clear local
+    await deleteJWTAcessToken();
   }
 }
 

@@ -46,7 +46,7 @@ class _StoryDiaryState extends State<StoryDiary> {
     setState(() {
       isLoading = true;
     });
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
 
     if (userId != null) {

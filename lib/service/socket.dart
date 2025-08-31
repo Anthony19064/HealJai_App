@@ -24,7 +24,7 @@ class SocketService {
 
     final chatProvider = context.read<Chatprovider>();
     final router = GoRouter.of(context);
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
 
     _socket = IO.io(apiURL, <String, dynamic>{
       'transports': ['websocket'],

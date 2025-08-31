@@ -139,7 +139,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       isLoading = true;
     });
 
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
     if (userId != null) {
       final selectedMood = _moods[_selectedMoodIndex].value;

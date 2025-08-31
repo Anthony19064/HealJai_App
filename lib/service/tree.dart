@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:healjai_project/service/apiCall.dart';
 import 'package:http/http.dart' as http;
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<int?> getTreeAge(String? token) async {
-  final response = await http.get(
-    Uri.parse('$apiURL/api/getAge'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
+Future<int?> getTreeAge() async {
+  final response = await requestWithTokenRetry(
+    '$apiURL/api/getAge',
+    method: 'GET',
   );
-
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
     return data['data']['treeAge'] as int;
@@ -22,13 +19,15 @@ Future<int?> getTreeAge(String? token) async {
   }
 }
 
-Future<Map<String, dynamic>?> addAge(String? token, int day, int month, int year) async {
-  final response = await http.post(
-    Uri.parse('$apiURL/api/addAge/${day}/${month}/${year}'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
+Future<Map<String, dynamic>?> addAge(
+  String? token,
+  int day,
+  int month,
+  int year,
+) async {
+    final response = await requestWithTokenRetry(
+    '$apiURL/api/addAge/${day}/${month}/${year}',
+    method: 'POST',
   );
 
   final data = jsonDecode(response.body);
