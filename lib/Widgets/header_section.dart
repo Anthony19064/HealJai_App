@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -45,9 +44,8 @@ class _HeaderSectionState extends State<HeaderSection> {
               GestureDetector(
                 onTap: () async {
                   if (userInfo.userId != null) {
-                    await clearUserLocal(); // clear local
+                    await logout();
                     await userInfo.clearUserInfo(); // clear Provider
-                    await deleteJWTToken();
                     context.go('/');
                   } else {
                     context.push('/login');

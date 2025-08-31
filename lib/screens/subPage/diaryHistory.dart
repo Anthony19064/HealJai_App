@@ -54,7 +54,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
   }
 
   Future<void> _loadDiaryHistory() async {
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
 
     if (userId != null) {
@@ -71,7 +71,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
   }
 
   Future<void> _loadDiaryInfo() async {
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
     if (userId != null) {
       int day = _focusedDay.day;

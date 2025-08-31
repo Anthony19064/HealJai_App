@@ -1,34 +1,65 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+
+String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
 AndroidOptions _getAndroidOptions() =>
     const AndroidOptions(encryptedSharedPreferences: true);
 
 final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
 
-Future<void> saveJWTToken(String token) async {
-  await storage.delete(key: 'jwt_token');
-  await storage.write(key: 'jwt_token', value: token);
+Future<void> saveJWTAccessToken(String token) async {
+  await storage.delete(key: 'jwt_accessTcoken');
+  await storage.write(key: 'jwt_accessTcoken', value: token);
 }
 
-Future<void> deleteJWTToken() async {
-  await storage.delete(key: 'jwt_token');
+Future<void> deleteJWTAcessToken() async {
+  await storage.delete(key: 'jwt_accessTcoken');
 }
 
-Future<String?> getJWTToken() async {
-  String? token = await storage.read(key: 'jwt_token');
+Future<String?> getJWTAcessToken() async {
+  String? token = await storage.read(key: 'jwt_accessTcoken');
   return token;
 }
 
-Future<bool> checkToken(BuildContext context, int statusCode) async {
-  if (statusCode == 401 || statusCode == 403) {
-    await storage.delete(key: 'jwt_token');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่')),
-    );
-    context.go('/login');
-    return false;
+Future<void> saveJWTRefreshToken(String token) async {
+  await storage.delete(key: 'jwt_refreshTcoken');
+  await storage.write(key: 'jwt_refreshTcoken', value: token);
+}
+
+Future<void> deleteJWTRefreshToken() async {
+  await storage.delete(key: 'jwt_refreshTcoken');
+}
+
+Future<String?> getJWTRefreshToken() async {
+  String? token = await storage.read(key: 'jwt_refreshTcoken');
+  return token;
+}
+
+Future<String> refreshToken() async {
+  final refreshToken = await getJWTRefreshToken();
+  final response = await http.post(
+    Uri.parse('$apiURL/api/refreshToken'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'refreshToken': refreshToken}),
+  );
+
+
+  if (response.statusCode == 401) {
+    return "Token expired";
   }
-  return true;
+  if (response.statusCode == 500) {
+    return "Server Error";
+  }
+
+  final data = jsonDecode(response.body);
+  if (data['success'] == true) {
+    print('asoidjoiawjd9qKUYYYYYYY');
+    await saveJWTAccessToken(data['accessToken']);
+  }
+  return "ResetSuccess";
+
+  
 }

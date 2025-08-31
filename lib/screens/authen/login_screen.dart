@@ -194,7 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             'userMail': user['mail'],
                             'userPhoto': user['photoURL'],
                           });
-                          await saveJWTToken(data['token']);
+                          await saveJWTAccessToken(data['accessToken']);
+                          await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
                           context.go('/');
                         } else {
@@ -274,7 +275,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             'userMail': user['mail'],
                             'userPhoto': user['photoURL'],
                           });
-                          await saveJWTToken(data['token']);
+                          await saveJWTAccessToken(data['accessToken']);
+                          await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
                           context.go('/');
                         } else {
