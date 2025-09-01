@@ -5,10 +5,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 //------ List เก็บข้อมูล
 List<String> _storyList = [];
@@ -43,11 +46,14 @@ class _StoryDiaryState extends State<StoryDiary> {
     setState(() {
       isLoading = true;
     });
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
 
     if (userId != null) {
       final data = await addDiaryStory(token, _storyList);
+      setState(() {
+        isLoading = false;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -86,9 +92,10 @@ class _StoryDiaryState extends State<StoryDiary> {
         ),
       );
     }
-    setState(() {
-      isLoading = false;
-    });
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Future.delayed(Duration(seconds: 1));
+    context.pop();
   }
 
   @override
@@ -219,7 +226,7 @@ class _StoryDiaryState extends State<StoryDiary> {
                         onPressed:
                             isLoading
                                 ? null
-                                : () async{
+                                : () async {
                                   if (_storyList.length != 0) {
                                     await saveStory();
                                     _storyList.clear();
@@ -325,7 +332,7 @@ class _StoryCardState extends State<StoryCard> {
         ),
         child: Center(
           child: Text(
-            '${widget.indexStory + 1}. ${widget.info}',
+            widget.info,
             softWrap: true,
             style: GoogleFonts.mali(
               fontSize: 18,

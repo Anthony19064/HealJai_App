@@ -1,12 +1,14 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
 class Mood {
@@ -137,7 +139,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       isLoading = true;
     });
 
-    String? token = await getJWTToken();
+    String? token = await getJWTAcessToken();
     String? userId = await getUserId();
     if (userId != null) {
       final selectedMood = _moods[_selectedMoodIndex].value;
@@ -147,6 +149,10 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
               : _moodController.text;
       final data = await addDiaryMood(token, selectedMood, text);
 
+          
+    setState(() {
+      isLoading = false;
+    });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Padding(
@@ -184,10 +190,10 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
         ),
       );
     }
-
-    setState(() {
-      isLoading = false;
-    });
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Future.delayed(Duration(seconds: 1));
+    context.pop();
   }
 
   @override

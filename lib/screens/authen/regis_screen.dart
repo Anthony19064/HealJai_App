@@ -408,7 +408,7 @@ class _StepContentState extends State<StepContent> {
                   ),
                   child:
                       widget.isLoading
-                          ? Lottie.asset('assets/animations/loading.json')
+                          ? Lottie.asset('assets/animations/lotties/loading.json')
                           : Text(
                             widget.buttonText,
                             style: GoogleFonts.mali(

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healjai_project/screens/subPage/diaryHistory.dart';
-import 'package:healjai_project/screens/subPage/questionDiary_screen.dart';
-import 'package:healjai_project/screens/subPage/storyDiary_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -21,7 +18,9 @@ import 'Screens/authen/regis_screen.dart';
 import 'screens/subPage/chatroom_screen.dart';
 import 'screens/subPage/moodDiary_screen.dart';
 import 'screens/subPage/article_detail_screen.dart';
-
+import 'screens/subPage/diaryHistory.dart';
+import 'screens/subPage/questionDiary_screen.dart';
+import 'screens/subPage/storyDiary_screen.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -30,6 +29,8 @@ import 'providers/navProvider.dart';
 import 'providers/userProvider.dart';
 import 'providers/ResetProvider.dart';
 import 'providers/chatProvider.dart';
+import 'providers/DiaryProvider.dart';
+import 'providers/TreeProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ResetProvider()),
         ChangeNotifierProvider(create: (_) => Chatprovider()),
+        ChangeNotifierProvider(create: (_) => DiaryProvider()),
+        ChangeNotifierProvider(create: (_) => TreeProvider()),
       ],
       child: const MyApp(),
     ),
