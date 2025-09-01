@@ -8,33 +8,36 @@ String apiURL = dotenv.env['BE_API_URL'] ?? '';
 AndroidOptions _getAndroidOptions() =>
     const AndroidOptions(encryptedSharedPreferences: true);
 
-final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+IOSOptions _getIOSOptions() =>
+    const IOSOptions(accessibility: KeychainAccessibility.first_unlock);
+
+final storage = FlutterSecureStorage(aOptions: _getAndroidOptions(), iOptions: _getIOSOptions());
 
 Future<void> saveJWTAccessToken(String token) async {
-  await storage.delete(key: 'jwt_accessTcoken');
-  await storage.write(key: 'jwt_accessTcoken', value: token);
+  await storage.delete(key: 'jwt_accessToken');
+  await storage.write(key: 'jwt_accessToken', value: token);
 }
 
 Future<void> deleteJWTAcessToken() async {
-  await storage.delete(key: 'jwt_accessTcoken');
+  await storage.delete(key: 'jwt_accessToken');
 }
 
 Future<String?> getJWTAcessToken() async {
-  String? token = await storage.read(key: 'jwt_accessTcoken');
+  String? token = await storage.read(key: 'jwt_accessToken');
   return token;
 }
 
 Future<void> saveJWTRefreshToken(String token) async {
-  await storage.delete(key: 'jwt_refreshTcoken');
-  await storage.write(key: 'jwt_refreshTcoken', value: token);
+  await storage.delete(key: 'jwt_refreshToken');
+  await storage.write(key: 'jwt_refreshToken', value: token);
 }
 
 Future<void> deleteJWTRefreshToken() async {
-  await storage.delete(key: 'jwt_refreshTcoken');
+  await storage.delete(key: 'jwt_refreshToken');
 }
 
 Future<String?> getJWTRefreshToken() async {
-  String? token = await storage.read(key: 'jwt_refreshTcoken');
+  String? token = await storage.read(key: 'jwt_refreshToken');
   return token;
 }
 
@@ -56,7 +59,6 @@ Future<String> refreshToken() async {
 
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
-    print('asoidjoiawjd9qKUYYYYYYY');
     await saveJWTAccessToken(data['accessToken']);
   }
   return "ResetSuccess";

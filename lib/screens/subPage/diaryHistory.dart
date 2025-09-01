@@ -146,6 +146,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 Column(
                   children: [
                     TopicInfo("อารมณ์ประจำวัน"),
@@ -155,31 +156,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
                     QuestionInfo(),
                     SizedBox(height: 50),
                     TopicInfo("เรื่องราวดีๆประจำวัน"),
-                    SizedBox(
-                      height: 260,
-                      child: PageView.builder(
-                        itemCount: _storyInfo.length,
-                        controller: PageController(viewportFraction: 0.8),
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: EdgeInsets.symmetric(horizontal: 10),
-                            padding: EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Color(0xFF78B465),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              _storyInfo[index],
-                              style: GoogleFonts.mali(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700
-                              ),),
-                          );
-                        },
-                      ),
-                    ),
+                    StoryInfo(),
                   ],
                 ),
               ],
@@ -559,5 +536,34 @@ class _DiaryhistoryState extends State<Diaryhistory> {
             ),
           ),
         );
+  }
+
+  Widget StoryInfo() {
+    return SizedBox(
+      height: 260,
+      child: PageView.builder(
+        itemCount: _storyInfo.length,
+        controller: PageController(viewportFraction: 0.8),
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 10),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Color(0xFF78B465),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _storyInfo[index],
+              style: GoogleFonts.mali(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
