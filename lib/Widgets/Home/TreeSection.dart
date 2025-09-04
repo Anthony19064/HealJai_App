@@ -33,7 +33,7 @@ class _TreeSectionState extends State<TreeSection> {
 
           Container(
             margin: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.10,
+              top: MediaQuery.of(context).size.height * 0.05,
               bottom: MediaQuery.of(context).size.height * 0.10,
             ),
             child: SizedBox(
@@ -41,16 +41,62 @@ class _TreeSectionState extends State<TreeSection> {
               height: 210,
               child: RiveAnimation.asset(
                 'assets/animations/rives/tree.riv',
-                animations: ['Seedling_lv1'],
+                animations: [TreeInfo.TreeAge > 0 ? 'Seedling_lv1' : 'Seedling_lv0'],
               ),
             ),
           ),
-
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "สุดยอดเลยตอนนี้",
+          TreeInfo.TreeAge > 0
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "สุดยอดเลยตอนนี้",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.mali(
+                      color: Color(0xFF464646),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "อายุต้นไม้ของเธอ",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.mali(
+                          color: Color(0xFF464646),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 15, right: 15),
+                        child: Text(
+                          "${TreeInfo.TreeAge}",
+                          style: GoogleFonts.mali(
+                            color: Color(0xFF78B465),
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "วันแล้วนะ",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.mali(
+                          color: Color(0xFF464646),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+              : Text(
+                "เริ่มทำภารกิจเพื่อปลูกต้นไม้กันเถอะ",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.mali(
                   color: Color(0xFF464646),
@@ -58,43 +104,6 @@ class _TreeSectionState extends State<TreeSection> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "อายุต้นไม้ของเธอ",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.mali(
-                      color: Color(0xFF464646),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(left: 15, right: 15),
-                    child: Text(
-                      "${TreeInfo.TreeAge}",
-                      style: GoogleFonts.mali(
-                        color: Color(0xFF78B465),
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    "วันแล้วนะ",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.mali(
-                      color: Color(0xFF464646),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.020),
           ElevatedButton(
             onPressed: () {
