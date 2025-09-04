@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final userInfo = Provider.of<UserProvider>(context);
+    final TreeInfo = Provider.of<TreeProvider>(context);
+    final DiaryInfo = Provider.of<DiaryProvider>(context);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -197,7 +201,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          context.go('/');
+                          await TreeInfo.fetchTreeAge();
+                          await DiaryInfo.fetchTaskCount();
+                          context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -278,7 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          context.go('/');
+                          await TreeInfo.fetchTreeAge();
+                          await DiaryInfo.fetchTaskCount();
+                          context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

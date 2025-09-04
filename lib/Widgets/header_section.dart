@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/DiaryProvider.dart';
+import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:healjai_project/providers/navProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -23,6 +26,9 @@ class _HeaderSectionState extends State<HeaderSection> {
   @override
   Widget build(BuildContext context) {
     final userInfo = Provider.of<UserProvider>(context);
+    final TreeInfo = Provider.of<TreeProvider>(context);
+    final DiaryInfo = Provider.of<DiaryProvider>(context);
+    final NavInfo = Provider.of<Navprovider>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 10, bottom: 20),
@@ -46,7 +52,10 @@ class _HeaderSectionState extends State<HeaderSection> {
                   if (userInfo.userId != null) {
                     await logout();
                     await userInfo.clearUserInfo(); // clear Provider
+                    await TreeInfo.clearTree();
+                    await DiaryInfo.clearTask();
                     context.go('/');
+                    NavInfo.resetHome();
                   } else {
                     context.push('/login');
                   }

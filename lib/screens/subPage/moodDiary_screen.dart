@@ -6,7 +6,6 @@ import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
@@ -107,7 +106,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       ),
     ),
     Mood(
-      value: 'โกธร',
+      value: 'โกรธ',
       color: const Color(0xFFEB4343),
       icon: SizedBox(
         width: 150,
@@ -139,15 +138,14 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       isLoading = true;
     });
 
-    String? token = await getJWTAcessToken();
-    String? userId = await getUserId();
-    if (userId != null) {
+    bool? loginState = await isUserLoggedin();
+    if (loginState) {
       final selectedMood = _moods[_selectedMoodIndex].value;
       final text =
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood(token, selectedMood, text);
+      final data = await addDiaryMood( selectedMood, text);
 
           
     setState(() {

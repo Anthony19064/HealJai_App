@@ -7,4 +7,9 @@ class Navprovider extends ChangeNotifier {
     selectedIndex = index;
     notifyListeners();
   }
+
+  void resetHome(){
+    selectedIndex = 2;
+    notifyListeners();
+  }
 }

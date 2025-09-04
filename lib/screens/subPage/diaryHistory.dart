@@ -28,6 +28,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
   String _answer = "";
   List<dynamic> _storyInfo = [];
   String formatted = '';
+  int activeIndex = 0;
 
   final Map<String, List<dynamic>> _moodIcon = {
     "ประหลาดใจ": ["Wow", Color(0xFFF29C41)],
@@ -55,13 +56,13 @@ class _DiaryhistoryState extends State<Diaryhistory> {
 
   Future<void> _loadDiaryHistory() async {
     String? token = await getJWTAcessToken();
-    String? userId = await getUserId();
+    bool? loginState = await isUserLoggedin();
 
-    if (userId != null) {
+    if (loginState) {
       int year = _focusedDay.year;
       int month = _focusedDay.month;
 
-      List<DateTime> events = await diaryHistory(token, year, month);
+      List<DateTime> events = await diaryHistory( year, month);
       setState(() {
         _event = events;
       });
@@ -72,13 +73,13 @@ class _DiaryhistoryState extends State<Diaryhistory> {
 
   Future<void> _loadDiaryInfo() async {
     String? token = await getJWTAcessToken();
-    String? userId = await getUserId();
-    if (userId != null) {
+    bool? loginState = await isUserLoggedin();
+    if (loginState) {
       int day = _focusedDay.day;
       int month = _focusedDay.month;
       int year = _focusedDay.year;
 
-      final data = await diaryInfo(token, day, month, year);
+      final data = await diaryInfo(day, month, year);
       if (data != null) {
         setState(() {
           _moodInfo = data['mood']['value'];
@@ -101,6 +102,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
 
   @override
   Widget build(BuildContext context) {
+    final pageWidgetInfo = [moodInfo(), questionInfo(), storyInfo()];
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFFFF7EB),
@@ -147,17 +149,35 @@ class _DiaryhistoryState extends State<Diaryhistory> {
                 ),
                 const SizedBox(height: 30),
 
-                Column(
-                  children: [
-                    TopicInfo("อารมณ์ประจำวัน"),
-                    MoodInfo(),
-                    SizedBox(height: 50),
-                    TopicInfo("คำถามประจำวัน"),
-                    QuestionInfo(),
-                    SizedBox(height: 50),
-                    TopicInfo("เรื่องราวดีๆประจำวัน"),
-                    StoryInfo(),
-                  ],
+                DefaultTabController(
+                  length: pageWidgetInfo.length,
+                  child: Column(
+                    children: [
+                      // TabBar อยู่ด้านบนแทน Indicator
+                      TabBar(
+                        labelStyle: GoogleFonts.mali(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        labelColor: Color(0xFF78B465),
+                        unselectedLabelColor: Colors.grey,
+                        indicatorColor: Color(0xFF78B465),
+                        tabs: const [
+                          Tab(text: "อารมณ์"),
+                          Tab(text: "คำถาม"),
+                          Tab(text: "เรื่องราว"),
+                        ],
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(28.0),
+                        child: SizedBox(
+                          height: 500,
+                          child: TabBarView(children: pageWidgetInfo),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -167,6 +187,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
     );
   }
 
+  //----------------------- ปฏิทิน -----------------------------------------------------------
   Widget calendar() {
     return ZoomIn(
       duration: Duration(milliseconds: 500),
@@ -273,12 +294,13 @@ class _DiaryhistoryState extends State<Diaryhistory> {
         ),
 
         calendarStyle: CalendarStyle(
+          outsideDaysVisible: false,
           // style ของ Text วันนอกเดือน
-          outsideTextStyle: GoogleFonts.mali(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: Colors.grey.shade400,
-          ),
+          // outsideTextStyle: GoogleFonts.mali(
+          //   fontWeight: FontWeight.w700,
+          //   fontSize: 18,
+          //   color: Colors.grey.shade400,
+          // ),
         ),
 
         // style ของ Text ชื่อเดือนที่เลือก
@@ -322,248 +344,260 @@ class _DiaryhistoryState extends State<Diaryhistory> {
     );
   }
 
-  Widget TopicInfo(String topic) {
-    return Container(
-      height: 60,
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.symmetric(horizontal: 35),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(width: 2, color: Color(0xFFE0E0E0)),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            topic,
-            textAlign: TextAlign.center,
+  //----------------------- อารมณ์ -----------------------------------------------------------
+  Widget moodInfo() {
+    return _moodInfo.isNotEmpty
+        ? SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                margin: EdgeInsets.only(top: 3, bottom: 20),
+                child: Text(
+                  'แตะที่การ์ดเพื่อดูบันทึกได้นะ :)',
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    color: Color(0xFF464646),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ListView.separated(
+                shrinkWrap: true, // ให้ ListView ขยายตาม content
+                physics: NeverScrollableScrollPhysics(), // ปิดการ scroll
+                itemCount: _moodInfo.length,
+                itemBuilder: (context, index) {
+                  final moodColor =
+                      _moodIcon[_moodInfo[index]['mood']]?[1]; //สีประจำ Mood
+                  final moodAnimation =
+                      _moodIcon[_moodInfo[index]['mood']]?[0]; // อนิเมชั่นของ Mood
+                  final time =
+                      DateTime.parse(_moodInfo[index]['time']).toLocal();
+                  final timeString = DateFormat.Hm().format(time);
+
+                  return ZoomIn(
+                    duration: Duration(milliseconds: 500),
+                    child: FlipCard(
+                      flipOnTouch: true,
+                      front: Container(
+                        constraints: BoxConstraints(
+                          minHeight: 200, // ความสูงขั้นต่ำ
+                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: moodColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(width: 3, color: moodColor),
+                        ),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              height: 150,
+                              child: RiveAnimation.asset(
+                                'assets/animations/rives/mood.riv',
+                                animations: [moodAnimation],
+                              ),
+                            ),
+
+                            Text(
+                              _moodInfo[index]['mood'],
+                              style: GoogleFonts.mali(
+                                fontSize: 25,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      back: Container(
+                        constraints: BoxConstraints(
+                          minHeight: 200, // ความสูงขั้นต่ำ
+                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 10),
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: moodColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(width: 3, color: moodColor),
+                        ),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              timeString,
+                              style: GoogleFonts.mali(
+                                color: Colors.white,
+                                fontSize: 23,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              _moodInfo[index]['text'],
+                              style: GoogleFonts.mali(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => SizedBox(height: 20),
+              ),
+            ],
+          ),
+        )
+        : Center(
+          child: Text(
+            "ไม่มีบันทึกอารมณ์ในวันนี้",
             style: GoogleFonts.mali(
-              color: Color(0xFF78B465),
+              color: Color(0xFF464646),
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
-    );
+        );
   }
 
-  Widget MoodInfo() {
-    return _moodInfo.length != 0
-        ? SizedBox(
-          height: 260,
-          child: PageView.builder(
-            itemCount: _moodInfo.length,
-            controller: PageController(viewportFraction: 0.8),
+  //----------------------- คำถาม -----------------------------------------------------------
+  Widget questionInfo() {
+    return _question.trim().isNotEmpty && _answer.trim().isNotEmpty
+        ? ZoomIn(
+          duration: Duration(milliseconds: 500),
+          child: Transform.scale(
+            scale: 0.9,
+            child: FlipCard(
+              front: Container(
+                width: 290,
+                height: 300,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(width: 3, color: Color(0xFF78B465)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "คำถามที่สุ่มได้",
+                      style: GoogleFonts.mali(
+                        color: Color(0xFF78B465),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    Text(
+                      _question,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.mali(
+                        color: Color(0xFF464646),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        height: 2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              back: Container(
+                width: 290,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Color(0xFF78B465),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(width: 3, color: Color(0xFFFFFFFF)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "คำตอบ",
+                      style: GoogleFonts.mali(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    Text(
+                      _answer,
+                      textAlign: TextAlign.start,
+                      style: GoogleFonts.mali(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )
+        : Center(
+          child: Text(
+            "ไม่มีบันทึกคำถามในวันนี้",
+            style: GoogleFonts.mali(
+              color: Color(0xFF464646),
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        );
+  }
+
+  //----------------------- เรื่องราว -----------------------------------------------------------
+  Widget storyInfo() {
+    return _storyInfo.isNotEmpty
+        ? SingleChildScrollView(
+          child: ListView.separated(
+            itemCount: _storyInfo.length,
+            shrinkWrap: true, // ให้ ListView ขยายตาม content
+            physics: NeverScrollableScrollPhysics(), // ปิดการ scroll
             itemBuilder: (context, index) {
-              final moodColor =
-                  _moodIcon[_moodInfo[index]['mood']]?[1]; //สีประจำ Mood
-              final moodAnimation =
-                  _moodIcon[_moodInfo[index]['mood']]?[0]; // อนิเมชั่นของ Mood
-              final time = DateTime.parse(_moodInfo[index]['time']).toLocal();
-              final timeString = DateFormat.Hm().format(time);
-
-              return ZoomIn(
-                duration: Duration(milliseconds: 500),
-                child: FlipCard(
-                  flipOnTouch: true,
-                  front: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: moodColor,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(width: 3, color: moodColor),
-                    ),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 150,
-                          height: 150,
-                          child: RiveAnimation.asset(
-                            'assets/animations/rives/mood.riv',
-                            animations: [moodAnimation],
-                          ),
-                        ),
-
-                        Text(
-                          _moodInfo[index]['mood'],
-                          style: GoogleFonts.mali(
-                            fontSize: 25,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  back: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: moodColor,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(width: 3, color: moodColor),
-                    ),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${timeString}',
-                          style: GoogleFonts.mali(
-                            color: Colors.white,
-                            fontSize: 23,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 30),
-                        Text(
-                          _moodInfo[index]['text'],
-                          style: GoogleFonts.mali(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+              return Container(
+                constraints: BoxConstraints(
+                  minHeight: 200, // ความสูงขั้นต่ำ
+                ),
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Color(0xFF78B465),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _storyInfo[index],
+                  style: GoogleFonts.mali(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               );
             },
+            separatorBuilder: (context, index) => SizedBox(height: 20),
           ),
         )
-        : SizedBox(
-          height: 260,
-          child: Center(
-            child: Text(
-              "ไม่มีบันทึกอารมณ์ในวันนี้",
-              style: GoogleFonts.mali(
-                color: Color(0xFF464646),
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+        : Center(
+          child: Text(
+            "ไม่มีบันทึกเรื่องราวในวันนี้",
+            style: GoogleFonts.mali(
+              color: Color(0xFF464646),
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
         );
-  }
-
-  Widget QuestionInfo() {
-    return _question.trim().isNotEmpty && _answer.trim().isNotEmpty
-        ? ZoomIn(
-          duration: Duration(milliseconds: 500),
-          child: FlipCard(
-            front: Container(
-              width: 290,
-              height: 300,
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(width: 3, color: Color(0xFF78B465)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "คำถามที่สุ่มได้",
-                    style: GoogleFonts.mali(
-                      color: Color(0xFF78B465),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 30),
-                  Text(
-                    _question,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.mali(
-                      color: Color(0xFF464646),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      height: 2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            back: Container(
-              width: 290,
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Color(0xFF78B465),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(width: 3, color: Color(0xFFFFFFFF)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "คำตอบ",
-                    style: GoogleFonts.mali(
-                      color: Color(0xFFFFFFFF),
-                      fontSize: 25,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 30),
-                  Text(
-                    _answer,
-                    textAlign: TextAlign.start,
-                    style: GoogleFonts.mali(
-                      color: Color(0xFFFFFFFF),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        )
-        : SizedBox(
-          height: 260,
-          child: Center(
-            child: Text(
-              "ไม่มีบันทึกคำถามในวันนี้",
-              style: GoogleFonts.mali(
-                color: Color(0xFF464646),
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        );
-  }
-
-  Widget StoryInfo() {
-    return SizedBox(
-      height: 260,
-      child: PageView.builder(
-        itemCount: _storyInfo.length,
-        controller: PageController(viewportFraction: 0.8),
-        itemBuilder: (context, index) {
-          return Container(
-            margin: EdgeInsets.symmetric(horizontal: 10),
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Color(0xFF78B465),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _storyInfo[index],
-              style: GoogleFonts.mali(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 }

@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:healjai_project/service/apiCall.dart';
-import 'package:http/http.dart' as http;
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<int?> getTaskCount(String? token, int day, int month, int year) async {
+Future<int?> getTaskCount(int day, int month, int year) async {
   final response = await requestWithTokenRetry(
-    '$apiURL/api/getTask/${day}/${month}/${year}',
+    '$apiURL/api/getTask/$day/$month/$year',
     method: 'GET',
   );
   final data = jsonDecode(response.body);
@@ -20,13 +19,12 @@ Future<int?> getTaskCount(String? token, int day, int month, int year) async {
 }
 
 Future<Map<String, dynamic>?> diaryInfo(
-  String? token,
   int day,
   int month,
   int year,
 ) async {
   final response = await requestWithTokenRetry(
-    '$apiURL/api/getDiary/${day}/${month}/${year}',
+    '$apiURL/api/getDiary/$day/$month/$year',
     method: 'GET',
   );
   final data = jsonDecode(response.body);
@@ -38,9 +36,9 @@ Future<Map<String, dynamic>?> diaryInfo(
   }
 }
 
-Future<List<DateTime>> diaryHistory(String? token, int year, int month) async {
+Future<List<DateTime>> diaryHistory(int year, int month) async {
   final response = await requestWithTokenRetry(
-    '$apiURL/api/DiaryHistory/${year}/${month}',
+    '$apiURL/api/DiaryHistory/$year/$month',
     method: 'GET',
   );
   final Map<String, dynamic> data = jsonDecode(response.body);
@@ -55,7 +53,6 @@ Future<List<DateTime>> diaryHistory(String? token, int year, int month) async {
 }
 
 Future<Map<String, dynamic>> addDiaryMood(
-  String? token,
   String mood,
   String text,
 ) async {
@@ -69,7 +66,6 @@ Future<Map<String, dynamic>> addDiaryMood(
 }
 
 Future<Map<String, dynamic>> addDiaryQuestion(
-  String? token,
   String question,
   String answer,
 ) async {
@@ -83,7 +79,6 @@ Future<Map<String, dynamic>> addDiaryQuestion(
 }
 
 Future<Map<String, dynamic>> addDiaryStory(
-  String? token,
   List<String> storyList,
 ) async {
   final response = await requestWithTokenRetry(
