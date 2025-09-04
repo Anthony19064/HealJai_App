@@ -73,6 +73,7 @@ Future<void> logout() async {
   if (data['success'] == true) {
     await clearUserLocal(); // clear local
     await deleteJWTAcessToken();
+    deleteJWTRefreshToken();
   }
 }
 

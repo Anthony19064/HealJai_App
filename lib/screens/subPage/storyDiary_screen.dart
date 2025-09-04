@@ -9,7 +9,6 @@ import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -46,11 +45,10 @@ class _StoryDiaryState extends State<StoryDiary> {
     setState(() {
       isLoading = true;
     });
-    String? token = await getJWTAcessToken();
-    String? userId = await getUserId();
+    bool? loginState = await isUserLoggedin();
 
-    if (userId != null) {
-      final data = await addDiaryStory(token, _storyList);
+    if (loginState) {
+      final data = await addDiaryStory( _storyList);
       setState(() {
         isLoading = false;
       });

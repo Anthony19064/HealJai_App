@@ -6,7 +6,6 @@ import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
@@ -58,12 +57,11 @@ class _QuestionDiaryState extends State<QuestionDiary> {
     setState(() {
       isLoading = true;
     });
-    String? token = await getJWTAcessToken();
-    String? userId = await getUserId();
+    bool? loginState = await isUserLoggedin();
 
-    if (userId != null) {
+    if (loginState) {
       final answer = _questionController.text;
-      final data = await addDiaryQuestion(token, question, answer);
+      final data = await addDiaryQuestion(question, answer);
       setState(() {
         isLoading = false;
       });
@@ -163,6 +161,7 @@ class _QuestionDiaryState extends State<QuestionDiary> {
                       height: 200,
                       child: RiveAnimation.asset(
                         "assets/animations/rives/goose_question.riv",
+                        animations: ['Goose_qustion_new'],
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.07),
