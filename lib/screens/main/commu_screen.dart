@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/Widgets/community/comment.dart';
 import 'package:healjai_project/Widgets/community/createButton.dart';
+import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/community/postCard.dart';
 import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
