@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:healjai_project/service/authen.dart';
 import 'package:http/http.dart' as http;
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
@@ -42,26 +43,31 @@ Future<String?> getJWTRefreshToken() async {
 }
 
 Future<String> refreshToken() async {
+  late String status;
   final refreshToken = await getJWTRefreshToken();
+  final userID = await getUserId();
   final response = await http.post(
     Uri.parse('$apiURL/api/refreshToken'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'refreshToken': refreshToken}),
+    body: jsonEncode({'refreshToken': refreshToken, 'userID': userID}),
   );
 
 
   if (response.statusCode == 401) {
-    return "Token expired";
+    status =  "Token expired";
   }
   if (response.statusCode == 500) {
-    return "Server Error";
+    status = "Server Error";
   }
 
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
     await saveJWTAccessToken(data['accessToken']);
+    status = "ResetSuccess";
+
   }
-  return "ResetSuccess";
+
+  return status;
 
   
 }

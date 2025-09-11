@@ -9,6 +9,7 @@ import 'package:healjai_project/Widgets/community/postCard.dart';
 import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
 import 'package:healjai_project/Widgets/header_section.dart';
+import 'package:healjai_project/service/commu.dart';
 
 class CommuScreen extends StatefulWidget {
   const CommuScreen({super.key});
@@ -40,22 +41,86 @@ class _CommuScreenState extends State<CommuScreen> {
         ),
       ],
     ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+      comments: [
+        Comment(
+          username: 'User_2',
+          avatarUrl: 'https://i.pravatar.cc/150?img=25',
+          text: 'Great post!',
+        ),
+        Comment(
+          username: 'User_3',
+          avatarUrl: 'https://i.pravatar.cc/150?img=32',
+          text: 'Love it!',
+        ),
+      ],
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+      comments: [
+        Comment(
+          username: 'User_2',
+          avatarUrl: 'https://i.pravatar.cc/150?img=25',
+          text: 'Great post!',
+        ),
+        Comment(
+          username: 'User_3',
+          avatarUrl: 'https://i.pravatar.cc/150?img=32',
+          text: 'Love it!',
+        ),
+      ],
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+      comments: [
+        Comment(
+          username: 'User_2',
+          avatarUrl: 'https://i.pravatar.cc/150?img=25',
+          text: 'Great post!',
+        ),
+        Comment(
+          username: 'User_3',
+          avatarUrl: 'https://i.pravatar.cc/150?img=32',
+          text: 'Love it!',
+        ),
+      ],
+    ),
   ];
 
-  void _addPost(String text, String? imagePath) {
-    if (text.isNotEmpty || imagePath != null) {
-      setState(() {
-        final newPost = Post(
-          id: 'post_${Random().nextInt(9999)}',
-          username: 'Me',
-          avatarUrl: 'https://i.pravatar.cc/150?img=1',
-          timeAgo: 'Just now',
-          postText: text,
-          imageUrl: imagePath,
-        );
-        _posts.insert(0, newPost);
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    fetchPost();
+  }
+
+  List<Map<String, dynamic>> post = []; // List ข้อมูลโพสทั้งหมด
+
+  // ดึงโพส
+  Future<void> fetchPost() async {
+    final data = await getPosts();
+    setState(() {
+      post = data;
+    });
+    print(post[0]);
   }
 
   // ============== ฟังก์ชันใหม่สำหรับอัปเดตโพสต์ ==============
@@ -90,6 +155,7 @@ class _CommuScreenState extends State<CommuScreen> {
     _showSuccessSnackBar('Reposted!');
   }
 
+  // โชว์ Popup Comment
   void _showCommentDialog(Post post) {
     showModalBottomSheet(
       context: context,
@@ -199,6 +265,23 @@ class _CommuScreenState extends State<CommuScreen> {
     );
   }
 
+  //หน้าบ้านเพิ่มโพส
+  void _addPost(String text, String? imagePath) {
+    if (text.isNotEmpty || imagePath != null) {
+      setState(() {
+        final newPost = Post(
+          id: 'post_${Random().nextInt(9999)}',
+          username: 'Me',
+          avatarUrl: 'https://i.pravatar.cc/150?img=1',
+          timeAgo: 'Just now',
+          postText: text,
+          imageUrl: imagePath,
+        );
+        _posts.insert(0, newPost);
+      });
+    }
+  }
+
   // ฟังก์ชันสำหรับ "สร้าง" โพสต์
   void _showCreatePostModal() {
     showModalBottomSheet(
@@ -244,32 +327,37 @@ class _CommuScreenState extends State<CommuScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
       bottomNavigationBar: const BottomNavBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const HeaderSection(),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 0),
-                itemCount: _posts.length + 1,
-                separatorBuilder:
-                    (context, index) => const SizedBox(height: 20),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return PostCreationTrigger(onTap: _showCreatePostModal);
-                  }
-                  final post = _posts[index - 1];
-                  return UserPostCard(
-                    post: post,
-                    onLikePressed: () => _toggleLike(post.id),
-                    onCommentPressed: () => _showCommentDialog(post),
-                    onMoreOptionsPressed: () => _showPostOptions(post),
-                    onRepostPressed: () => _incrementReposts(post.id),
-                  );
-                },
+      body: RefreshIndicator(
+        onRefresh: fetchPost,
+        color: Color(0xFF78B465), // สีวงกลม
+        backgroundColor: Colors.white,
+        child: SafeArea(
+          child: Column(
+            children: [
+              const HeaderSection(),
+              PostCreationTrigger(onTap: _showCreatePostModal), // widget สร้างโพส
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  itemCount: post.length,
+                  separatorBuilder:
+                      (context, index) => const SizedBox(height: 20),
+                  itemBuilder: (context, index) {
+                    final postold = _posts[index];
+                    final postNew = post[index];
+                    return UserPostCard(
+                      post: postold,
+                      postNew: postNew,
+                      onLikePressed: () => _toggleLike(postold.id),
+                      onCommentPressed: () => _showCommentDialog(postold),
+                      onMoreOptionsPressed: () => _showPostOptions(postold),
+                      onRepostPressed: () => _incrementReposts(postold.id),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

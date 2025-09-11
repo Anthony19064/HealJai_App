@@ -3,18 +3,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commuClass.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/commu.dart';
 import 'package:image_picker/image_picker.dart';
 
 const Color kTextColor = Color(0xFF333333);
 
 class FullScreenPostCreator extends StatefulWidget {
   final Function(String text, String? imagePath) onPost;
-  final Post? postToEdit; 
+  final Post? postToEdit;
 
   const FullScreenPostCreator({
-    super.key, 
-    required this.onPost, 
-    this.postToEdit, 
+    super.key,
+    required this.onPost,
+    this.postToEdit,
   });
 
   @override
@@ -65,9 +67,16 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
     }
   }
 
-  void _handlePost() {
+  Future<void> _handlePost() async {
+    final String? userId = await getUserId();
     if (!_canPost) return;
-    widget.onPost(_controller.text, _selectedImage?.path);
+    widget.onPost(
+      _controller.text,
+      _selectedImage?.path,
+    ); // สร้างโพสให้หน้าบ้าน
+    final urlIMG = await uploadImage(_selectedImage);
+    final data = await addPost(userId, _controller.text, urlIMG);
+    print(data?['message']);
     Navigator.pop(context);
   }
 
@@ -75,9 +84,7 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFF7EB),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFFFF7EB)),
       child: Padding(
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 40),
         child: Scaffold(
@@ -93,7 +100,7 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
             // เปลี่ยนหัวข้อตามโหมด (สร้าง/แก้ไข)
             title: Text(
               widget.postToEdit == null ? 'สร้างโพสต์ใหม่' : 'แก้ไขโพสต์',
-              style: GoogleFonts.mali(color: kTextColor)
+              style: GoogleFonts.mali(color: kTextColor),
             ),
             actions: [
               TextButton(
@@ -142,11 +149,16 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
                         child: CircleAvatar(
                           backgroundColor: Colors.black54,
                           child: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                            onPressed: () => setState(() {
-                              _selectedImage = null;
-                              _canPost = _controller.text.isNotEmpty;
-                            }),
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed:
+                                () => setState(() {
+                                  _selectedImage = null;
+                                  _canPost = _controller.text.isNotEmpty;
+                                }),
                           ),
                         ),
                       ),
@@ -166,7 +178,10 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -174,7 +189,10 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
                         onTap: _pickImage,
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12.0,
+                            horizontal: 8.0,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [

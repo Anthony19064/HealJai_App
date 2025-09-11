@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:provider/provider.dart';
@@ -35,8 +36,32 @@ class SocketService {
     _socket.auth = {'token': token};
     _socket.connect();
 
-    _socket.on('unauthorized', (data) {
-      print('⛔️ Unauthorized: $data');
+    _socket.on('unauthorized', (data) async {
+      if (data == "Token expired") {
+        final status = await refreshToken();
+        if (status == "ResetSuccess") {
+          print('reset token แล้วค้าบบ');
+          String? newToken = await getJWTAcessToken();
+          _socket.io.options?['auth'] = {'token': newToken};
+          _socket.connect();
+        } else if (status == "Token expired") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "เซสซันหมดอายุ กรุณาเข้าสู่ระบบใหม่ :(",
+                style: GoogleFonts.mali(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: Color(0xFFFD7D7E),
+            ),
+          );
+          router.go('/login');
+        }
+      }
     });
 
     _socket.on('matched', (roomId) {
