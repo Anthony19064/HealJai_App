@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/Widgets/community/photoView.dart';
 import 'package:healjai_project/Widgets/community/postButton.dart';
+import 'package:healjai_project/service/account.dart';
 
 const Color kCardBorderColor = Color(0xFFCDE5CF);
 const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
@@ -19,8 +20,9 @@ const Color kTextColor = Color(0xFF333333);
 const Color kTimestampColor = Colors.grey;
 const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
-class UserPostCard extends StatelessWidget {
+class UserPostCard extends StatefulWidget {
   final Post post;
+  final Map<String, dynamic> postNew;
   final VoidCallback onLikePressed;
   final VoidCallback onCommentPressed;
   final VoidCallback onMoreOptionsPressed;
@@ -29,19 +31,58 @@ class UserPostCard extends StatelessWidget {
   const UserPostCard({
     super.key,
     required this.post,
+    required this.postNew,
     required this.onLikePressed,
     required this.onCommentPressed,
     required this.onMoreOptionsPressed,
     required this.onRepostPressed,
   });
+
+  @override
+  State<UserPostCard> createState() => _UserPostCardState();
+}
+
+class _UserPostCardState extends State<UserPostCard>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  Map<String, dynamic>? userInfo;
+  late IconData likeIcon;
+  late Color likeColor;
+  late Color likeBorderColor;
+  late Color likeBackgroundColor;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // กำหนดค่าตัวแปร UI จาก post
+    likeIcon = widget.post.isLiked ? Icons.favorite : Icons.favorite_border;
+    likeColor = widget.post.isLiked ? Colors.red : kIconColor;
+    likeBorderColor =
+        widget.post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
+    likeBackgroundColor =
+        widget.post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
+
+    // โหลด user info
+    fetchUserInfo();
+  }
+
+  Future<void> fetchUserInfo() async {
+    final user = await getuserById(widget.postNew['userID']);
+    setState(() {
+      userInfo = user;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final likeIcon = post.isLiked ? Icons.favorite : Icons.favorite_border;
-    final likeColor = post.isLiked ? Colors.red : kIconColor;
-    final likeBorderColor =
-        post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
-    final likeBackgroundColor =
-        post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
+    super.build(context);
+    final userName = userInfo?['username'] ?? 'Loading...';
+    final userImg = userInfo?['photoURL'] ?? '';
+    final String postTxt = widget.postNew['infoPost'] ?? '';
+    final String postImg = widget.postNew['img'];
 
     return ZoomIn(
       duration: Duration(milliseconds: 500),
@@ -59,14 +100,14 @@ class UserPostCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundImage: NetworkImage(post.avatarUrl),
+                  backgroundImage: NetworkImage(userImg),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      post.username,
+                      userName,
                       style: GoogleFonts.mali(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -75,7 +116,7 @@ class UserPostCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      post.timeAgo,
+                      widget.post.timeAgo,
                       style: GoogleFonts.mali(
                         color: kTimestampColor,
                         fontSize: 13,
@@ -84,21 +125,26 @@ class UserPostCard extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
-                IconButton(
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: kTextColor.withOpacity(0.8),
-                    size: 30,
+                Transform.translate(
+                  offset: Offset(0, -10),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: Color(0xFF464646),
+                      size: 40,
+                    ),
+                    onPressed: widget.onMoreOptionsPressed,
                   ),
-                  onPressed: onMoreOptionsPressed,
                 ),
               ],
             ),
-            if (post.postText.isNotEmpty)
+            if (postTxt.trim().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
                 child: Text(
-                  post.postText,
+                  postTxt,
                   style: GoogleFonts.mali(
                     fontSize: 15,
                     color: kTextColor,
@@ -106,7 +152,7 @@ class UserPostCard extends StatelessWidget {
                   ),
                 ),
               ),
-            if (post.imageUrl != null)
+            if (postImg.trim().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
                 child: GestureDetector(
@@ -115,16 +161,15 @@ class UserPostCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) =>
-                                PhotoViewScreen(imagePath: post.imageUrl!),
+                            (context) => PhotoViewScreen(imagePath: postImg),
                         fullscreenDialog: true,
                       ),
                     );
                   },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15.0),
-                    child: Image.file(
-                      File(post.imageUrl!),
+                    child: Image.network(
+                      postImg,
                       width: double.infinity,
                       height: 200,
                       fit: BoxFit.cover,
@@ -136,31 +181,31 @@ class UserPostCard extends StatelessWidget {
             Row(
               children: [
                 GestureDetector(
-                  onTap: onLikePressed,
+                  onTap: widget.onLikePressed,
                   child: InteractionButton(
                     icon: likeIcon,
                     iconColor: likeColor,
-                    label: post.likes.toString(),
+                    label: widget.post.likes.toString(),
                     borderColor: likeBorderColor,
                     backgroundColor: likeBackgroundColor,
                   ),
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: onCommentPressed,
+                  onTap: widget.onCommentPressed,
                   child: InteractionButton(
                     icon: Icons.chat_bubble_outline,
-                    label: post.comments.length.toString(),
+                    label: widget.post.comments.length.toString(),
                     borderColor: kCommentButtonBorderColor,
                     backgroundColor: kCommentButtonBackgroundColor,
                   ),
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: onRepostPressed,
+                  onTap: widget.onRepostPressed,
                   child: InteractionButton(
                     icon: Icons.repeat,
-                    label: post.reposts.toString(),
+                    label: widget.post.reposts.toString(),
                     borderColor: kRepostButtonBorderColor,
                     backgroundColor: kRepostButtonBackgroundColor,
                   ),

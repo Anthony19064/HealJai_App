@@ -118,7 +118,7 @@ Future<Map<String, String?>> getUserLocal() async {
 }
 
 Future<String?> getUserId() async {
-  final prefs = await SharedPreferences.getInstance(); // instance Local
+  final prefs = await SharedPreferences.getInstance();
   return prefs.getString('userId');
 }
 

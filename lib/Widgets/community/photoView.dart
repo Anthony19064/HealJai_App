@@ -36,7 +36,8 @@ class PhotoViewScreen extends StatelessWidget {
             child: Container(color: const Color(0xFFFFF7EB)),
           ),
           PhotoView(
-            imageProvider: FileImage(File(imagePath)),
+            // imageProvider: FileImage(File(imagePath)),
+            imageProvider: NetworkImage(imagePath),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2.0,
             heroAttributes: PhotoViewHeroAttributes(tag: imagePath),
