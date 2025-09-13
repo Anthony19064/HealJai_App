@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commuClass.dart';
-import 'package:healjai_project/Widgets/community/comment.dart';
+import 'package:healjai_project/Widgets/community/commentPopup.dart';
 import 'package:healjai_project/Widgets/community/createButton.dart';
 import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/community/postCard.dart';
@@ -49,18 +49,6 @@ class _CommuScreenState extends State<CommuScreen> {
       postText: 'Ex text post . . . . . .',
       likes: 15,
       reposts: 5,
-      comments: [
-        Comment(
-          username: 'User_2',
-          avatarUrl: 'https://i.pravatar.cc/150?img=25',
-          text: 'Great post!',
-        ),
-        Comment(
-          username: 'User_3',
-          avatarUrl: 'https://i.pravatar.cc/150?img=32',
-          text: 'Love it!',
-        ),
-      ],
     ),
     Post(
       id: 'post_1',
@@ -70,18 +58,6 @@ class _CommuScreenState extends State<CommuScreen> {
       postText: 'Ex text post . . . . . .',
       likes: 15,
       reposts: 5,
-      comments: [
-        Comment(
-          username: 'User_2',
-          avatarUrl: 'https://i.pravatar.cc/150?img=25',
-          text: 'Great post!',
-        ),
-        Comment(
-          username: 'User_3',
-          avatarUrl: 'https://i.pravatar.cc/150?img=32',
-          text: 'Love it!',
-        ),
-      ],
     ),
     Post(
       id: 'post_1',
@@ -91,19 +67,62 @@ class _CommuScreenState extends State<CommuScreen> {
       postText: 'Ex text post . . . . . .',
       likes: 15,
       reposts: 5,
-      comments: [
-        Comment(
-          username: 'User_2',
-          avatarUrl: 'https://i.pravatar.cc/150?img=25',
-          text: 'Great post!',
-        ),
-        Comment(
-          username: 'User_3',
-          avatarUrl: 'https://i.pravatar.cc/150?img=32',
-          text: 'Love it!',
-        ),
-      ],
     ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    Post(
+      id: 'post_1',
+      username: 'User_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      timeAgo: '1d ago',
+      postText: 'Ex text post . . . . . .',
+      likes: 15,
+      reposts: 5,
+    ),
+    
   ];
 
   @override
@@ -117,14 +136,16 @@ class _CommuScreenState extends State<CommuScreen> {
   // ดึงโพส
   Future<void> fetchPost() async {
     final data = await getPosts();
+    if (!mounted) return;
     setState(() {
       post = data;
     });
-    print(post[0]);
+    // print(post[0]);
   }
 
   // ============== ฟังก์ชันใหม่สำหรับอัปเดตโพสต์ ==============
   void _updatePost(Post postToUpdate, String newText, String? newImagePath) {
+    if (!mounted) return;
     setState(() {
       final postIndex = _posts.indexWhere((p) => p.id == postToUpdate.id);
       if (postIndex != -1) {
@@ -133,44 +154,6 @@ class _CommuScreenState extends State<CommuScreen> {
       }
     });
     _showSuccessSnackBar('แก้ไขโพสต์สำเร็จ');
-  }
-
-  void _toggleLike(String postId) {
-    setState(() {
-      final post = _posts.firstWhere((p) => p.id == postId);
-      post.isLiked = !post.isLiked;
-      if (post.isLiked) {
-        post.likes++;
-      } else {
-        post.likes--;
-      }
-    });
-  }
-
-  void _incrementReposts(String postId) {
-    setState(() {
-      final post = _posts.firstWhere((p) => p.id == postId);
-      post.reposts++;
-    });
-    _showSuccessSnackBar('Reposted!');
-  }
-
-  // โชว์ Popup Comment
-  void _showCommentDialog(Post post) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.transparent,
-      builder: (context) {
-        return CommentsDialog(
-          post: post,
-          onCommentAdded: () {
-            setState(() {});
-          },
-        );
-      },
-    );
   }
 
   void _showSuccessSnackBar(String message) {
@@ -190,96 +173,86 @@ class _CommuScreenState extends State<CommuScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _showPostOptions(Post post) {
-    showModalBottomSheet(
-      context: context,
-      barrierColor: Colors.transparent,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) {
-        List<Widget> options = [];
-        if (post.username == 'Me') {
-          options.addAll([
-            // ============== ▼▼▼ แก้ไข onTap ของปุ่ม "แก้ไขโพสต์" ▼▼▼ ==============
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
-              onTap: () {
-                Navigator.pop(modalContext); // ปิดเมนูตัวเลือก
-                _showEditPostModal(post); // เปิดหน้าต่างแก้ไข
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(
-                'ลบโพสต์',
-                style: GoogleFonts.mali(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(modalContext);
-                setState(() {
-                  _posts.removeWhere((p) => p.id == post.id);
-                });
-                _showSuccessSnackBar('ลบโพสต์สำเร็จ');
-              },
-            ),
-          ]);
-        }
-        options.add(
-          ListTile(
-            leading: const Icon(Icons.report),
-            title: Text('รายงาน', style: GoogleFonts.mali()),
-            onTap: () {
-              Navigator.pop(modalContext);
-              _showSuccessSnackBar('รายงานโพสต์แล้ว');
-            },
-          ),
-        );
-        options.add(
-          ListTile(
-            leading: const Icon(Icons.save),
-            title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
-            onTap: () {
-              Navigator.pop(modalContext);
-              _showSuccessSnackBar('บันทึกโพสต์แล้ว');
-            },
-          ),
-        );
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF7EB),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, -10),
-              ),
-            ],
-          ),
-          child: Wrap(children: options),
-        );
-      },
-    );
-  }
+  // void _showPostOptions(Post post) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     barrierColor: Colors.transparent,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (modalContext) {
+  //       List<Widget> options = [];
+  //       if (post.username == 'Me') {
+  //         options.addAll([
+  //           // ============== ▼▼▼ แก้ไข onTap ของปุ่ม "แก้ไขโพสต์" ▼▼▼ ==============
+  //           ListTile(
+  //             leading: const Icon(Icons.edit),
+  //             title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
+  //             onTap: () {
+  //               Navigator.pop(modalContext); // ปิดเมนูตัวเลือก
+  //               _showEditPostModal(post); // เปิดหน้าต่างแก้ไข
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.delete, color: Colors.red),
+  //             title: Text(
+  //               'ลบโพสต์',
+  //               style: GoogleFonts.mali(color: Colors.red),
+  //             ),
+  //             onTap: () {
+  //               Navigator.pop(modalContext);
+  //               setState(() {
+  //                 _posts.removeWhere((p) => p.id == post.id);
+  //               });
+  //               _showSuccessSnackBar('ลบโพสต์สำเร็จ');
+  //             },
+  //           ),
+  //         ]);
+  //       }
+  //       options.add(
+  //         ListTile(
+  //           leading: const Icon(Icons.report),
+  //           title: Text('รายงาน', style: GoogleFonts.mali()),
+  //           onTap: () {
+  //             Navigator.pop(modalContext);
+  //             _showSuccessSnackBar('รายงานโพสต์แล้ว');
+  //           },
+  //         ),
+  //       );
+  //       options.add(
+  //         ListTile(
+  //           leading: const Icon(Icons.save),
+  //           title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
+  //           onTap: () {
+  //             Navigator.pop(modalContext);
+  //             _showSuccessSnackBar('บันทึกโพสต์แล้ว');
+  //           },
+  //         ),
+  //       );
+  //       return Container(
+  //         decoration: BoxDecoration(
+  //           color: const Color(0xFFFFF7EB),
+  //           borderRadius: const BorderRadius.only(
+  //             topLeft: Radius.circular(20),
+  //             topRight: Radius.circular(20),
+  //           ),
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: Colors.black.withOpacity(0.1),
+  //               blurRadius: 20,
+  //               offset: const Offset(0, -10),
+  //             ),
+  //           ],
+  //         ),
+  //         child: Wrap(children: options),
+  //       );
+  //     },
+  //   );
+  // }
 
   //หน้าบ้านเพิ่มโพส
-  void _addPost(String text, String? imagePath) {
-    if (text.isNotEmpty || imagePath != null) {
-      setState(() {
-        final newPost = Post(
-          id: 'post_${Random().nextInt(9999)}',
-          username: 'Me',
-          avatarUrl: 'https://i.pravatar.cc/150?img=1',
-          timeAgo: 'Just now',
-          postText: text,
-          imageUrl: imagePath,
-        );
-        _posts.insert(0, newPost);
-      });
-    }
+  void _addPost(Map<String, dynamic> newPost) {
+    setState(() {
+      post.insert(0, newPost);
+    });
   }
 
   // ฟังก์ชันสำหรับ "สร้าง" โพสต์
@@ -293,8 +266,9 @@ class _CommuScreenState extends State<CommuScreen> {
           width: MediaQuery.of(context).size.width,
           child: FullScreenPostCreator(
             // ไม่ส่ง postToEdit ไป = โหมดสร้างใหม่
-            onPost: (text, imagePath) {
-              _addPost(text, imagePath);
+            onPost: () {
+              // _addPost(newPost);
+              fetchPost();
             },
           ),
         );
@@ -303,24 +277,24 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 
   // ============== ▼▼▼ ฟังก์ชันใหม่สำหรับเปิด Modal "แก้ไข" ▼▼▼ ==============
-  void _showEditPostModal(Post postToEdit) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: FullScreenPostCreator(
-            postToEdit: postToEdit, // <--- ส่งโพสต์ที่ต้องการแก้ไขเข้าไป
-            onPost: (newText, newImagePath) {
-              _updatePost(postToEdit, newText, newImagePath);
-            },
-          ),
-        );
-      },
-    );
-  }
+  // void _showEditPostModal(Post postToEdit) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) {
+  //       return SizedBox(
+  //         width: MediaQuery.of(context).size.width,
+  //         child: FullScreenPostCreator(
+  //           postToEdit: postToEdit, // <--- ส่งโพสต์ที่ต้องการแก้ไขเข้าไป
+  //           onPost: (newText, newImagePath) {
+  //             _updatePost(postToEdit, newText, newImagePath);
+  //           },
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -335,23 +309,25 @@ class _CommuScreenState extends State<CommuScreen> {
           child: Column(
             children: [
               const HeaderSection(),
-              PostCreationTrigger(onTap: _showCreatePostModal), // widget สร้างโพส
               Expanded(
                 child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  itemCount: post.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: post.length + 1,
                   separatorBuilder:
                       (context, index) => const SizedBox(height: 20),
                   itemBuilder: (context, index) {
-                    final postold = _posts[index];
-                    final postNew = post[index];
+                    if (index == 0) {
+                      return PostCreationTrigger(
+                        onTap: _showCreatePostModal,
+                      ); // widget สร้างโพส
+                    }
+                    final postold = _posts[index - 1];
+                    final postNew = post[index - 1];
                     return UserPostCard(
                       post: postold,
                       postNew: postNew,
-                      onLikePressed: () => _toggleLike(postold.id),
-                      onCommentPressed: () => _showCommentDialog(postold),
-                      onMoreOptionsPressed: () => _showPostOptions(postold),
-                      onRepostPressed: () => _incrementReposts(postold.id),
+                      // onMoreOptionsPressed: () => _showPostOptions(postold),
+                      onMoreOptionsPressed: (){},
                     );
                   },
                 ),

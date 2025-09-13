@@ -63,7 +63,7 @@ Future<Map<String, dynamic>> signInWithGoogle() async {
 }
 
 Future<void> logout() async {
-  final userID = await getUserId();
+  String userID = await getUserId();
   final response = await http.post(
     Uri.parse('$apiURL/api/logout'),
     headers: {'Content-Type': 'application/json'},
@@ -117,9 +117,10 @@ Future<Map<String, String?>> getUserLocal() async {
   return {'userName': name, 'userId': id, 'userMail': mail, 'userPhoto': photo};
 }
 
-Future<String?> getUserId() async {
+Future<String> getUserId() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('userId');
+  String userId = prefs.getString('userId')!;
+  return userId;
 }
 
 Future<void> clearUserLocal() async {

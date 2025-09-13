@@ -45,7 +45,7 @@ Future<String?> getJWTRefreshToken() async {
 Future<String> refreshToken() async {
   late String status;
   final refreshToken = await getJWTRefreshToken();
-  final userID = await getUserId();
+  String userID = await getUserId();
   final response = await http.post(
     Uri.parse('$apiURL/api/refreshToken'),
     headers: {'Content-Type': 'application/json'},

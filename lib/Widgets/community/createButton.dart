@@ -12,37 +12,39 @@ class PostCreationTrigger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZoomIn(
+    return ElasticInUp(
       duration: Duration(milliseconds: 500),
       child: GestureDetector(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            margin: EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: kCardBorderColor, width: 2.5),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 22,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
-                    style: GoogleFonts.mali(color: Colors.grey[600]),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          margin: EdgeInsets.only(top: 15, bottom: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Color(0xFF78B465), width: 2),
+          ),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 22,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'ส่งต่อเรื่องราวดีๆกันเถอะ :)',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.mali(
+                    color: Color(0xFF464646),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Icon(Icons.favorite, color: kLikeButtonBorderColor),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.favorite, color: Color(0xFFFD7D7E)),
+            ],
           ),
         ),
       ),

@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 const Color kTextColor = Color(0xFF333333);
 
 class FullScreenPostCreator extends StatefulWidget {
-  final Function(String text, String? imagePath) onPost;
+  final Function() onPost;
   final Post? postToEdit;
 
   const FullScreenPostCreator({
@@ -68,15 +68,13 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
   }
 
   Future<void> _handlePost() async {
-    final String? userId = await getUserId();
+    final String userId = await getUserId();
     if (!_canPost) return;
-    widget.onPost(
-      _controller.text,
-      _selectedImage?.path,
-    ); // สร้างโพสให้หน้าบ้าน
     final urlIMG = await uploadImage(_selectedImage);
     final data = await addPost(userId, _controller.text, urlIMG);
+    final newPost = data?['data'];
     print(data?['message']);
+    widget.onPost(); // สร้างโพสให้หน้าบ้าน
     Navigator.pop(context);
   }
 
