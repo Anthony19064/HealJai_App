@@ -4,7 +4,7 @@ import 'package:healjai_project/service/apiCall.dart';
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<Map<String, dynamic>?> getuserById(String userId) async {
+Future<Map<String, dynamic>> getuserById(String userId) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/Account/$userId',
     method: 'GET',
@@ -13,5 +13,5 @@ Future<Map<String, dynamic>?> getuserById(String userId) async {
   if(data['success']){
     return data['data'];
   }
-  return null;
+  return {};
 }

@@ -23,10 +23,10 @@ class InteractionButton extends StatelessWidget {
     return ZoomIn(
       duration: Duration(milliseconds: 500),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: borderColor, width: 1.5),
         ),
         child: Row(
@@ -36,8 +36,9 @@ class InteractionButton extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.mali(
-                color: kIconColor,
+                color: borderColor,
                 fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
           ],

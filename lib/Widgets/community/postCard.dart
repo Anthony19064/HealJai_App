@@ -1,5 +1,8 @@
-import 'dart:io';
-
+import 'package:healjai_project/Widgets/community/commentPopup.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/commu.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,19 +26,15 @@ const Color kDmBubbleColor = Color(0xFFC5E3C8);
 class UserPostCard extends StatefulWidget {
   final Post post;
   final Map<String, dynamic> postNew;
-  final VoidCallback onLikePressed;
-  final VoidCallback onCommentPressed;
+  // final VoidCallback onCommentPressed;
   final VoidCallback onMoreOptionsPressed;
-  final VoidCallback onRepostPressed;
 
   const UserPostCard({
     super.key,
     required this.post,
     required this.postNew,
-    required this.onLikePressed,
-    required this.onCommentPressed,
+    // required this.onCommentPressed,
     required this.onMoreOptionsPressed,
-    required this.onRepostPressed,
   });
 
   @override
@@ -47,42 +46,108 @@ class _UserPostCardState extends State<UserPostCard>
   @override
   bool get wantKeepAlive => true;
 
-  Map<String, dynamic>? userInfo;
-  late IconData likeIcon;
-  late Color likeColor;
-  late Color likeBorderColor;
-  late Color likeBackgroundColor;
+  Map<String, dynamic> userInfo = {}; // ข้อมูลของเจ้าของโพส
+  int countLike = 0; // จำนวน Like ของโพส
+  int countComment = 0; // จำนวน Comment ของโพส
+  bool stateLike = false; // สถานะของ Like
 
   @override
   void initState() {
     super.initState();
-
-    // กำหนดค่าตัวแปร UI จาก post
-    likeIcon = widget.post.isLiked ? Icons.favorite : Icons.favorite_border;
-    likeColor = widget.post.isLiked ? Colors.red : kIconColor;
-    likeBorderColor =
-        widget.post.isLiked ? Colors.red.shade200 : kLikeButtonBorderColor;
-    likeBackgroundColor =
-        widget.post.isLiked ? Colors.red.shade50 : kLikeButtonBackgroundColor;
-
-    // โหลด user info
-    fetchUserInfo();
+    // โหลดข้อมูลทั้งหมด
+    loadAllData();
   }
 
+  Future<void> loadAllData() async {
+    await Future.wait([fetchUserInfo(), fetchCountLike(), fetchStateLike(), fetchCountComment()]);
+  }
+
+  // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
-    final user = await getuserById(widget.postNew['userID']);
+    final userID = widget.postNew['userID'];
+    final user = await getuserById(userID);
+    if (!mounted) return;
     setState(() {
       userInfo = user;
     });
   }
 
+  // เรียกจำนวน Like ของโพส
+  Future<void> fetchCountLike() async {
+    final postId = widget.postNew['_id'];
+    final data = await getCountLike(postId);
+    if (!mounted) return;
+    setState(() {
+      countLike = data;
+    });
+  }
+
+  // เรียกสถานะ Like ของโพส
+  Future<void> fetchStateLike() async {
+    final postId = widget.postNew['_id'];
+    String userId = await getUserId();
+    final data = await getStateLike(postId, userId);
+    final state = data['success'];
+    setState(() {
+      stateLike = state;
+    });
+  }
+
+  // ฟังก์ชันการทำงานของปุ่ม Like
+  Future<void> likeHandle() async {
+    setState(() {
+      countLike += stateLike ? -1 : 1;
+      stateLike = !stateLike;
+    });
+    final postId = widget.postNew['_id'];
+    String userId = await getUserId();
+    await addLike(postId, userId);
+  }
+
+  // เปิด popup Comment
+  Future<void> commentHandle() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (context) {
+        return CommentsDialog(
+          postId: widget.postNew['_id'], //ส่ง PostId
+          onCommentAdded: () {
+            setState(() {});
+            fetchCountComment();
+          },
+        );
+      },
+    );
+  }
+
+   // เรียกจำนวน Comment ของโพส
+  Future<void> fetchCountComment() async {
+    final postId = widget.postNew['_id'];
+    final data = await getCountComment(postId);
+    if (!mounted) return;
+    setState(() {
+      countComment = data;
+    });
+  }
+
+  
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final userName = userInfo?['username'] ?? 'Loading...';
-    final userImg = userInfo?['photoURL'] ?? '';
-    final String postTxt = widget.postNew['infoPost'] ?? '';
+    final userName = userInfo['username'];
+    final userImg = userInfo['photoURL'];
+    final String postTxt = widget.postNew['infoPost'];
     final String postImg = widget.postNew['img'];
+
+    // เวลาที่โพส
+    final String isoTime = widget.postNew['createdAt'];
+    DateTime postTime = DateTime.parse(isoTime);
+    timeago.setLocaleMessages('th', timeago.ThMessages());
+    String resultTime = timeago.format(postTime, locale: 'th');
 
     return ZoomIn(
       duration: Duration(milliseconds: 500),
@@ -90,35 +155,58 @@ class _UserPostCardState extends State<UserPostCard>
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24.0),
-          border: Border.all(color: kCardBorderColor, width: 2.5),
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(color: Color(0xFF78B465), width: 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundImage: NetworkImage(userImg),
-                ),
-                const SizedBox(width: 12),
+                userImg == null
+                    ? Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Container(
+                        width: 43,
+                        height: 43,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                    : CircleAvatar(
+                      radius: 22,
+                      backgroundImage: NetworkImage(userImg),
+                    ),
+                const SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    userName == null
+                        ? Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 100,
+                            height: 23,
+                            color: Colors.grey,
+                          ),
+                        )
+                        : Text(
+                          userName,
+                          style: GoogleFonts.mali(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: kTextColor,
+                          ),
+                        ),
+                    const SizedBox(height: 4),
                     Text(
-                      userName,
+                      resultTime,
                       style: GoogleFonts.mali(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: kTextColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.post.timeAgo,
-                      style: GoogleFonts.mali(
-                        color: kTimestampColor,
+                        color: Color(0xFF9F9F9F),
                         fontSize: 13,
                       ),
                     ),
@@ -140,18 +228,17 @@ class _UserPostCardState extends State<UserPostCard>
                 ),
               ],
             ),
-            if (postTxt.trim().isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  postTxt,
-                  style: GoogleFonts.mali(
-                    fontSize: 15,
-                    color: kTextColor,
-                    height: 1.4,
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Text(
+                postTxt,
+                style: GoogleFonts.mali(
+                  fontSize: 15,
+                  color: kTextColor,
+                  height: 1.4,
                 ),
               ),
+            ),
             if (postImg.trim().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
@@ -173,6 +260,21 @@ class _UserPostCardState extends State<UserPostCard>
                       width: double.infinity,
                       height: 200,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: double.infinity,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -181,35 +283,41 @@ class _UserPostCardState extends State<UserPostCard>
             Row(
               children: [
                 GestureDetector(
-                  onTap: widget.onLikePressed,
+                  onTap: likeHandle,
                   child: InteractionButton(
-                    icon: likeIcon,
-                    iconColor: likeColor,
-                    label: widget.post.likes.toString(),
-                    borderColor: likeBorderColor,
-                    backgroundColor: likeBackgroundColor,
+                    icon:
+                        stateLike == true
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                    iconColor: Color(0xFFFD7D7E),
+                    label: '$countLike',
+                    borderColor: Color(0xFFFD7D7E),
+                    backgroundColor: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 20),
                 GestureDetector(
-                  onTap: widget.onCommentPressed,
+                  onTap: commentHandle,
                   child: InteractionButton(
                     icon: Icons.chat_bubble_outline,
-                    label: widget.post.comments.length.toString(),
-                    borderColor: kCommentButtonBorderColor,
-                    backgroundColor: kCommentButtonBackgroundColor,
+                    iconColor: Color(0xFFF5B43A),
+                    label: '$countComment',
+                    borderColor: Color(0xFFF5B43A),
+                    backgroundColor: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: widget.onRepostPressed,
-                  child: InteractionButton(
-                    icon: Icons.repeat,
-                    label: widget.post.reposts.toString(),
-                    borderColor: kRepostButtonBorderColor,
-                    backgroundColor: kRepostButtonBackgroundColor,
-                  ),
-                ),
+                const SizedBox(width: 20),
+                // ปุ่มรีโพส 
+                // GestureDetector(
+                //   onTap: () {},
+                //   child: InteractionButton(
+                //     icon: Icons.repeat,
+                //     iconColor: Color(0xFF7F71FF),
+                //     label: '0',
+                //     borderColor: Color(0xFF7F71FF),
+                //     backgroundColor: Colors.white,
+                //   ),
+                // ),
               ],
             ),
           ],
