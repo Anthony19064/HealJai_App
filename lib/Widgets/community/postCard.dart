@@ -24,15 +24,13 @@ const Color kTimestampColor = Colors.grey;
 const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
 class UserPostCard extends StatefulWidget {
-  final Post post;
-  final Map<String, dynamic> postNew;
+  final Map<String, dynamic> post;
   // final VoidCallback onCommentPressed;
   final VoidCallback onMoreOptionsPressed;
 
   const UserPostCard({
     super.key,
     required this.post,
-    required this.postNew,
     // required this.onCommentPressed,
     required this.onMoreOptionsPressed,
   });
@@ -64,7 +62,7 @@ class _UserPostCardState extends State<UserPostCard>
 
   // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
-    final userID = widget.postNew['userID'];
+    final userID = widget.post['userID'];
     final user = await getuserById(userID);
     if (!mounted) return;
     setState(() {
@@ -74,7 +72,7 @@ class _UserPostCardState extends State<UserPostCard>
 
   // เรียกจำนวน Like ของโพส
   Future<void> fetchCountLike() async {
-    final postId = widget.postNew['_id'];
+    final postId = widget.post['_id'];
     final data = await getCountLike(postId);
     if (!mounted) return;
     setState(() {
@@ -84,7 +82,7 @@ class _UserPostCardState extends State<UserPostCard>
 
   // เรียกสถานะ Like ของโพส
   Future<void> fetchStateLike() async {
-    final postId = widget.postNew['_id'];
+    final postId = widget.post['_id'];
     String userId = await getUserId();
     final data = await getStateLike(postId, userId);
     final state = data['success'];
@@ -99,7 +97,7 @@ class _UserPostCardState extends State<UserPostCard>
       countLike += stateLike ? -1 : 1;
       stateLike = !stateLike;
     });
-    final postId = widget.postNew['_id'];
+    final postId = widget.post['_id'];
     String userId = await getUserId();
     await addLike(postId, userId);
   }
@@ -113,8 +111,9 @@ class _UserPostCardState extends State<UserPostCard>
       barrierColor: Colors.black.withOpacity(0.3),
       builder: (context) {
         return CommentsDialog(
-          postId: widget.postNew['_id'], //ส่ง PostId
+          postId: widget.post['_id'], //ส่ง PostId
           onCommentAdded: () {
+            if (!mounted) return;
             setState(() {});
             fetchCountComment();
           },
@@ -125,7 +124,7 @@ class _UserPostCardState extends State<UserPostCard>
 
    // เรียกจำนวน Comment ของโพส
   Future<void> fetchCountComment() async {
-    final postId = widget.postNew['_id'];
+    final postId = widget.post['_id'];
     final data = await getCountComment(postId);
     if (!mounted) return;
     setState(() {
@@ -140,11 +139,11 @@ class _UserPostCardState extends State<UserPostCard>
     super.build(context);
     final userName = userInfo['username'];
     final userImg = userInfo['photoURL'];
-    final String postTxt = widget.postNew['infoPost'];
-    final String postImg = widget.postNew['img'];
+    final String postTxt = widget.post['infoPost'];
+    final String postImg = widget.post['img'];
 
     // เวลาที่โพส
-    final String isoTime = widget.postNew['createdAt'];
+    final String isoTime = widget.post['createdAt'];
     DateTime postTime = DateTime.parse(isoTime);
     timeago.setLocaleMessages('th', timeago.ThMessages());
     String resultTime = timeago.format(postTime, locale: 'th');

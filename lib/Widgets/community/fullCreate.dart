@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 const Color kTextColor = Color(0xFF333333);
 
 class FullScreenPostCreator extends StatefulWidget {
-  final Function() onPost;
+  final void Function(Map<String, dynamic> newPost) onPost;
   final Post? postToEdit;
 
   const FullScreenPostCreator({
@@ -39,6 +39,8 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
         _selectedImage = File(widget.postToEdit!.imageUrl!);
       }
     }
+    // เช็คสถานะปุ่มโพสต์ครั้งแรก
+    _canPost = _controller.text.isNotEmpty || _selectedImage != null;
 
     // listener ตัวเดิมใช้ได้เลย
     _controller.addListener(() {
@@ -46,8 +48,6 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
         _canPost = _controller.text.isNotEmpty || _selectedImage != null;
       });
     });
-    // เช็คสถานะปุ่มโพสต์ครั้งแรก
-    _canPost = _controller.text.isNotEmpty || _selectedImage != null;
   }
 
   @override
@@ -73,8 +73,12 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
     final urlIMG = await uploadImage(_selectedImage);
     final data = await addPost(userId, _controller.text, urlIMG);
     final newPost = data?['data'];
-    print(data?['message']);
-    widget.onPost(); // สร้างโพสให้หน้าบ้าน
+    if (newPost != null) {
+      widget.onPost(newPost); // ส่งกลับไปที่ CommuScreen
+    }
+    _controller.clear();
+    _selectedImage = null;
+    _canPost = false;
     Navigator.pop(context);
   }
 
