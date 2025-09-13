@@ -19,112 +19,6 @@ class CommuScreen extends StatefulWidget {
 }
 
 class _CommuScreenState extends State<CommuScreen> {
-  final List<Post> _posts = [
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-      comments: [
-        Comment(
-          username: 'User_2',
-          avatarUrl: 'https://i.pravatar.cc/150?img=25',
-          text: 'Great post!',
-        ),
-        Comment(
-          username: 'User_3',
-          avatarUrl: 'https://i.pravatar.cc/150?img=32',
-          text: 'Love it!',
-        ),
-      ],
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    Post(
-      id: 'post_1',
-      username: 'User_1',
-      avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      timeAgo: '1d ago',
-      postText: 'Ex text post . . . . . .',
-      likes: 15,
-      reposts: 5,
-    ),
-    
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -144,17 +38,17 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 
   // ============== ฟังก์ชันใหม่สำหรับอัปเดตโพสต์ ==============
-  void _updatePost(Post postToUpdate, String newText, String? newImagePath) {
-    if (!mounted) return;
-    setState(() {
-      final postIndex = _posts.indexWhere((p) => p.id == postToUpdate.id);
-      if (postIndex != -1) {
-        _posts[postIndex].postText = newText;
-        _posts[postIndex].imageUrl = newImagePath;
-      }
-    });
-    _showSuccessSnackBar('แก้ไขโพสต์สำเร็จ');
-  }
+  // void _updatePost(Post postToUpdate, String newText, String? newImagePath) {
+  //   if (!mounted) return;
+  //   setState(() {
+  //     final postIndex = _posts.indexWhere((p) => p.id == postToUpdate.id);
+  //     if (postIndex != -1) {
+  //       _posts[postIndex].postText = newText;
+  //       _posts[postIndex].imageUrl = newImagePath;
+  //     }
+  //   });
+  //   _showSuccessSnackBar('แก้ไขโพสต์สำเร็จ');
+  // }
 
   void _showSuccessSnackBar(String message) {
     final snackBar = SnackBar(
@@ -248,13 +142,6 @@ class _CommuScreenState extends State<CommuScreen> {
   //   );
   // }
 
-  //หน้าบ้านเพิ่มโพส
-  void _addPost(Map<String, dynamic> newPost) {
-    setState(() {
-      post.insert(0, newPost);
-    });
-  }
-
   // ฟังก์ชันสำหรับ "สร้าง" โพสต์
   void _showCreatePostModal() {
     showModalBottomSheet(
@@ -266,9 +153,10 @@ class _CommuScreenState extends State<CommuScreen> {
           width: MediaQuery.of(context).size.width,
           child: FullScreenPostCreator(
             // ไม่ส่ง postToEdit ไป = โหมดสร้างใหม่
-            onPost: () {
-              // _addPost(newPost);
-              fetchPost();
+            onPost: (newPost) {
+              setState(() {
+                post.insert(0, newPost); // แทรกโพสต์ใหม่บนสุด
+              });
             },
           ),
         );
@@ -321,13 +209,12 @@ class _CommuScreenState extends State<CommuScreen> {
                         onTap: _showCreatePostModal,
                       ); // widget สร้างโพส
                     }
-                    final postold = _posts[index - 1];
-                    final postNew = post[index - 1];
+                    final postObj = post[index - 1];
                     return UserPostCard(
-                      post: postold,
-                      postNew: postNew,
+                      key: ValueKey(postObj['_id']),
+                      post: postObj,
                       // onMoreOptionsPressed: () => _showPostOptions(postold),
-                      onMoreOptionsPressed: (){},
+                      onMoreOptionsPressed: () {},
                     );
                   },
                 ),
