@@ -2,7 +2,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,13 +9,15 @@ import 'package:image_picker/image_picker.dart';
 const Color kTextColor = Color(0xFF333333);
 
 class FullScreenPostCreator extends StatefulWidget {
-  final void Function(Map<String, dynamic> newPost) onPost;
-  final Post? postToEdit;
+  final VoidCallback onPost;
+  final bool stateEdit;
+  final Map<String, dynamic>? postObj;
 
   const FullScreenPostCreator({
     super.key,
     required this.onPost,
-    this.postToEdit,
+    required this.stateEdit,
+    this.postObj,
   });
 
   @override
@@ -26,26 +27,24 @@ class FullScreenPostCreator extends StatefulWidget {
 class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
   final _controller = TextEditingController();
   File? _selectedImage;
+  String imageURL = '';
   bool _canPost = false;
 
   @override
   void initState() {
     super.initState();
     // ตรวจสอบว่ามี postToEdit ถูกส่งมาหรือไม่ (เป็นโหมดแก้ไข)
-    if (widget.postToEdit != null) {
-      // ถ้าใช่, ให้กำหนดค่าเริ่มต้นให้ text และ รูปภาพ
-      _controller.text = widget.postToEdit!.postText;
-      if (widget.postToEdit!.imageUrl != null) {
-        _selectedImage = File(widget.postToEdit!.imageUrl!);
-      }
+    if (widget.stateEdit) {
+      _controller.text = widget.postObj!['infoPost'];
+      imageURL = widget.postObj!['img'] ?? '';
     }
     // เช็คสถานะปุ่มโพสต์ครั้งแรก
-    _canPost = _controller.text.isNotEmpty || _selectedImage != null;
+    _canPost = _controller.text.isNotEmpty;
 
     // listener ตัวเดิมใช้ได้เลย
     _controller.addListener(() {
       setState(() {
-        _canPost = _controller.text.isNotEmpty || _selectedImage != null;
+        _canPost = _controller.text.isNotEmpty;
       });
     });
   }
@@ -62,20 +61,39 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
-        _canPost = true;
+        imageURL = '';
       });
     }
   }
 
   Future<void> _handlePost() async {
-    final String userId = await getUserId();
     if (!_canPost) return;
-    final urlIMG = await uploadImage(_selectedImage);
+    final String userId = await getUserId();
+    String? urlIMG = await uploadImage(_selectedImage);
     final data = await addPost(userId, _controller.text, urlIMG);
     final newPost = data?['data'];
     if (newPost != null) {
-      widget.onPost(newPost); // ส่งกลับไปที่ CommuScreen
+      widget.onPost(); // ส่งกลับไปที่ CommuScreen
     }
+    _controller.clear();
+    _selectedImage = null;
+    _canPost = false;
+    Navigator.pop(context);
+  }
+
+  Future<void> _handleEdit() async {
+    if (!_canPost) return;
+    String postID = widget.postObj!['_id'];
+    if (imageURL.trim().isEmpty){
+      widget.postObj!['img'] = "";
+    }
+    if (_selectedImage != null) {
+      String? newImageUrl = await uploadImage(_selectedImage);
+      widget.postObj!['img'] = newImageUrl;
+    }
+    widget.postObj!['infoPost'] = _controller.text;
+    await updatePost(postID, widget.postObj!);
+    widget.onPost(); // ส่งกลับไปที่ CommuScreen
     _controller.clear();
     _selectedImage = null;
     _canPost = false;
@@ -101,12 +119,12 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
             ),
             // เปลี่ยนหัวข้อตามโหมด (สร้าง/แก้ไข)
             title: Text(
-              widget.postToEdit == null ? 'สร้างโพสต์ใหม่' : 'แก้ไขโพสต์',
+              widget.stateEdit ? 'แก้ไขโพสต์' : 'สร้างโพสต์',
               style: GoogleFonts.mali(color: kTextColor),
             ),
             actions: [
               TextButton(
-                onPressed: _canPost ? _handlePost : null,
+                onPressed: widget.stateEdit ? _handleEdit : _handlePost,
                 child: Text(
                   'โพสต์',
                   style: GoogleFonts.mali(
@@ -159,6 +177,38 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
                             onPressed:
                                 () => setState(() {
                                   _selectedImage = null;
+                                  _canPost = _controller.text.isNotEmpty;
+                                }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                if (imageURL.trim().isNotEmpty)
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.network(
+                          imageURL,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.black54,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed:
+                                () => setState(() {
+                                  imageURL = '';
                                   _canPost = _controller.text.isNotEmpty;
                                 }),
                           ),

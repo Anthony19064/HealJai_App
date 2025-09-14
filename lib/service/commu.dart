@@ -46,6 +46,29 @@ Future<Map<String, dynamic>?> addPost(
   return data;
 }
 
+Future<Map<String, dynamic>> deletePost(String postID) async {
+  final response = await requestWithTokenRetry(
+    '$apiURL/api/posts/$postID',
+    method: 'DELETE',
+  );
+  final data = jsonDecode(response.body);
+  return data;
+}
+
+Future<Map<String, dynamic>> updatePost(
+  String postID,
+  Map<String, dynamic> newData,
+) async {
+  print(newData);
+  final response = await requestWithTokenRetry(
+    '$apiURL/api/posts/$postID',
+    method: 'PUT',
+    body: {'newData': newData},
+  );
+  final data = jsonDecode(response.body);
+  return data;
+}
+
 Future<int> getCountLike(String postId) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/countLike/$postId',
@@ -66,7 +89,10 @@ Future<Map<String, dynamic>> addLike(String? postId, String? userId) async {
   return data;
 }
 
-Future<Map<String, dynamic>> getStateLike(String? postId, String? userId) async {
+Future<Map<String, dynamic>> getStateLike(
+  String? postId,
+  String? userId,
+) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/Like/$postId/$userId',
     method: 'GET',
@@ -74,7 +100,6 @@ Future<Map<String, dynamic>> getStateLike(String? postId, String? userId) async 
   final data = jsonDecode(response.body);
   return data;
 }
-
 
 Future<List<Map<String, dynamic>>> getComments(String postId) async {
   final response = await requestWithTokenRetry(
@@ -84,7 +109,6 @@ Future<List<Map<String, dynamic>>> getComments(String postId) async {
   final data = jsonDecode(response.body);
   return List<Map<String, dynamic>>.from(data['data']);
 }
-
 
 Future<int> getCountComment(String postId) async {
   final response = await requestWithTokenRetry(
@@ -96,14 +120,18 @@ Future<int> getCountComment(String postId) async {
   return countComment;
 }
 
-Future<Map<String, dynamic>> addComment(String postId, String userId, String commentTxt) async {
+Future<Map<String, dynamic>> addComment(
+  String postId,
+  String userId,
+  String commentTxt,
+) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/Comment',
     method: 'POST',
     body: {'postID': postId, 'userId': userId, 'commentInfo': commentTxt},
   );
   final data = jsonDecode(response.body);
-  if(data['success']){
+  if (data['success']) {
     return data;
   }
   return {};

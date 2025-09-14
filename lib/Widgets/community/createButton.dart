@@ -1,6 +1,9 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/userProvider.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 const Color kCardBorderColor = Color(0xFFCDE5CF);
 const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
@@ -12,6 +15,8 @@ class PostCreationTrigger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userInfo = Provider.of<UserProvider>(context);
+
     return ElasticInUp(
       duration: Duration(milliseconds: 500),
       child: GestureDetector(
@@ -26,10 +31,20 @@ class PostCreationTrigger extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 22,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
-              ),
+              userInfo.userPhoto == null
+                  ? Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      width: 100,
+                      height: 23,
+                      color: Colors.grey,
+                    ),
+                  )
+                  : CircleAvatar(
+                    radius: 22,
+                    backgroundImage: NetworkImage(userInfo.userPhoto!),
+                  ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
