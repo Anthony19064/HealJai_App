@@ -6,7 +6,6 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/Widgets/community/photoView.dart';
 import 'package:healjai_project/Widgets/community/postButton.dart';
 import 'package:healjai_project/service/account.dart';
@@ -86,6 +85,7 @@ class _UserPostCardState extends State<UserPostCard>
     String userId = await getUserId();
     final data = await getStateLike(postId, userId);
     final state = data['success'];
+    if (!mounted) return;
     setState(() {
       stateLike = state;
     });
@@ -93,6 +93,7 @@ class _UserPostCardState extends State<UserPostCard>
 
   // ฟังก์ชันการทำงานของปุ่ม Like
   Future<void> likeHandle() async {
+    if (!mounted) return;
     setState(() {
       countLike += stateLike ? -1 : 1;
       stateLike = !stateLike;
