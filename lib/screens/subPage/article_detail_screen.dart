@@ -3,44 +3,101 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart'; // <-- 1. Import audioplayers
 
-// ============== ▼▼▼ 1. จัดกลุ่มบทความตามหมวดหมู่ ▼▼▼ ==============
+// ... (const Map articleCategories ไม่เปลี่ยนแปลง) ...
 const Map<String, List<String>> articleCategories = {
   'ความสุข': [
-    'ความสุข',
-    'ความสุข 2',
-    'ความสุข 3',
-    'ความสุข 4',
+    'ความสุข', 'ความสุข 2', 'ความสุข 3', 'ความสุข 4',
   ],
   'ความรัก': [
-    'ความรัก',
-    'ความรัก 2',
-    'ความรัก 3',
-    'ความรัก 4',
+    'ความรัก', 'ความรัก 2', 'ความรัก 3', 'ความรัก 4',
   ],
   'กำลังใจ': [
-    'กำลังใจ',
-    'กำลังใจ 2',
-    'กำลังใจ 3',
-    'กำลังใจ 4',
+    'กำลังใจ', 'กำลังใจ 2', 'กำลังใจ 3', 'กำลังใจ 4',
   ],
   'แบ่งปัน': [
-    'แบ่งปัน',
-    'แบ่งปัน 2',
-    'แบ่งปัน 3',
-    'แบ่งปัน 4',
+    'แบ่งปัน', 'แบ่งปัน 2', 'แบ่งปัน 3', 'แบ่งปัน 4',
   ],
 };
 
-
-class ArticleDetailScreen extends StatelessWidget {
+// --- เปลี่ยนเป็น StatefulWidget เพื่อจัดการ state ของเพลง ---
+class ArticleDetailScreen extends StatefulWidget {
   final String title;
   const ArticleDetailScreen({super.key, required this.title});
 
-  // ฟังก์ชันจำลองเพื่อดึงข้อมูลตาม title
+  @override
+  State<ArticleDetailScreen> createState() => _ArticleDetailScreenState();
+}
+
+class _ArticleDetailScreenState extends State<ArticleDetailScreen> with WidgetsBindingObserver { // <-- 2. เพิ่ม "with WidgetsBindingObserver" เพื่อเช็คสถานะแอป
+  
+  final AudioPlayer _audioPlayer = AudioPlayer(); // <-- 3. สร้าง instance ของ AudioPlayer
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // <-- เพิ่ม observer เพื่อเช็คสถานะแอป
+    _playMusic();
+  }
+
+  void _playMusic() async {
+    try {
+      // 4. ระบุที่อยู่ของไฟล์เพลงใน assets
+      await _audioPlayer.play(AssetSource('audio/background_music.mp3')); 
+      _audioPlayer.setReleaseMode(ReleaseMode.loop); // ทำให้เพลงเล่นวน
+      setState(() {
+        _isPlaying = true;
+      });
+    } catch (e) {
+      // จัดการกรณีหาไฟล์เพลงไม่เจอหรือไม่สามารถเล่นได้
+      debugPrint("Error playing music: $e");
+    }
+  }
+
+  // ฟังก์ชันสำหรับสลับการเล่น/หยุดเพลง
+  void _toggleMusic() {
+    if (_isPlaying) {
+      _audioPlayer.pause();
+      setState(() {
+        _isPlaying = false;
+      });
+    } else {
+      _audioPlayer.resume();
+      setState(() {
+        _isPlaying = true;
+      });
+    }
+  }
+
+  // จัดการเมื่อแอปถูกย่อ/ปิด
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (_isPlaying) {
+        _audioPlayer.pause();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (_isPlaying) {
+        _audioPlayer.resume();
+      }
+    }
+  }
+
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // <-- ลบ observer
+    _audioPlayer.stop(); // <-- 5. หยุดและเคลียร์ memory เมื่อออกจากหน้านี้
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // ... (ฟังก์ชัน _getArticleData ไม่เปลี่ยนแปลง) ...
   Map<String, String> _getArticleData(String title) {
+    // ... โค้ดเดิม
     switch (title) {
-      // --- หมวดความสุข ---
       case 'ความสุข':
         return {
           'imagePath': 'assets/images/wagu1.jpg',
@@ -66,7 +123,6 @@ class ArticleDetailScreen extends StatelessWidget {
           'body': 'ไม่ต้องกังวลกับอนาคต ไม่ต้องยึดติดกับอดีต ลองใช้ชีวิตอยู่กับปัจจุบันขณะดูสิ แล้วจะรู้ว่าความสุขมันอยู่ตรงนี้เอง'
         };
         
-      // --- หมวดความรัก ---
       case 'ความรัก':
         return {
           'imagePath': 'assets/images/wagu2.jpg',
@@ -92,7 +148,6 @@ class ArticleDetailScreen extends StatelessWidget {
           'body': 'การแสดงความรักมีหลายวิธี ลองศึกษาภาษารักทั้ง 5 รูปแบบดูสิ จะได้เข้าใจและแสดงความรักกับคนข้างๆ ได้ดียิ่งขึ้น'
         };
 
-      // --- หมวดกำลังใจ ---
       case 'กำลังใจ':
          return {
           'imagePath': 'assets/images/wagu3.jpg',
@@ -118,7 +173,6 @@ class ArticleDetailScreen extends StatelessWidget {
           'body': 'เมื่อไหร่ที่รู้สึกโดดเดี่ยว ลองมองไปรอบๆ ตัวสิ ยังมีคนที่พร้อมจะรับฟังและอยู่ข้างๆ เธอเสมอนะ'
         };
 
-      // --- หมวดแบ่งปัน ---
       case 'แบ่งปัน':
         return {
           'imagePath': 'assets/images/wagu4.jpg',
@@ -148,7 +202,7 @@ class ArticleDetailScreen extends StatelessWidget {
         return {
           'imagePath': 'assets/images/wagu1.jpg',
           'header': 'ไม่พบข้อมูลบทความ',
-          'body': 'ขออภัย ไม่พบเนื้อหาสำหรับบทความ "$title"'
+          'body': 'ขออภัย ไม่พบเนื้อหาสำหรับบทความ "${widget.title}"'
         };
     }
   }
@@ -156,10 +210,20 @@ class ArticleDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final articleData = _getArticleData(title);
+    final articleData = _getArticleData(widget.title);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
+
+      // ============== ▼▼▼ 6. เพิ่มปุ่มเปิด/ปิดเพลง ▼▼▼ ==============
+      floatingActionButton: FloatingActionButton(
+        onPressed: _toggleMusic,
+        backgroundColor: Colors.white,
+        child: Icon(
+          _isPlaying ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          color: const Color(0xFF78B465),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,33 +294,21 @@ class ArticleDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-
-                    // ============== ▼▼▼ 2. แก้ไข Logic ของปุ่ม "ถัดไป" ใหม่ทั้งหมด ▼▼▼ ==============
                     ElevatedButton(
                       onPressed: () {
                         List<String>? categoryArticles;
-
-                        // หาว่าบทความปัจจุบันอยู่ในหมวดหมู่ไหน
                         articleCategories.forEach((key, value) {
-                          if (value.contains(title)) {
+                          if (value.contains(widget.title)) {
                             categoryArticles = value;
                           }
                         });
 
                         if (categoryArticles != null) {
-                          // หา index ของบทความปัจจุบันในหมวดหมู่นั้นๆ
-                          final currentIndex = categoryArticles!.indexOf(title);
-                          
-                          // คำนวณ index ของบทความถัดไป (ถ้าถึงสุดท้ายให้วนกลับไปที่ 0)
+                          final currentIndex = categoryArticles!.indexOf(widget.title);
                           final nextIndex = (currentIndex + 1) % categoryArticles!.length;
-                          
-                          // ดึง title ของบทความถัดไป
                           final nextTitle = categoryArticles![nextIndex];
-
-                          // เปิดหน้าของบทความถัดไปขึ้นมาแทนที่หน้าปัจจุบัน
                           context.pushReplacement('/book/$nextTitle');
                         } else {
-                          // ถ้าเกิดข้อผิดพลาด ให้กลับไปหน้าหลัก
                           context.pop();
                         }
                       },

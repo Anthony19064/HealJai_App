@@ -63,6 +63,7 @@ dependencies:
   flip_card: ^0.7.0
   firebase_storage: ^12.4.10
   timeago: ^3.7.1
+  audioplayers: ^6.0.0 
   
 dev_dependencies:
   flutter_test:
@@ -93,6 +94,7 @@ flutter:
     - assets/animations/
     - assets/animations/rives/
     - assets/animations/lotties/
+    - assets/audio/
     - .env
     
 
