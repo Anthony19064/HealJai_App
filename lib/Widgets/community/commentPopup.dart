@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commentCard.dart';
-import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
 
