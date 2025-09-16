@@ -23,9 +23,10 @@ Future<String?> uploadImage(File? file) async {
   }
 }
 
-Future<List<Map<String, dynamic>>> getPosts() async {
+Future<List<Map<String, dynamic>>> getPosts(int page, int limit) async {
+  final skip = page * limit;
   final response = await requestWithTokenRetry(
-    '$apiURL/api/posts',
+    '$apiURL/api/posts?skip=$skip&limit=$limit',
     method: 'GET',
   );
   final data = jsonDecode(response.body);

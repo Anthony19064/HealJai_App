@@ -63,6 +63,7 @@ dependencies:
   flip_card: ^0.7.0
   firebase_storage: ^12.4.10
   timeago: ^3.7.1
+  flutter_spinkit: ^5.2.2
   
 dev_dependencies:
   flutter_test:
