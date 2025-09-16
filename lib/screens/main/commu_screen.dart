@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/createButton.dart';
 import 'package:healjai_project/Widgets/community/fullCreate.dart';
@@ -16,35 +17,60 @@ class CommuScreen extends StatefulWidget {
 }
 
 class _CommuScreenState extends State<CommuScreen> {
+  final ScrollController _scrollController = ScrollController();
+  List<Map<String, dynamic>> post = []; // List ข้อมูลโพสทั้งหมด
+  int limit = 5;
+  int page = 1;
+  bool hasMore = true;
+  bool isLoadingMore = false;
+
   @override
   void initState() {
     super.initState();
     fetchPost();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent) {
+        // เลื่อนถึงล่างสุดแล้ว
+        fetchMorePosts();
+      }
+    });
   }
-
-  List<Map<String, dynamic>> post = []; // List ข้อมูลโพสทั้งหมด
 
   // ดึงโพส
   Future<void> fetchPost() async {
-    final data = await getPosts();
+    final data = await getPosts(0, page * limit);
+    if (data.length < limit) {
+      setState(() {
+        hasMore = false;
+      });
+    }
     if (!mounted) return;
     setState(() {
       post = data;
     });
   }
 
-  // ============== ฟังก์ชันใหม่สำหรับอัปเดตโพสต์ ==============
-  // void _updatePost(Post postToUpdate, String newText, String? newImagePath) {
-  //   if (!mounted) return;
-  //   setState(() {
-  //     final postIndex = _posts.indexWhere((p) => p.id == postToUpdate.id);
-  //     if (postIndex != -1) {
-  //       _posts[postIndex].postText = newText;
-  //       _posts[postIndex].imageUrl = newImagePath;
-  //     }
-  //   });
-  //   _showSuccessSnackBar('แก้ไขโพสต์สำเร็จ');
-  // }
+  Future<void> fetchMorePosts() async {
+    if (!hasMore) return;
+    if (isLoadingMore) return;
+    setState(() {
+      isLoadingMore = true;
+    });
+    final newPosts = await getPosts(page, limit);
+    if (newPosts.length < limit) {
+      setState(() {
+        hasMore = false;
+      });
+    }
+    setState(() {
+      post = [...post, ...newPosts];
+      page++;
+    });
+    setState(() {
+      isLoadingMore = false;
+    });
+  }
 
   void _showSuccessSnackBar(String message) {
     final snackBar = SnackBar(
@@ -184,6 +210,12 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
@@ -198,8 +230,9 @@ class _CommuScreenState extends State<CommuScreen> {
               const HeaderSection(),
               Expanded(
                 child: ListView.separated(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: post.length + 1,
+                  itemCount: post.length + 2,
                   separatorBuilder:
                       (context, index) => const SizedBox(height: 20),
                   itemBuilder: (context, index) {
@@ -207,6 +240,11 @@ class _CommuScreenState extends State<CommuScreen> {
                       return PostCreationTrigger(
                         onTap: _showCreatePostModal,
                       ); // widget สร้างโพส
+                    }
+                    if (index == post.length + 1) {
+                      return isLoadingMore
+                          ? SpinKitCircle(color: Color(0xFF78B465), size: 100.0)
+                          : const SizedBox.shrink();
                     }
                     final postObj = post[index - 1];
                     return UserPostCard(

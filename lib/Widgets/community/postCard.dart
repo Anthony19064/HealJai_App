@@ -150,7 +150,7 @@ class _UserPostCardState extends State<UserPostCard>
     String resultTime = timeago.format(postTime, locale: 'th');
 
     return ZoomIn(
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 700),
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
