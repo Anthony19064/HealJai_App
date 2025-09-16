@@ -161,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onTap: () {
                     socket.cancelMatch();
                     chatProvider.clearRole();
-                    Navigator.pop(context);
+                    context.pop();
                   },
                   child: Container(
                     width: 200,
