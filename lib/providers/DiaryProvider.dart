@@ -13,25 +13,24 @@ class DiaryProvider extends ChangeNotifier {
   bool question = false;
   bool story = false;
 
-  Future<void> fetchTaskCount() async {
+  Future<void> fetchTaskCount(BuildContext context) async {
     bool? loginState = await isUserLoggedin();
     if (loginState) {
       DateTime toDay = DateTime.now();
-      String? token = await getJWTAcessToken();
       int day = toDay.day;
       int month = toDay.month;
       int year = toDay.year;
-      taskCount = await getTaskCount(day, month, year) ?? 0;
+      taskCount = await getTaskCount(context, day, month, year) ?? 0;
       taskPercent = taskCount / totalTask;
       if (taskCount == 3) {
-        await addAge(token, day, month, year);
+        await addAge(context, day, month, year);
       }
 
       notifyListeners();
     }
   }
 
-  Future<void> clearTask() async{
+  Future<void> clearTask() async {
     taskCount = 0;
     taskPercent = 0.00;
     notifyListeners();

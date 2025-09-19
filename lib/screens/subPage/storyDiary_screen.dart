@@ -48,7 +48,7 @@ class _StoryDiaryState extends State<StoryDiary> {
     bool? loginState = await isUserLoggedin();
 
     if (loginState) {
-      final data = await addDiaryStory( _storyList);
+      final data = await addDiaryStory(context, _storyList);
       setState(() {
         isLoading = false;
       });
@@ -90,8 +90,8 @@ class _StoryDiaryState extends State<StoryDiary> {
         ),
       );
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }

@@ -54,127 +54,137 @@ void main() async {
 
 final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey<NavigatorState>();
 
-final GoRouter _router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    ShellRoute(
-      navigatorKey: shellNavigatorKey,
-      pageBuilder: (context, state, child) {
-        return NoTransitionPage(
-          child: Scaffold(
-            backgroundColor: const Color(0xFFFFF7EB),
-            body: SafeArea(
-              child: Column(
-                children: [HeaderSection(), Expanded(child: child)],
-              ),
-            ),
-            bottomNavigationBar: BottomNavBar(),
-          ),
-        );
-      },
-      routes: [
-        GoRoute(
-          path: '/game',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: GameScreen());
-          },
-        ),
-        GoRoute(
-          path: '/',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: HomeScreen());
-          },
-        ),
-        
-        GoRoute(
-          path: '/book',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: BookScreen());
-          },
-        ),
-      ],
-    ),
-    
-    GoRoute(
-      path: '/login',
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: LoginScreen());
-      },
-    ),
-    GoRoute(
-      path: '/regis',
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: RegisScreenPageView());
-      },
-    ),
-    GoRoute(
-      path: '/forget_pass',
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: ForgetPassword());
-      },
-    ),
-    GoRoute(
-      path: '/chat',
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: ChatScreen());
-      },
-      routes: [
-        GoRoute(
-          path: 'room/:role',
-          pageBuilder: (context, state) {
-            final role = state.pathParameters['role']!;
-            return NoTransitionPage(child: ChatRoomScreen(role: role));
-          },
-        ),
-      ],
-    
-    ),
-    GoRoute(
-          path: '/commu',
-          pageBuilder: (context, state) {
-            return NoTransitionPage(child: CommuScreen());
-          },
-        ),
-    GoRoute(
-      path: '/book/:title', //:title คือ path parameter
-      pageBuilder: (context, state) {
-        // ดึงค่า title จาก path ที่ส่งมา
-        final title = state.pathParameters['title']!;
-        return NoTransitionPage(child: ArticleDetailScreen(title: title));
-      },
-    ),
-    GoRoute(
-      path: '/moodDiary', 
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: MoodDiaryScreen());
-      },
-    ),
-    GoRoute(
-      path: '/questionDiary', 
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: QuestionDiary());
-      },
-    ),
-    GoRoute(
-      path: '/storyDiary', 
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: StoryDiary());
-      },
-    ),
-    GoRoute(
-      path: '/diaryHistory', 
-      pageBuilder: (context, state) {
-        return NoTransitionPage(child: Diaryhistory());
-      },
-    ),
-  ],
-);
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: _router);
+    final userProvider = Provider.of<UserProvider>(context, listen: true);
+
+    final GoRouter router = GoRouter(
+      initialLocation: '/login',
+      refreshListenable: userProvider, 
+      redirect: (context, state) {
+        final loggedIn = userProvider.isLoggedIn;
+        final loggingIn = state.fullPath == '/login' || state.fullPath == '/regis';
+
+        if (!loggedIn && !loggingIn) return '/login';
+        if (loggedIn && loggingIn) return '/';
+        return null;
+      },
+      routes: [
+        ShellRoute(
+          navigatorKey: shellNavigatorKey,
+          pageBuilder: (context, state, child) {
+            return NoTransitionPage(
+              child: Scaffold(
+                backgroundColor: const Color(0xFFFFF7EB),
+                body: SafeArea(
+                  child: Column(
+                    children: [HeaderSection(), Expanded(child: child)],
+                  ),
+                ),
+                bottomNavigationBar: BottomNavBar(),
+              ),
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/game',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(child: GameScreen());
+              },
+            ),
+            GoRoute(
+              path: '/',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(child: HomeScreen());
+              },
+            ),
+            GoRoute(
+              path: '/book',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(child: BookScreen());
+              },
+            ),
+          ],
+        ),
+
+        GoRoute(
+          path: '/login',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: LoginScreen());
+          },
+        ),
+        GoRoute(
+          path: '/regis',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: RegisScreenPageView());
+          },
+        ),
+        GoRoute(
+          path: '/forget_pass',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: ForgetPassword());
+          },
+        ),
+        GoRoute(
+          path: '/chat',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: ChatScreen());
+          },
+          routes: [
+            GoRoute(
+              path: 'room/:role',
+              pageBuilder: (context, state) {
+                final role = state.pathParameters['role']!;
+                return NoTransitionPage(child: ChatRoomScreen(role: role));
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/commu',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: CommuScreen());
+          },
+        ),
+        GoRoute(
+          path: '/book/:title',
+          pageBuilder: (context, state) {
+            final title = state.pathParameters['title']!;
+            return NoTransitionPage(child: ArticleDetailScreen(title: title));
+          },
+        ),
+        GoRoute(
+          path: '/moodDiary',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: MoodDiaryScreen());
+          },
+        ),
+        GoRoute(
+          path: '/questionDiary',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: QuestionDiary());
+          },
+        ),
+        GoRoute(
+          path: '/storyDiary',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: StoryDiary());
+          },
+        ),
+        GoRoute(
+          path: '/diaryHistory',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: Diaryhistory());
+          },
+        ),
+      ],
+    );
+
+    return MaterialApp.router(
+      routerConfig: router,
+    );
   }
 }
