@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/badWordCheck.dart';
 import 'package:healjai_project/service/commu.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -70,12 +71,18 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
 
   Future<void> _handlePost() async {
     if (!_canPost) return;
+    String textInput = _controller.text;
+    final checkBadword = checkBadWord(textInput);
+    if(checkBadword){
+      showErrorSnackBar(context);
+      return;
+    }
     setState(() {
       isLoading = true;
     });
     final String userId = await getUserId();
     String? urlIMG = await uploadImage(_selectedImage);
-    final data = await addPost(userId, _controller.text, urlIMG);
+    final data = await addPost(context, userId, textInput, urlIMG);
     final newPost = data?['data'];
     if (newPost != null) {
       widget.onPost(); // ส่งกลับไปที่ CommuScreen
@@ -103,7 +110,7 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
       widget.postObj!['img'] = newImageUrl;
     }
     widget.postObj!['infoPost'] = _controller.text;
-    await updatePost(postID, widget.postObj!);
+    await updatePost(context, postID, widget.postObj!);
     widget.onPost(); // ส่งกลับไปที่ CommuScreen
     setState(() {
       isLoading = false;

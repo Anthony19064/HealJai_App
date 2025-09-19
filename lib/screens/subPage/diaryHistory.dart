@@ -60,7 +60,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
       int year = _focusedDay.year;
       int month = _focusedDay.month;
 
-      List<DateTime> events = await diaryHistory( year, month);
+      List<DateTime> events = await diaryHistory(context, year, month);
       setState(() {
         _event = events;
       });
@@ -76,7 +76,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
       int month = _focusedDay.month;
       int year = _focusedDay.year;
 
-      final data = await diaryInfo(day, month, year);
+      final data = await diaryInfo(context, day, month, year);
       if (data != null) {
         setState(() {
           _moodInfo = data['mood']['value'];

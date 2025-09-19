@@ -5,10 +5,10 @@ import 'package:healjai_project/service/tree.dart';
 class TreeProvider extends ChangeNotifier {
   int TreeAge = 0;
 
-  Future<void> fetchTreeAge() async {
+  Future<void> fetchTreeAge(BuildContext context) async {
     bool? loginState = await isUserLoggedin();
     if (loginState) {
-      final age = await getTreeAge();
+      final age = await getTreeAge(context);
       TreeAge = age ?? 0;
       notifyListeners();
     }

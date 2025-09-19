@@ -10,17 +10,6 @@ import 'package:healjai_project/Widgets/community/photoView.dart';
 import 'package:healjai_project/Widgets/community/postButton.dart';
 import 'package:healjai_project/service/account.dart';
 
-const Color kCardBorderColor = Color(0xFFCDE5CF);
-const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
-const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
-const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
-const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
-const Color kRepostButtonBorderColor = Color(0xFFC7C5FF);
-const Color kRepostButtonBackgroundColor = Color(0xFFF2F1FF);
-const Color kIconColor = Color(0xFF757575);
-const Color kTextColor = Color(0xFF333333);
-const Color kTimestampColor = Colors.grey;
-const Color kDmBubbleColor = Color(0xFFC5E3C8);
 
 class UserPostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -62,7 +51,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
     final userID = widget.post['userID'];
-    final user = await getuserById(userID);
+    final user = await getuserById(context, userID);
     if (!mounted) return;
     setState(() {
       userInfo = user;
@@ -72,7 +61,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกจำนวน Like ของโพส
   Future<void> fetchCountLike() async {
     final postId = widget.post['_id'];
-    final data = await getCountLike(postId);
+    final data = await getCountLike(context, postId);
     if (!mounted) return;
     setState(() {
       countLike = data;
@@ -83,7 +72,7 @@ class _UserPostCardState extends State<UserPostCard>
   Future<void> fetchStateLike() async {
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    final data = await getStateLike(postId, userId);
+    final data = await getStateLike(context, postId, userId);
     final state = data['success'];
     if (!mounted) return;
     setState(() {
@@ -100,7 +89,7 @@ class _UserPostCardState extends State<UserPostCard>
     });
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    await addLike(postId, userId);
+    await addLike(context, postId, userId);
   }
 
   // เปิด popup Comment
@@ -126,7 +115,7 @@ class _UserPostCardState extends State<UserPostCard>
    // เรียกจำนวน Comment ของโพส
   Future<void> fetchCountComment() async {
     final postId = widget.post['_id'];
-    final data = await getCountComment(postId);
+    final data = await getCountComment(context, postId);
     if (!mounted) return;
     setState(() {
       countComment = data;
@@ -199,7 +188,7 @@ class _UserPostCardState extends State<UserPostCard>
                           style: GoogleFonts.mali(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: kTextColor,
+                            color: Color(0xFF464646),
                           ),
                         ),
                     const SizedBox(height: 4),
@@ -234,7 +223,7 @@ class _UserPostCardState extends State<UserPostCard>
                 postTxt,
                 style: GoogleFonts.mali(
                   fontSize: 15,
-                  color: kTextColor,
+                  color: Color(0xFF464646),
                   height: 1.4,
                 ),
               ),

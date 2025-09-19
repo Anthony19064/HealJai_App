@@ -35,7 +35,7 @@ class CommentsDialogState extends State<CommentsDialog> {
   }
 
   Future<void> fetchComment() async{
-    final data = await getComments(widget.postId);
+    final data = await getComments(context, widget.postId);
     setState(() {
       comments = data;
     });
@@ -43,7 +43,7 @@ class CommentsDialogState extends State<CommentsDialog> {
 
   Future<void> _submitComment() async{
     String userId = await getUserId();
-    final data = await addComment(widget.postId, userId, _commentController.text);
+    final data = await addComment(context, widget.postId, userId, _commentController.text);
     final newComment = data['data'];
     setState(() {
       comments.add(newComment);

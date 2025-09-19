@@ -1,5 +1,7 @@
 import 'dart:convert';
-
+import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
+import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:http/http.dart' as http;
 
@@ -8,6 +10,7 @@ Future<http.Response> requestWithTokenRetry(
   String url, {
   required String method,
   dynamic body,
+  required BuildContext context,
 }) async {
   Future<http.Response> callApi() async {
     String? token = await getJWTAcessToken();
@@ -58,7 +61,10 @@ Future<http.Response> requestWithTokenRetry(
       response = await callApi(); // retry
     }
     if (status == "Token expired") {
-      // ไปหน้าล็อคอิน หรือ หน้าแจ้งเตือน
+      await deleteJWTRefreshToken();
+      await deleteJWTAcessToken();
+      await clearUserLocal();
+      GoRouter.of(context).go('/login');
     }
   }
 

@@ -11,6 +11,8 @@ class UserProvider extends ChangeNotifier {
     setUserInfo();
   }
 
+  bool get isLoggedIn => userId != null; // ✅ getter ไว้เช็คง่าย ๆ
+
   Future<void> setUserInfo() async {
     final data = await getUserLocal();
     userId = data['userId'];
@@ -20,12 +22,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> clearUserInfo() async{
+  Future<void> clearUserInfo() async {
     userId = null;
     userName = null;
     userMail = null;
     userPhoto = null;
     notifyListeners();
   }
-  
 }
