@@ -89,12 +89,7 @@ class MyApp extends StatelessWidget {
             );
           },
           routes: [
-            GoRoute(
-              path: '/game',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: GameScreen());
-              },
-            ),
+            
             GoRoute(
               path: '/',
               pageBuilder: (context, state) {
@@ -128,6 +123,12 @@ class MyApp extends StatelessWidget {
             return NoTransitionPage(child: ForgetPassword());
           },
         ),
+        GoRoute(
+              path: '/game',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(child: GameScreen());
+              },
+            ),
         GoRoute(
           path: '/chat',
           pageBuilder: (context, state) {
