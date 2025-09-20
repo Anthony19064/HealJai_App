@@ -201,8 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          await TreeInfo.fetchTreeAge();
-                          await DiaryInfo.fetchTaskCount();
+                          await TreeInfo.fetchTreeAge(context);
+                          await DiaryInfo.fetchTaskCount(context);
                           context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -284,8 +284,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          await TreeInfo.fetchTreeAge();
-                          await DiaryInfo.fetchTaskCount();
+                          await TreeInfo.fetchTreeAge(context);
+                          await DiaryInfo.fetchTaskCount(context);
                           context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

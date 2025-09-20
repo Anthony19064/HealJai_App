@@ -23,7 +23,7 @@ class _CommentCardState extends State<CommentCard> {
   // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
     final userID = widget.comment['ownerComment'];
-    final user = await getuserById(userID);
+    final user = await getuserById(context, userID);
     if (!mounted) return;
     setState(() {
       userInfo = user;

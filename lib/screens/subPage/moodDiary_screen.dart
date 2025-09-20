@@ -145,7 +145,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood( selectedMood, text);
+      final data = await addDiaryMood(context, selectedMood, text);
 
           
     setState(() {
@@ -188,8 +188,8 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
         ),
       );
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }

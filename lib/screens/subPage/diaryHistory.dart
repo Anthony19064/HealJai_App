@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:intl/intl.dart';
 import 'package:rive/rive.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -55,14 +54,13 @@ class _DiaryhistoryState extends State<Diaryhistory> {
   }
 
   Future<void> _loadDiaryHistory() async {
-    String? token = await getJWTAcessToken();
     bool? loginState = await isUserLoggedin();
 
     if (loginState) {
       int year = _focusedDay.year;
       int month = _focusedDay.month;
 
-      List<DateTime> events = await diaryHistory( year, month);
+      List<DateTime> events = await diaryHistory(context, year, month);
       setState(() {
         _event = events;
       });
@@ -72,14 +70,13 @@ class _DiaryhistoryState extends State<Diaryhistory> {
   }
 
   Future<void> _loadDiaryInfo() async {
-    String? token = await getJWTAcessToken();
     bool? loginState = await isUserLoggedin();
     if (loginState) {
       int day = _focusedDay.day;
       int month = _focusedDay.month;
       int year = _focusedDay.year;
 
-      final data = await diaryInfo(day, month, year);
+      final data = await diaryInfo(context, day, month, year);
       if (data != null) {
         setState(() {
           _moodInfo = data['mood']['value'];

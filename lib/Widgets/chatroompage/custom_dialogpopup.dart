@@ -1,10 +1,5 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/providers/chatProvider.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
 class CustomExitDialog extends StatelessWidget {

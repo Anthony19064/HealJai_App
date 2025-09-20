@@ -18,7 +18,7 @@ class PostCreationTrigger extends StatelessWidget {
     final userInfo = Provider.of<UserProvider>(context);
 
     return ElasticInUp(
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 700),
       child: GestureDetector(
         onTap: onTap,
         child: Container(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commentCard.dart';
-import 'package:healjai_project/Widgets/community/commuClass.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
 
@@ -36,7 +35,7 @@ class CommentsDialogState extends State<CommentsDialog> {
   }
 
   Future<void> fetchComment() async{
-    final data = await getComments(widget.postId);
+    final data = await getComments(context, widget.postId);
     setState(() {
       comments = data;
     });
@@ -44,7 +43,7 @@ class CommentsDialogState extends State<CommentsDialog> {
 
   Future<void> _submitComment() async{
     String userId = await getUserId();
-    final data = await addComment(widget.postId, userId, _commentController.text);
+    final data = await addComment(context, widget.postId, userId, _commentController.text);
     final newComment = data['data'];
     setState(() {
       comments.add(newComment);
