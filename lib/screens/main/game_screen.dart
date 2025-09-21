@@ -2,12 +2,10 @@ import 'dart:async' as async;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:flame/effects.dart';
-import 'package:go_router/go_router.dart'; // <<< IMPORT GOROUTER
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:healjai_project/Widgets/bottom_nav.dart'; // Assuming you have this file
+import 'package:healjai_project/Widgets/bottom_nav.dart';
+import 'package:rive/rive.dart' hide Image; // Import Rive and hide conflicting Image class
 
 // Enum to represent the prize types for better readability
 enum PrizeType { coin, energy, chest, bonus }
@@ -46,29 +44,41 @@ class _GameScreenState extends State<GameScreen> {
 
   bool _isSpinning = false;
   async.Timer? _energyRegenTimer;
-  late final WheelGame _game;
 
+  // --- Rive State Controllers ---
+  StateMachineController? _riveController;
+  SMIInput<double>? _spinInput;
+
+  // IMPORTANT: The order of this list now EXACTLY matches your Rive input numbers (0-7)
   final List<WeightedPrize> _prizes = [
-    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),      // 5% chance (Rare)
-    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 1), 20),     // 20% chance (Common)
-    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 3),   // 3% chance (Very Rare)
-    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 30),     // 30% chance (Most Common)
-    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 7),   // 7% chance (Rare)
-    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 2), 10),    // 10% chance (Uncommon)
-    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 0), 10),     // 10% chance (Free Spin)
-    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 15),   // 15% chance (Uncommon)
+    // Rive Input: 0
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 30),     // stop_coin1
+    // Rive Input: 1
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 15),   // stop_coin2
+    // Rive Input: 2
+    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 1), 20),     // stop_eng1
+    // Rive Input: 3
+    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 2), 10),    // stop_eng2
+    // Rive Input: 4
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),      // stop_bonus1 (Multiplier)
+    // Rive Input: 5
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 0), 10),     // stop_bonus2 (Free Spin)
+    // Rive Input: 6
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 3),   // stop_he1 (Very Rare Chest)
+    // Rive Input: 7
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 7),   // stop_he2 (Rare Chest)
   ];
 
   @override
   void initState() {
     super.initState();
-    _game = WheelGame(wheelSize: _wheelSize);
     _startEnergyRegenTimer();
   }
 
   @override
   void dispose() {
     _energyRegenTimer?.cancel();
+    _riveController?.dispose();
     super.dispose();
   }
 
@@ -95,8 +105,29 @@ class _GameScreenState extends State<GameScreen> {
     }
     return 0; // Fallback
   }
+  
+  void _onRiveInit(Artboard artboard) {
+    _riveController = StateMachineController.fromArtboard(artboard, 'State Machine 1');
+    if (_riveController != null) {
+      artboard.addController(_riveController!);
+      debugPrint("✅ Rive Controller 'State Machine 1' found!");
+      _spinInput = _riveController!.findInput<double>('spin');
+      if (_spinInput != null) {
+          debugPrint("✅ Number Input 'spin' found!");
+          _spinInput?.value = -1; // Set initial state to idle (-1)
+      } else {
+          debugPrint("❌ ERROR: Rive input named 'spin' NOT FOUND or is NOT a NUMBER.");
+      }
+    } else {
+        debugPrint("❌ ERROR: Rive State Machine named 'State Machine 1' NOT FOUND.");
+    }
+  }
 
   void _spinWheel() {
+    if (_spinInput == null) {
+      debugPrint("Cannot spin because the Rive input was not found. Check _onRiveInit logs.");
+      return;
+    }
     if (_energy <= 0) {
       _showResultSnackBar("พลังใจไม่เพียงพอ!", isError: true);
       return;
@@ -109,13 +140,26 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     int resultIndex = _getWeightedRandomPrizeIndex();
+    
+    // 1. Trigger the animation START
+    _spinInput!.value = resultIndex.toDouble();
 
-    _game.wheel.spin(resultIndex, () {
-      final prize = _prizes[resultIndex].prize;
-      setState(() {
+    // 2. Wait for the animation to visually complete
+    // You can adjust this duration to match your Rive animation's length
+    Future.delayed(const Duration(seconds: 5), () {
+       if (mounted) {
+        // 3. Handle the prize logic
+        final prize = _prizes[resultIndex].prize;
         _handlePrize(prize);
-        _isSpinning = false;
-      });
+
+        // 4. Reset the UI state
+        setState(() {
+          _isSpinning = false;
+        });
+
+        // 5. Reset the Rive state machine for the next spin
+        _spinInput?.value = -1;
+       }
     });
   }
 
@@ -171,25 +215,32 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: const BottomNavBar(),
-      backgroundColor: const Color(0xFF2A4758),
-      body: SafeArea(
+      
+      body: Container( // 1. ห่อด้วย Container
+      decoration: const BoxDecoration( // 2. ตกแต่งพื้นหลัง
+        image: DecorationImage(
+          image: AssetImage("assets/images/wagu1.jpg"), 
+          fit: BoxFit.cover, // ทำให้ภาพเต็มหน้าจอ
+        ),
+      ),
+      child: SafeArea( // SafeArea และ Column ยังอยู่เหมือนเดิม
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               buildTopBar(),
               const Spacer(),
-              buildWheelWithPointer(),
+              buildWheelWithPointer(), // วงล้อจะลอยอยู่บนพื้นหลัง
               const Spacer(),
-              buildButtonControls(), // Use the new Row widget for buttons
+              buildButtonControls(),
               const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   // === WIDGET BUILDERS ===
 
   Widget buildWheelWithPointer() {
@@ -199,7 +250,11 @@ class _GameScreenState extends State<GameScreen> {
         SizedBox(
           width: _wheelSize,
           height: _wheelSize,
-          child: GameWidget(game: _game),
+          child: RiveAnimation.asset(
+            'assets/animations/rives/wheelspin_new.riv',
+            onInit: _onRiveInit,
+            fit: BoxFit.contain,
+          ),
         ),
         Icon(
           Icons.arrow_drop_down,
@@ -273,10 +328,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // Renamed function to be more descriptive
   void _onIslandButtonPressed() {
-    // Navigate to the HomeScreen (your "island")
-    context.go('/island');
+    context.go('/');
   }
 
   Widget buildButtonControls() {
@@ -284,10 +337,10 @@ class _GameScreenState extends State<GameScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const SizedBox(width: 65), // Placeholder to balance the layout
+        const SizedBox(width: 65),
         buildSpinButton(),
         const SizedBox(width: 15),
-        buildIslandButton(), // Changed name
+        buildIslandButton(),
       ],
     );
   }
@@ -332,7 +385,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // Renamed button widget and changed icon
   Widget buildIslandButton() {
     return GestureDetector(
       onTap: _onIslandButtonPressed,
@@ -352,73 +404,10 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
         child: const Icon(
-          Icons.home_filled, // Changed Icon
+          Icons.home_filled,
           color: Colors.black54,
           size: 28,
         ),
-      ),
-    );
-  }
-}
-
-// === FLAME GAME CODE (No changes needed) ===
-
-class WheelGame extends FlameGame {
-  final double wheelSize;
-  late final Wheel wheel;
-
-  WheelGame({required this.wheelSize});
-
-  @override
-  Color backgroundColor() => Colors.transparent;
-
-  @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    wheel = Wheel(wheelSize: wheelSize);
-    add(wheel);
-  }
-}
-
-class Wheel extends SpriteComponent with HasGameRef<WheelGame> {
-  final double wheelSize;
-  void Function()? onSpinComplete;
-
-  Wheel({required this.wheelSize}) : super(anchor: Anchor.center);
-
-  @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    sprite = await gameRef.loadSprite('wheel.png');
-    position = gameRef.size / 2;
-    size = Vector2.all(wheelSize);
-  }
-
-  void spin(int targetIndex, void Function() onComplete) {
-    onSpinComplete = onComplete;
-    const int segments = 8;
-    const double anglePerSegment = 2 * pi / segments;
-
-    final double randomOffset =
-        (Random().nextDouble() - 0.5) * anglePerSegment * 0.8;
-    final double targetAngle =
-        (2 * pi * (segments - targetIndex - 0.5) / segments) + randomOffset;
-
-    final int fullRotations = 4 + Random().nextInt(4);
-    final double duration = 3.5 + Random().nextDouble() * 2;
-    final double finalAngle = targetAngle + (fullRotations * 2 * pi);
-
-    add(
-      RotateEffect.to(
-        finalAngle,
-        EffectController(
-          duration: duration,
-          curve: Curves.easeOutCubic,
-        ),
-        onComplete: () {
-          angle %= (2 * pi);
-          onSpinComplete?.call();
-        },
       ),
     );
   }
