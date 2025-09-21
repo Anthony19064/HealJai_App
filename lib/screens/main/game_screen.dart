@@ -7,10 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
 import 'package:rive/rive.dart' hide Image; // Import Rive and hide conflicting Image class
 
-// Enum to represent the prize types for better readability
+
 enum PrizeType { coin, energy, chest, bonus }
 
-// A class to hold information about each prize on the wheel
+
 class Prize {
   final PrizeType type;
   final String label;
@@ -19,7 +19,7 @@ class Prize {
   Prize(this.type, this.label, this.value);
 }
 
-// A wrapper class to add "weight" for balanced randomness
+
 class WeightedPrize {
   final Prize prize;
   final int weight; // Higher weight = more common
@@ -36,20 +36,20 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  // --- Game Configuration ---
+  
   final double _wheelSize = 380.0;
   int _energy = 10;
   int _coins = 0;
-  // --- End Configuration ---
+  
 
   bool _isSpinning = false;
   async.Timer? _energyRegenTimer;
 
-  // --- Rive State Controllers ---
+  
   StateMachineController? _riveController;
   SMIInput<double>? _spinInput;
 
-  // IMPORTANT: The order of this list now EXACTLY matches your Rive input numbers (0-7)
+  
   final List<WeightedPrize> _prizes = [
     // Rive Input: 0
     WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 30),     // stop_coin1
@@ -141,23 +141,22 @@ class _GameScreenState extends State<GameScreen> {
 
     int resultIndex = _getWeightedRandomPrizeIndex();
     
-    // 1. Trigger the animation START
+    
     _spinInput!.value = resultIndex.toDouble();
 
-    // 2. Wait for the animation to visually complete
-    // You can adjust this duration to match your Rive animation's length
+    
     Future.delayed(const Duration(seconds: 5), () {
        if (mounted) {
-        // 3. Handle the prize logic
+        
         final prize = _prizes[resultIndex].prize;
         _handlePrize(prize);
 
-        // 4. Reset the UI state
+        
         setState(() {
           _isSpinning = false;
         });
 
-        // 5. Reset the Rive state machine for the next spin
+       
         _spinInput?.value = -1;
        }
     });
@@ -223,7 +222,7 @@ class _GameScreenState extends State<GameScreen> {
           fit: BoxFit.cover, // ทำให้ภาพเต็มหน้าจอ
         ),
       ),
-      child: SafeArea( // SafeArea และ Column ยังอยู่เหมือนเดิม
+      child: SafeArea( 
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -329,7 +328,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onIslandButtonPressed() {
-    context.go('/');
+    context.go('/island');
   }
 
   Widget buildButtonControls() {
