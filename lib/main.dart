@@ -21,6 +21,7 @@ import 'screens/subPage/article_detail_screen.dart';
 import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
+import 'screens/subPage/island.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -127,6 +128,12 @@ class MyApp extends StatelessWidget {
               path: '/game',
               pageBuilder: (context, state) {
                 return NoTransitionPage(child: GameScreen());
+              },
+            ),
+        GoRoute(
+              path: '/island',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(child: Island());
               },
             ),
         GoRoute(

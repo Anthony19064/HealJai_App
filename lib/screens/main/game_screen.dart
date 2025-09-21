@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/effects.dart';
+import 'package:go_router/go_router.dart'; // <<< IMPORT GOROUTER
 import 'package:intl/intl.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart'; // Assuming you have this file
 
@@ -72,7 +73,6 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _startEnergyRegenTimer() {
-    // This timer will only run if energy is BELOW 10.
     _energyRegenTimer = async.Timer.periodic(const Duration(minutes: 5), (timer) {
       if (_energy < 10) {
         setState(() {
@@ -119,15 +119,18 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _showResultSnackBar(String message, {bool isError = false}) {
+  void _showResultSnackBar(String message,
+      {bool isError = false, Color? backgroundColor}) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.redAccent : Colors.green,
+        backgroundColor:
+            backgroundColor ?? (isError ? Colors.redAccent : Colors.green),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -137,17 +140,18 @@ class _GameScreenState extends State<GameScreen> {
     switch (prize.type) {
       case PrizeType.coin:
         _coins += prize.value;
-        resultMessage = "ยินดีด้วย! คุณได้รับ ${NumberFormat("#,###").format(prize.value)} เหรียญ";
+        resultMessage =
+            "ยินดีด้วย! คุณได้รับ ${NumberFormat("#,###").format(prize.value)} เหรียญ";
         break;
       case PrizeType.energy:
-        // THE FIX IS HERE: No more cap at 10. You can now collect unlimited energy!
         _energy += prize.value;
         resultMessage = "คุณได้รับพลังใจเพิ่ม ${prize.value} หน่วย";
         break;
       case PrizeType.chest:
         int randomCoins = Random().nextInt(5000) + 1000;
         _coins += randomCoins;
-        resultMessage = "สุดยอด! เปิดหีบสมบัติได้ ${NumberFormat("#,###").format(randomCoins)} เหรียญ!";
+        resultMessage =
+            "สุดยอด! เปิดหีบสมบัติได้ ${NumberFormat("#,###").format(randomCoins)} เหรียญ!";
         break;
       case PrizeType.bonus:
         if (prize.value == 0) {
@@ -177,7 +181,7 @@ class _GameScreenState extends State<GameScreen> {
               const Spacer(),
               buildWheelWithPointer(),
               const Spacer(),
-              buildSpinButton(),
+              buildButtonControls(), // Use the new Row widget for buttons
               const SizedBox(height: 20),
             ],
           ),
@@ -185,6 +189,8 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+
+  // === WIDGET BUILDERS ===
 
   Widget buildWheelWithPointer() {
     return Stack(
@@ -248,7 +254,8 @@ class _GameScreenState extends State<GameScreen> {
         Row(
           children: [
             buildStatChip(
-              icon: Image.asset('assets/images/coin.png', width: 24, height: 24),
+              icon: Image.asset('assets/images/coin.png',
+                  width: 24, height: 24),
               value: NumberFormat("#,###").format(_coins),
             ),
             const SizedBox(width: 8),
@@ -262,6 +269,25 @@ class _GameScreenState extends State<GameScreen> {
           radius: 25,
           backgroundImage: AssetImage('assets/images/avatar.png'),
         ),
+      ],
+    );
+  }
+
+  // Renamed function to be more descriptive
+  void _onIslandButtonPressed() {
+    // Navigate to the HomeScreen (your "island")
+    context.go('/island');
+  }
+
+  Widget buildButtonControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(width: 65), // Placeholder to balance the layout
+        buildSpinButton(),
+        const SizedBox(width: 15),
+        buildIslandButton(), // Changed name
       ],
     );
   }
@@ -305,7 +331,37 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+
+  // Renamed button widget and changed icon
+  Widget buildIslandButton() {
+    return GestureDetector(
+      onTap: _onIslandButtonPressed,
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.8),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black54, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: const Icon(
+          Icons.home_filled, // Changed Icon
+          color: Colors.black54,
+          size: 28,
+        ),
+      ),
+    );
+  }
 }
+
+// === FLAME GAME CODE (No changes needed) ===
 
 class WheelGame extends FlameGame {
   final double wheelSize;
@@ -343,9 +399,11 @@ class Wheel extends SpriteComponent with HasGameRef<WheelGame> {
     const int segments = 8;
     const double anglePerSegment = 2 * pi / segments;
 
-    final double randomOffset = (Random().nextDouble() - 0.5) * anglePerSegment * 0.8;
-    final double targetAngle = (2 * pi * (segments - targetIndex - 0.5) / segments) + randomOffset;
-    
+    final double randomOffset =
+        (Random().nextDouble() - 0.5) * anglePerSegment * 0.8;
+    final double targetAngle =
+        (2 * pi * (segments - targetIndex - 0.5) / segments) + randomOffset;
+
     final int fullRotations = 4 + Random().nextInt(4);
     final double duration = 3.5 + Random().nextDouble() * 2;
     final double finalAngle = targetAngle + (fullRotations * 2 * pi);
