@@ -46,32 +46,32 @@ class _GameScreenState extends State<GameScreen> {
 
   final List<WeightedPrize> _prizes = [
     // Rive Input: 0
-    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 30), // stop_coin1
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 100), // stop_coin1
     // Rive Input: 1
-    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 15), // stop_coin2
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 0), // stop_coin2
     // Rive Input: 2
-    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 1), 20), // stop_eng1
+    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 1), 0), // stop_eng1
     // Rive Input: 3
-    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 2), 10), // stop_eng2
+    WeightedPrize(Prize(PrizeType.energy, "พลังใจ", 2), 0), // stop_eng2
     // Rive Input: 4
     WeightedPrize(
       Prize(PrizeType.bonus, "โบนัส", 2),
-      5,
+      0,
     ), // stop_bonus1 (Multiplier)
     // Rive Input: 5
     WeightedPrize(
       Prize(PrizeType.bonus, "โบนัส", 0),
-      10,
+      0,
     ), // stop_bonus2 (Free Spin)
     // Rive Input: 6
     WeightedPrize(
       Prize(PrizeType.chest, "หีบสมบัติ", 1),
-      3,
+      0,
     ), // stop_he1 (Very Rare Chest)
     // Rive Input: 7
     WeightedPrize(
       Prize(PrizeType.chest, "หีบสมบัติ", 1),
-      7,
+      0,
     ), // stop_he2 (Rare Chest)
   ];
 
@@ -230,7 +230,6 @@ class _GameScreenState extends State<GameScreen> {
       extendBodyBehindAppBar:
           true, // 👈 ทำให้ body ล้นใต้ AppBar/StatusBar ได้ (ถ้ามี AppBar)
       extendBody: true,
-      bottomNavigationBar: const BottomNavBar(),
       body: Stack(
         children: [
           // 🔹 พื้นหลังเป็น Rive
@@ -263,19 +262,25 @@ class _GameScreenState extends State<GameScreen> {
   // === WIDGET BUILDERS ===
 
   Widget buildWheelWithPointer() {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        SizedBox(
-          width: _wheelSize,
-          height: _wheelSize,
-          child: RiveAnimation.asset(
-            'assets/animations/rives/wheelspin.riv',
-            onInit: _onRiveInit,
-            fit: BoxFit.contain,
-          ),
+  return Stack(
+    alignment: Alignment.topCenter,
+    clipBehavior: Clip.none, // ✨ 1. เพิ่ม clipBehavior เพื่อให้แสดงผลส่วนที่ล้นได้
+    children: [
+      // ... SizedBox ที่มี RiveAnimation อยู่เหมือนเดิม
+      SizedBox(
+        width: _wheelSize,
+        height: _wheelSize,
+        child: RiveAnimation.asset(
+          'assets/animations/rives/wheelspin.riv',
+          onInit: _onRiveInit,
+          fit: BoxFit.contain,
         ),
-        Icon(
+      ),
+
+      
+      Positioned(
+        top: -40, 
+        child: Icon(
           Icons.arrow_drop_down,
           size: 70,
           color: Colors.amber,
@@ -287,9 +292,10 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ],
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget buildStatChip({required Widget icon, required String value}) {
     return Container(
@@ -319,44 +325,52 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget buildTopBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            buildStatChip(
-              icon: SizedBox(
-                width: 24, // 👈 ปรับขนาดตรงนี้
-                height: 24,
-                child: RiveAnimation.asset(
-                  'assets/animations/rives/coins.riv',
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+    children: [
+      
+      IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios_new, // ไอคอนลูกศร
+          color: Colors.white,      // สีขาว
+          size: 28,                 // ขนาด
+        ),
+        onPressed: () {
+          context.go('/'); // ใช้ go_router กลับไปหน้า Home
+        },
+      ),
 
-                  fit: BoxFit.contain,
-                ),
+      // กลุ่มของ StatChip (เหมือนเดิม)
+      Row(
+        children: [
+          buildStatChip(
+            icon: SizedBox(
+              width: 24,
+              height: 24,
+              child: RiveAnimation.asset(
+                'assets/animations/rives/coins.riv',
+                fit: BoxFit.contain,
               ),
-              value: NumberFormat("#,###").format(_coins),
             ),
-            const SizedBox(width: 8),
-            buildStatChip(
-              icon: SizedBox(
-                width: 30,
-                height: 30,
-                child: RiveAnimation.asset(
-                  'assets/animations/rives/energy.riv',
-                  fit: BoxFit.contain,
-                ),
+            value: NumberFormat("#,###").format(_coins),
+          ),
+          const SizedBox(width: 8),
+          buildStatChip(
+            icon: SizedBox(
+              width: 30,
+              height: 30,
+              child: RiveAnimation.asset(
+                'assets/animations/rives/energy.riv',
+                fit: BoxFit.contain,
               ),
-              value: '$_energy',
             ),
-          ],
-        ),
-        const CircleAvatar(
-          radius: 25,
-          backgroundImage: AssetImage('assets/images/avatar.png'),
-        ),
-      ],
-    );
-  }
+            value: '$_energy',
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
   void _onIslandButtonPressed() {
     context.go('/island');
