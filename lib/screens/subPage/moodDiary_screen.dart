@@ -146,18 +146,18 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood(context, selectedMood, text);
+      final data = await addDiaryMood(selectedMood, text);
 
           
     setState(() {
       isLoading = false;
     });
-      showSuccessToast("บันทืกสำเร็จ", "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว");
+       showSuccessToast("บันทืกสำเร็จ", "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว");
     } else {
       showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเข้าสู่ระบบก่อนบันทึกอารมณ์");
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }
@@ -243,7 +243,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height:20),
+                const SizedBox(height: 20),
                 Text(
                   _selectedMoodText,
                   style: GoogleFonts.mali(
@@ -387,9 +387,7 @@ class MoodCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          mood.icon,
-        ],
+        children: [mood.icon],
       ),
     );
   }

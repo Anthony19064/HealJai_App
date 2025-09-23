@@ -46,7 +46,7 @@ void main() async {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => Navprovider()),
-          ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider.value(value: UserProvider()),
           ChangeNotifierProvider(create: (_) => ResetProvider()),
           ChangeNotifierProvider(create: (_) => Chatprovider()),
           ChangeNotifierProvider(create: (_) => DiaryProvider()),
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: true);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     final GoRouter router = GoRouter(
       initialLocation: '/login',

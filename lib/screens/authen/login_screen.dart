@@ -35,9 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userInfo = Provider.of<UserProvider>(context);
-    final TreeInfo = Provider.of<TreeProvider>(context);
-    final DiaryInfo = Provider.of<DiaryProvider>(context);
+    final userInfo = Provider.of<UserProvider>(context, listen: false);
+    final TreeInfo = Provider.of<TreeProvider>(context, listen: false);
+    final DiaryInfo = Provider.of<DiaryProvider>(context, listen: false);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -45,18 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: ElasticInDown(
-          duration: Duration(milliseconds: 800),
-          child: Container(
-            margin: EdgeInsets.only(left: 15),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
-              onPressed: () {
-                context.go('/');
-              },
-            ),
-          ),
-        ),
+        // leading: ElasticInDown(
+        //   duration: Duration(milliseconds: 800),
+        //   child: Container(
+        //     margin: EdgeInsets.only(left: 15),
+        //     child: IconButton(
+        //       icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
+        //       onPressed: () {
+        //         context.go('/');
+        //       },
+        //     ),
+        //   ),
+        // ),
         title: ElasticInDown(
           duration: Duration(milliseconds: 800),
           child: Text(
@@ -201,9 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          await TreeInfo.fetchTreeAge(context);
-                          await DiaryInfo.fetchTaskCount(context);
-                          context.pop();
+                          await TreeInfo.fetchTreeAge();
+                          await DiaryInfo.fetchTaskCount();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -220,6 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         }
+                        if (!mounted) return; 
                         setState(() {
                           isLoading = false;
                         });
@@ -284,8 +284,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           await saveJWTAccessToken(data['accessToken']);
                           await saveJWTRefreshToken(data['refreshToken']);
                           await userInfo.setUserInfo();
-                          await TreeInfo.fetchTreeAge(context);
-                          await DiaryInfo.fetchTaskCount(context);
+                          await TreeInfo.fetchTreeAge();
+                          await DiaryInfo.fetchTaskCount();
                           context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

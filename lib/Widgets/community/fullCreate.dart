@@ -82,7 +82,7 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
     });
     final String userId = await getUserId();
     String? urlIMG = await uploadImage(_selectedImage);
-    final data = await addPost(context, userId, textInput, urlIMG);
+    final data = await addPost(userId, textInput, urlIMG);
     final newPost = data?['data'];
     if (newPost != null) {
       widget.onPost(); // ส่งกลับไปที่ CommuScreen
@@ -116,7 +116,7 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
       widget.postObj!['img'] = newImageUrl;
     }
     widget.postObj!['infoPost'] = _controller.text;
-    await updatePost(context, postID, widget.postObj!);
+    await updatePost(postID, widget.postObj!);
     widget.onPost(); // ส่งกลับไปที่ CommuScreen
     setState(() {
       isLoading = false;
