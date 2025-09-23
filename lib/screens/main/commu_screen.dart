@@ -39,7 +39,7 @@ class _CommuScreenState extends State<CommuScreen> {
 
   // ดึงโพส
   Future<void> fetchPost() async {
-    final data = await getPosts(context, 0, page * limit);
+    final data = await getPosts(0, page * limit);
     if (data.length < limit) {
       setState(() {
         hasMore = false;
@@ -57,7 +57,7 @@ class _CommuScreenState extends State<CommuScreen> {
     setState(() {
       isLoadingMore = true;
     });
-    final newPosts = await getPosts(context, page, limit);
+    final newPosts = await getPosts(page, limit);
     if (newPosts.length < limit) {
       setState(() {
         hasMore = false;
@@ -119,7 +119,7 @@ class _CommuScreenState extends State<CommuScreen> {
               ),
               onTap: () async {
                 Navigator.pop(modalContext);
-                await deletePost(context, postID);
+                await deletePost(postID);
                 if (!mounted) return;
                 await fetchPost();
                 _showSuccessSnackBar('ลบโพสต์สำเร็จ');

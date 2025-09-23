@@ -5,11 +5,10 @@ import 'package:healjai_project/service/apiCall.dart';
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<int?> getTaskCount(BuildContext context, int day, int month, int year) async {
+Future<int?> getTaskCount(int day, int month, int year) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/getTask/$day/$month/$year',
     method: 'GET',
-    context: context
   );
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
@@ -20,16 +19,10 @@ Future<int?> getTaskCount(BuildContext context, int day, int month, int year) as
   }
 }
 
-Future<Map<String, dynamic>?> diaryInfo(
-  BuildContext context, 
-  int day,
-  int month,
-  int year,
-) async {
+Future<Map<String, dynamic>?> diaryInfo(int day, int month, int year) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/getDiary/$day/$month/$year',
     method: 'GET',
-    context: context
   );
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
@@ -40,11 +33,10 @@ Future<Map<String, dynamic>?> diaryInfo(
   }
 }
 
-Future<List<DateTime>> diaryHistory(BuildContext context, int year, int month) async {
+Future<List<DateTime>> diaryHistory(int year, int month) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/DiaryHistory/$year/$month',
     method: 'GET',
-    context: context
   );
   final Map<String, dynamic> data = jsonDecode(response.body);
 
@@ -57,23 +49,17 @@ Future<List<DateTime>> diaryHistory(BuildContext context, int year, int month) a
   }
 }
 
-Future<Map<String, dynamic>> addDiaryMood(
-  BuildContext context, 
-  String mood,
-  String text,
-) async {
+Future<Map<String, dynamic>> addDiaryMood(String mood, String text) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/addDiaryMood',
     method: 'POST',
     body: {'moodValue': mood, 'textUser': text},
-    context: context
   );
   final data = jsonDecode(response.body);
   return data;
 }
 
 Future<Map<String, dynamic>> addDiaryQuestion(
-  BuildContext context, 
   String question,
   String answer,
 ) async {
@@ -81,21 +67,16 @@ Future<Map<String, dynamic>> addDiaryQuestion(
     '$apiURL/api/addDiaryQuestion',
     method: 'POST',
     body: {'userQuestion': question, 'userAnswer': answer},
-    context: context
   );
   final data = jsonDecode(response.body);
   return data;
 }
 
-Future<Map<String, dynamic>> addDiaryStory(
-  BuildContext context, 
-  List<String> storyList,
-) async {
+Future<Map<String, dynamic>> addDiaryStory(List<String> storyList) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/addDiaryStory',
     method: 'POST',
     body: {'storyValue': storyList},
-    context: context
   );
   final data = jsonDecode(response.body);
   return data;

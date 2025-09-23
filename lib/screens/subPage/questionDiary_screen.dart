@@ -61,7 +61,7 @@ class _QuestionDiaryState extends State<QuestionDiary> {
 
     if (loginState) {
       final answer = _questionController.text;
-      final data = await addDiaryQuestion(context, question, answer);
+      final data = await addDiaryQuestion(question, answer);
       setState(() {
         isLoading = false;
       });
@@ -103,8 +103,8 @@ class _QuestionDiaryState extends State<QuestionDiary> {
       );
     }
 
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }

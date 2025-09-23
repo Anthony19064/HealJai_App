@@ -55,7 +55,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
     final userID = widget.post['userID'];
-    final user = await getuserById(context, userID);
+    final user = await getuserById(userID);
     if (!mounted) return;
     setState(() {
       userInfo = user;
@@ -65,7 +65,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกจำนวน Like ของโพส
   Future<void> fetchCountLike() async {
     final postId = widget.post['_id'];
-    final data = await getCountLike(context, postId);
+    final data = await getCountLike( postId);
     if (!mounted) return;
     setState(() {
       countLike = data;
@@ -76,7 +76,7 @@ class _UserPostCardState extends State<UserPostCard>
   Future<void> fetchStateLike() async {
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    final data = await getStateLike(context, postId, userId);
+    final data = await getStateLike( postId, userId);
     final state = data['success'];
     if (!mounted) return;
     setState(() {
@@ -93,7 +93,7 @@ class _UserPostCardState extends State<UserPostCard>
     });
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    await addLike(context, postId, userId);
+    await addLike( postId, userId);
   }
 
   // เปิด popup Comment
@@ -119,7 +119,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกจำนวน Comment ของโพส
   Future<void> fetchCountComment() async {
     final postId = widget.post['_id'];
-    final data = await getCountComment(context, postId);
+    final data = await getCountComment(postId);
     if (!mounted) return;
     setState(() {
       countComment = data;
