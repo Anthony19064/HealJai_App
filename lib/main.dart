@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
       refreshListenable: userProvider, 
       redirect: (context, state) {
         final loggedIn = userProvider.isLoggedIn;
-        final loggingIn = state.fullPath == '/login' || state.fullPath == '/regis';
+        final loggingIn = state.fullPath == '/login' || state.fullPath == '/regis' || state.fullPath == '/forget_pass';
 
         if (!loggedIn && !loggingIn) return '/login';
         if (loggedIn && loggingIn) return '/';

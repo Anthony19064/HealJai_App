@@ -45,18 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: ElasticInDown(
-          duration: Duration(milliseconds: 800),
-          child: Container(
-            margin: EdgeInsets.only(left: 15),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
-              onPressed: () {
-                context.go('/');
-              },
-            ),
-          ),
-        ),
+        // leading: ElasticInDown(
+        //   duration: Duration(milliseconds: 800),
+        //   child: Container(
+        //     margin: EdgeInsets.only(left: 15),
+        //     child: IconButton(
+        //       icon: const Icon(Icons.arrow_back, color: Color(0xFF464646)),
+        //       onPressed: () {
+        //         context.go('/');
+        //       },
+        //     ),
+        //   ),
+        // ),
         title: ElasticInDown(
           duration: Duration(milliseconds: 800),
           child: Text(
