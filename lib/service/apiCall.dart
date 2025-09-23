@@ -14,7 +14,7 @@ Future<http.Response> requestWithTokenRetry(
   dynamic body,
   required BuildContext context,
 }) async {
-  final userProvider = Provider.of<UserProvider>(context);
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
   Future<http.Response> callApi() async {
     String? token = await getJWTAcessToken();
     if (method == 'GET') {
