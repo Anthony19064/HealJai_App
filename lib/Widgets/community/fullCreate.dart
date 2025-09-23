@@ -73,8 +73,8 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
     if (!_canPost) return;
     String textInput = _controller.text;
     final checkBadword = checkBadWord(textInput);
-    if(checkBadword){
-      showErrorSnackBar(context);
+    if (checkBadword) {
+      showErrorToast();
       return;
     }
     setState(() {
@@ -98,6 +98,12 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
 
   Future<void> _handleEdit() async {
     if (!_canPost) return;
+    String textInput = _controller.text;
+    final checkBadword = checkBadWord(textInput);
+    if (checkBadword) {
+      showErrorToast();
+      return;
+    }
     setState(() {
       isLoading = true;
     });
@@ -247,7 +253,8 @@ class _FullScreenPostCreatorState extends State<FullScreenPostCreator> {
                 if (isLoading)
                   Transform.translate(
                     offset: Offset(0, MediaQuery.of(context).size.height * 0.3),
-                    child: SpinKitCircle(color: Color(0xFF78B465), size: 100.0)),
+                    child: SpinKitCircle(color: Color(0xFF78B465), size: 100.0),
+                  ),
               ],
             ),
           ),

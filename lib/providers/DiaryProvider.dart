@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
-import 'package:healjai_project/service/token.dart';
 import 'package:healjai_project/service/tree.dart';
 
 class DiaryProvider extends ChangeNotifier {

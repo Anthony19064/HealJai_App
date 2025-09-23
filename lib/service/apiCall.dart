@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:healjai_project/providers/userProvider.dart';
 import 'package:healjai_project/service/authen.dart';
@@ -14,7 +13,7 @@ Future<http.Response> requestWithTokenRetry(
   dynamic body,
   required BuildContext context,
 }) async {
-  final userProvider = Provider.of<UserProvider>(context);
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
   Future<http.Response> callApi() async {
     String? token = await getJWTAcessToken();
     if (method == 'GET') {

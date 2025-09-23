@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commentCard.dart';
 import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/badWordCheck.dart';
 import 'package:healjai_project/service/commu.dart';
 
 class CommentsDialog extends StatefulWidget {
   final String postId;
   final VoidCallback onCommentAdded;
 
-  const CommentsDialog({
-    required this.postId,
-    required this.onCommentAdded});
+  const CommentsDialog({required this.postId, required this.onCommentAdded});
 
   @override
   State<CommentsDialog> createState() => CommentsDialogState();
@@ -26,7 +25,6 @@ class CommentsDialogState extends State<CommentsDialog> {
     super.dispose();
   }
 
-  
   @override
   void initState() {
     super.initState();
@@ -34,16 +32,27 @@ class CommentsDialogState extends State<CommentsDialog> {
     print(widget.postId);
   }
 
-  Future<void> fetchComment() async{
+  Future<void> fetchComment() async {
     final data = await getComments(context, widget.postId);
     setState(() {
       comments = data;
     });
   }
 
-  Future<void> _submitComment() async{
+  Future<void> _submitComment() async {
     String userId = await getUserId();
-    final data = await addComment(context, widget.postId, userId, _commentController.text);
+    String textInput = _commentController.text;
+    final checkBadword = checkBadWord(textInput);
+    if (checkBadword) {
+      showErrorToast();
+      return;
+    }
+    final data = await addComment(
+      context,
+      widget.postId,
+      userId,
+      textInput,
+    );
     final newComment = data['data'];
     setState(() {
       comments.add(newComment);
@@ -100,7 +109,8 @@ class CommentsDialogState extends State<CommentsDialog> {
                       : ListView.builder(
                         itemCount: comments.length,
                         itemBuilder: (context, index) {
-                          final Map<String, dynamic> commentObj = comments[index];
+                          final Map<String, dynamic> commentObj =
+                              comments[index];
                           return CommentCard(comment: commentObj);
                         },
                       ),
