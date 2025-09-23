@@ -41,7 +41,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => Navprovider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider.value(value: UserProvider()),
         ChangeNotifierProvider(create: (_) => ResetProvider()),
         ChangeNotifierProvider(create: (_) => Chatprovider()),
         ChangeNotifierProvider(create: (_) => DiaryProvider()),
@@ -63,10 +63,13 @@ class MyApp extends StatelessWidget {
 
     final GoRouter router = GoRouter(
       initialLocation: '/login',
-      refreshListenable: userProvider, 
+      refreshListenable: userProvider,
       redirect: (context, state) {
         final loggedIn = userProvider.isLoggedIn;
-        final loggingIn = state.fullPath == '/login' || state.fullPath == '/regis' || state.fullPath == '/forget_pass';
+        final loggingIn =
+            state.fullPath == '/login' ||
+            state.fullPath == '/regis' ||
+            state.fullPath == '/forget_pass';
 
         if (!loggedIn && !loggingIn) return '/login';
         if (loggedIn && loggingIn) return '/';
@@ -183,8 +186,6 @@ class MyApp extends StatelessWidget {
       ],
     );
 
-    return MaterialApp.router(
-      routerConfig: router,
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 }

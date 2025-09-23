@@ -145,12 +145,11 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood(context, selectedMood, text);
+      final data = await addDiaryMood(selectedMood, text);
 
-          
-    setState(() {
-      isLoading = false;
-    });
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Padding(
@@ -188,8 +187,8 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
         ),
       );
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }
@@ -275,7 +274,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height:20),
+                const SizedBox(height: 20),
                 Text(
                   _selectedMoodText,
                   style: GoogleFonts.mali(
@@ -419,9 +418,7 @@ class MoodCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          mood.icon,
-        ],
+        children: [mood.icon],
       ),
     );
   }
