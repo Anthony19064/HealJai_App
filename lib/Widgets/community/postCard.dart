@@ -10,7 +10,6 @@ import 'package:healjai_project/Widgets/community/photoView.dart';
 import 'package:healjai_project/Widgets/community/postButton.dart';
 import 'package:healjai_project/service/account.dart';
 
-
 class UserPostCard extends StatefulWidget {
   final Map<String, dynamic> post;
   // final VoidCallback onCommentPressed;
@@ -45,13 +44,18 @@ class _UserPostCardState extends State<UserPostCard>
   }
 
   Future<void> loadAllData() async {
-    await Future.wait([fetchUserInfo(), fetchCountLike(), fetchStateLike(), fetchCountComment()]);
+    await Future.wait([
+      fetchUserInfo(),
+      fetchCountLike(),
+      fetchStateLike(),
+      fetchCountComment(),
+    ]);
   }
 
   // เรียกข้อมูลเจ้าของโพส
   Future<void> fetchUserInfo() async {
     final userID = widget.post['userID'];
-    final user = await getuserById(context, userID);
+    final user = await getuserById(userID);
     if (!mounted) return;
     setState(() {
       userInfo = user;
@@ -61,7 +65,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกจำนวน Like ของโพส
   Future<void> fetchCountLike() async {
     final postId = widget.post['_id'];
-    final data = await getCountLike(context, postId);
+    final data = await getCountLike( postId);
     if (!mounted) return;
     setState(() {
       countLike = data;
@@ -72,7 +76,7 @@ class _UserPostCardState extends State<UserPostCard>
   Future<void> fetchStateLike() async {
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    final data = await getStateLike(context, postId, userId);
+    final data = await getStateLike( postId, userId);
     final state = data['success'];
     if (!mounted) return;
     setState(() {
@@ -89,7 +93,7 @@ class _UserPostCardState extends State<UserPostCard>
     });
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    await addLike(context, postId, userId);
+    await addLike( postId, userId);
   }
 
   // เปิด popup Comment
@@ -112,23 +116,24 @@ class _UserPostCardState extends State<UserPostCard>
     );
   }
 
-   // เรียกจำนวน Comment ของโพส
+  // เรียกจำนวน Comment ของโพส
   Future<void> fetchCountComment() async {
     final postId = widget.post['_id'];
-    final data = await getCountComment(context, postId);
+    final data = await getCountComment(postId);
     if (!mounted) return;
     setState(() {
       countComment = data;
     });
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final userName = userInfo['username'];
-    final userImg = userInfo['photoURL'];
+    final userImg =
+        userInfo['photoURL'].toString().trim().isNotEmpty
+            ? userInfo['photoURL']
+            : "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/PostIMG%2F1757601646147.jpg?alt=media&token=c847c813-7b5c-496c-a1ee-958409a5858a";
     final String postTxt = widget.post['infoPost'];
     final String postImg = widget.post['img'];
 
@@ -296,7 +301,7 @@ class _UserPostCardState extends State<UserPostCard>
                   ),
                 ),
                 const SizedBox(width: 20),
-                // ปุ่มรีโพส 
+                // ปุ่มรีโพส
                 // GestureDetector(
                 //   onTap: () {},
                 //   child: InteractionButton(

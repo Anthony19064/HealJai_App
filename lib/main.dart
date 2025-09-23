@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:toastification/toastification.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -39,16 +40,21 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => Navprovider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => ResetProvider()),
-        ChangeNotifierProvider(create: (_) => Chatprovider()),
-        ChangeNotifierProvider(create: (_) => DiaryProvider()),
-        ChangeNotifierProvider(create: (_) => TreeProvider()),
-      ],
-      child: const MyApp(),
+    ToastificationWrapper(
+      config: ToastificationConfig(
+        alignment: Alignment.topCenter,
+      ),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => Navprovider()),
+          ChangeNotifierProvider.value(value: UserProvider()),
+          ChangeNotifierProvider(create: (_) => ResetProvider()),
+          ChangeNotifierProvider(create: (_) => Chatprovider()),
+          ChangeNotifierProvider(create: (_) => DiaryProvider()),
+          ChangeNotifierProvider(create: (_) => TreeProvider()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -64,10 +70,13 @@ class MyApp extends StatelessWidget {
 
     final GoRouter router = GoRouter(
       initialLocation: '/login',
-      refreshListenable: userProvider, 
+      refreshListenable: userProvider,
       redirect: (context, state) {
         final loggedIn = userProvider.isLoggedIn;
-        final loggingIn = state.fullPath == '/login' || state.fullPath == '/regis';
+        final loggingIn =
+            state.fullPath == '/login' ||
+            state.fullPath == '/regis' ||
+            state.fullPath == '/forget_pass';
 
         if (!loggedIn && !loggingIn) return '/login';
         if (loggedIn && loggingIn) return '/';
@@ -191,8 +200,6 @@ class MyApp extends StatelessWidget {
       ],
     );
 
-    return MaterialApp.router(
-      routerConfig: router,
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 }

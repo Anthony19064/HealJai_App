@@ -20,8 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-      Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+      Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+      Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     });
   }
 

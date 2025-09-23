@@ -2,6 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
@@ -145,51 +146,18 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood(context, selectedMood, text);
+      final data = await addDiaryMood(selectedMood, text);
 
           
     setState(() {
       isLoading = false;
     });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              '${data['message']}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.mali(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          backgroundColor:
-              data['success'] == true ? Color(0xFF78B465) : Color(0xFFFD7D7E),
-        ),
-      );
+       showSuccessToast("บันทืกสำเร็จ", "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว");
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              'ต้องล็อคอินก่อนนะ :(',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.mali(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          backgroundColor: Color(0xFFFD7D7E),
-        ),
-      );
+      showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเข้าสู่ระบบก่อนบันทึกอารมณ์");
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }
@@ -275,7 +243,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height:20),
+                const SizedBox(height: 20),
                 Text(
                   _selectedMoodText,
                   style: GoogleFonts.mali(
@@ -419,9 +387,7 @@ class MoodCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          mood.icon,
-        ],
+        children: [mood.icon],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/providers/DiaryProvider.dart';
 import 'package:healjai_project/providers/TreeProvider.dart';
 import 'package:healjai_project/service/authen.dart';
@@ -48,50 +49,17 @@ class _StoryDiaryState extends State<StoryDiary> {
     bool? loginState = await isUserLoggedin();
 
     if (loginState) {
-      final data = await addDiaryStory(context, _storyList);
+      final data = await addDiaryStory(_storyList);
       setState(() {
         isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              '${data['message']}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.mali(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          backgroundColor:
-              data['success'] == true ? Color(0xFF78B465) : Color(0xFFFD7D7E),
-        ),
-      );
+      data['success'] == true ? showSuccessToast(data['message'], "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว") : showWarningToast("บันทึกไม่สำเร็จ", data['message']);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              'ต้องล็อคอินก่อนนะ :(',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.mali(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          backgroundColor: Color(0xFFFD7D7E),
-        ),
-      );
+      showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเข้าสู่ระบบก่อนบันทึกอารมณ์");
     }
-    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount(context);
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge(context);
+    await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
+    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }
@@ -229,25 +197,7 @@ class _StoryDiaryState extends State<StoryDiary> {
                                     await saveStory();
                                     _storyList.clear();
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 10,
-                                          ),
-                                          child: Text(
-                                            "ต้องเพิ่มเรื่องราวก่อนน้า",
-                                            style: GoogleFonts.mali(
-                                              color: Colors.white,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        backgroundColor: Color(0xFFFD7D7E),
-                                      ),
-                                    );
+                                    showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเพิ่มเรื่องราว");
                                   }
                                 },
                         style: ElevatedButton.styleFrom(
@@ -320,7 +270,7 @@ class _StoryCardState extends State<StoryCard> {
       },
       child: Container(
         width: double.infinity,
-        constraints: BoxConstraints(minHeight: 55),
+        constraints: BoxConstraints(minHeight: 70),
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         margin: EdgeInsets.only(bottom: 15),
         decoration: BoxDecoration(
