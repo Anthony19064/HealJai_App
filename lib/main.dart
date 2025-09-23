@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: true);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     final GoRouter router = GoRouter(
       initialLocation: '/login',
