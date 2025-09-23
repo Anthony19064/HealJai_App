@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/community/commentCard.dart';
 import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/badWordCheck.dart';
 import 'package:healjai_project/service/commu.dart';
 
 class CommentsDialog extends StatefulWidget {
@@ -40,10 +41,16 @@ class CommentsDialogState extends State<CommentsDialog> {
 
   Future<void> _submitComment() async {
     String userId = await getUserId();
+    String textInput = _commentController.text;
+    final checkBadword = checkBadWord(textInput);
+    if (checkBadword) {
+      showErrorToast();
+      return;
+    }
     final data = await addComment(
       widget.postId,
       userId,
-      _commentController.text,
+      textInput,
     );
     final newComment = data['data'];
     setState(() {

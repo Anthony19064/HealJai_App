@@ -6,6 +6,7 @@ import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/community/postCard.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
 import 'package:healjai_project/Widgets/header_section.dart';
+import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
 
@@ -39,7 +40,7 @@ class _CommuScreenState extends State<CommuScreen> {
 
   // ดึงโพส
   Future<void> fetchPost() async {
-    final data = await getPosts(0, page * limit);
+    final data = await getPosts(page * limit);
     if (data.length < limit) {
       setState(() {
         hasMore = false;
@@ -70,23 +71,6 @@ class _CommuScreenState extends State<CommuScreen> {
     setState(() {
       isLoadingMore = false;
     });
-  }
-
-  void _showSuccessSnackBar(String message) {
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: GoogleFonts.mali(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: Colors.green[600],
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Future<void> _showPostOptions(Map<String, dynamic> postObj) async {
@@ -122,7 +106,7 @@ class _CommuScreenState extends State<CommuScreen> {
                 await deletePost(postID);
                 if (!mounted) return;
                 await fetchPost();
-                _showSuccessSnackBar('ลบโพสต์สำเร็จ');
+                showSuccessToast("ลบโพสต์สำเร็จ", "ลบโพสของคุณเรียบร้อยแล้ว");
               },
             ),
           ]);
@@ -133,7 +117,7 @@ class _CommuScreenState extends State<CommuScreen> {
             title: Text('รายงาน', style: GoogleFonts.mali()),
             onTap: () {
               Navigator.pop(modalContext);
-              _showSuccessSnackBar('รายงานโพสต์แล้ว');
+              showSuccessToast("รายงานโพสต์สำเร็จ", "ขอบคุณสำหรับการรายงานข้อมูล");
             },
           ),
         );
@@ -143,7 +127,7 @@ class _CommuScreenState extends State<CommuScreen> {
             title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
             onTap: () {
               Navigator.pop(modalContext);
-              _showSuccessSnackBar('บันทึกโพสต์แล้ว');
+              showSuccessToast("บันทึกสำเร็จ", "บันทึกโพสต์เข้ารายการของคุณแล้ว");
             },
           ),
         );
@@ -262,17 +246,3 @@ class _CommuScreenState extends State<CommuScreen> {
     );
   }
 }
-
-// ============== CONSTANTS ==============
-
-const Color kCardBorderColor = Color(0xFFCDE5CF);
-const Color kLikeButtonBorderColor = Color(0xFFFFB8C3);
-const Color kLikeButtonBackgroundColor = Color(0xFFFFF0F3);
-const Color kCommentButtonBorderColor = Color(0xFFFFD97D);
-const Color kCommentButtonBackgroundColor = Color(0xFFFFF8E5);
-const Color kRepostButtonBorderColor = Color(0xFFC7C5FF);
-const Color kRepostButtonBackgroundColor = Color(0xFFF2F1FF);
-const Color kIconColor = Color(0xFF757575);
-const Color kTextColor = Color(0xFF333333);
-const Color kTimestampColor = Colors.grey;
-const Color kDmBubbleColor = Color(0xFFC5E3C8);

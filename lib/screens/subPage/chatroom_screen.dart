@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/chatProvider.dart';
+import 'package:healjai_project/service/badWordCheck.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../service/socket.dart';
@@ -132,7 +133,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   final role = widget.role;
                   final roomId = chatProvider.roomId;
 
-                  if (MessageController.text.trim().isNotEmpty) {
+                  if (messageUser.trim().isNotEmpty) {
+                    final checkBadword = checkBadWord(messageUser);
+                    if (checkBadword) {
+                      showErrorToast();
+                      return;
+                    }
                     socket.sendMessage(roomId!, messageUser, time, role);
                     chatProvider.addMessage(messageUser, "user", time);
                     MessageController.clear();
