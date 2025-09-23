@@ -40,7 +40,7 @@ class _CommuScreenState extends State<CommuScreen> {
 
   // ดึงโพส
   Future<void> fetchPost() async {
-    final data = await getPosts(page * limit);
+    final data = await getPosts(0, page * limit);
     if (data.length < limit) {
       setState(() {
         hasMore = false;
