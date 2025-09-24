@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:healjai_project/service/authen.dart';
 
 class UserProvider extends ChangeNotifier {
+  static final UserProvider _instance = UserProvider._internal(); // instance เดียว
+  factory UserProvider() => _instance; // เรียกใช้ผ่าน factory
+
+  UserProvider._internal() {
+    setUserInfo(); // โหลด user info ตอนสร้างครั้งแรก
+  }
+
   String? userId;
   String? userName;
   String? userMail;
   String? userPhoto;
 
-  UserProvider() {
-    setUserInfo();
-  }
-
-  bool get isLoggedIn => userId != null; // ✅ getter ไว้เช็คง่าย ๆ
+  bool get isLoggedIn => userId != null;
 
   Future<void> setUserInfo() async {
     final data = await getUserLocal();
