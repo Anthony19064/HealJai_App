@@ -18,7 +18,6 @@ class CommuScreen extends StatefulWidget {
 }
 
 class _CommuScreenState extends State<CommuScreen> {
-  final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> post = []; // List ข้อมูลโพสทั้งหมด
   int limit = 5;
   int page = 1;
@@ -29,13 +28,7 @@ class _CommuScreenState extends State<CommuScreen> {
   void initState() {
     super.initState();
     fetchPost();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent) {
-        // เลื่อนถึงล่างสุดแล้ว
-        fetchMorePosts();
-      }
-    });
+    // ลบ scroll listener เก่าออก เพราะจะใช้ NotificationListener แทน
   }
 
   // ดึงโพส
@@ -86,13 +79,12 @@ class _CommuScreenState extends State<CommuScreen> {
         List<Widget> options = [];
         if (ownerPostId == myuserId) {
           options.addAll([
-            // ============== ▼▼▼ แก้ไข onTap ของปุ่ม "แก้ไขโพสต์" ▼▼▼ ==============
             ListTile(
               leading: const Icon(Icons.edit),
               title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
               onTap: () {
-                Navigator.pop(modalContext); // ปิดเมนูตัวเลือก
-                _showEditPostModal(postObj); // เปิดหน้าต่างแก้ไข
+                Navigator.pop(modalContext);
+                _showEditPostModal(postObj);
               },
             ),
             ListTile(
@@ -117,7 +109,10 @@ class _CommuScreenState extends State<CommuScreen> {
             title: Text('รายงาน', style: GoogleFonts.mali()),
             onTap: () {
               Navigator.pop(modalContext);
-              showSuccessToast("รายงานโพสต์สำเร็จ", "ขอบคุณสำหรับการรายงานข้อมูล");
+              showSuccessToast(
+                "รายงานโพสต์สำเร็จ",
+                "ขอบคุณสำหรับการรายงานข้อมูล",
+              );
             },
           ),
         );
@@ -127,7 +122,10 @@ class _CommuScreenState extends State<CommuScreen> {
             title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
             onTap: () {
               Navigator.pop(modalContext);
-              showSuccessToast("บันทึกสำเร็จ", "บันทึกโพสต์เข้ารายการของคุณแล้ว");
+              showSuccessToast(
+                "บันทึกสำเร็จ",
+                "บันทึกโพสต์เข้ารายการของคุณแล้ว",
+              );
             },
           ),
         );
@@ -152,7 +150,6 @@ class _CommuScreenState extends State<CommuScreen> {
     );
   }
 
-  // ฟังก์ชันสำหรับ "สร้าง" โพสต์
   void _showCreatePostModal() {
     showModalBottomSheet(
       context: context,
@@ -172,7 +169,6 @@ class _CommuScreenState extends State<CommuScreen> {
     );
   }
 
-  // ============== ▼▼▼ ฟังก์ชันใหม่สำหรับเปิด Modal "แก้ไข" ▼▼▼ ==============
   void _showEditPostModal(Map<String, dynamic> postOBJ) {
     showModalBottomSheet(
       context: context,
@@ -195,54 +191,150 @@ class _CommuScreenState extends State<CommuScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final widgetPost = [allpost(), allpost()];
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
       bottomNavigationBar: const BottomNavBar(),
       body: RefreshIndicator(
         onRefresh: fetchPost,
-        color: Color(0xFF78B465), // สีวงกลม
+        color: Color(0xFF78B465),
         backgroundColor: Colors.white,
         child: SafeArea(
-          child: Column(
-            children: [
-              const HeaderSection(),
-              Expanded(
-                child: ListView.separated(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: post.length + 2,
-                  separatorBuilder:
-                      (context, index) => const SizedBox(height: 20),
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return PostCreationTrigger(
-                        onTap: _showCreatePostModal,
-                      ); // widget สร้างโพส
-                    }
-                    if (index == post.length + 1) {
-                      return isLoadingMore
-                          ? SpinKitCircle(color: Color(0xFF78B465), size: 100.0)
-                          : const SizedBox.shrink();
-                    }
-                    final postObj = post[index - 1];
-                    return UserPostCard(
-                      key: ValueKey(postObj['_id']),
-                      post: postObj,
-                      onMoreOptionsPressed: () => _showPostOptions(postObj),
-                    );
-                  },
+          child: DefaultTabController(
+            length: widgetPost.length,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (scrollInfo is ScrollEndNotification &&
+                    scrollInfo.metrics.pixels >=
+                        scrollInfo.metrics.maxScrollExtent - 100) {
+                  fetchMorePosts();
+                }
+                return false;
+              },
+              child: NestedScrollView(
+                headerSliverBuilder: (
+                  BuildContext context,
+                  bool innerBoxIsScrolled,
+                ) {
+                  return <Widget>[
+                    SliverAppBar(
+                      backgroundColor: const Color(0xFFFFF7EB),
+                      elevation: 0,
+                      floating: true, // ให้ header กลับมาเมื่อเลื่อนลง
+                      snap: false, // ให้มีการ snap เมื่อเลื่อน
+                      pinned: false, // ไม่ให้ติดอยู่ด้านบน
+                      automaticallyImplyLeading: false, // ไม่แสดง back button
+                      toolbarHeight: 230, // กำหนดความสูงของ toolbar
+                      title: Column(
+                        children: [
+                          const HeaderSection(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            child: PostCreationTrigger(
+                              onTap: _showCreatePostModal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      centerTitle: false,
+                      titleSpacing: 0,
+                    ),
+                    SliverPersistentHeader(
+                      pinned: true, // ให้ TabBar ติดอยู่ด้านบน
+                      delegate: _SliverAppBarDelegate(
+                        TabBar(
+                          labelStyle: GoogleFonts.mali(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          labelColor: Color(0xFF78B465),
+                          unselectedLabelColor: Colors.grey,
+                          indicatorColor: Color(0xFF78B465),
+                          tabs: const [
+                            Tab(text: "โพสต์ทั้งหมด"),
+                            Tab(text: "โพสต์ของฉัน"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ];
+                },
+                body: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
+                  children: widgetPost
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget allpost() {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.only(left: 15, right: 15, top: 25, bottom: 15),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              if (index == post.length) {
+                return isLoadingMore
+                    ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: SpinKitCircle(
+                        color: Color(0xFF78B465),
+                        size: 100.0,
+                      ),
+                    )
+                    : const SizedBox.shrink();
+              }
+              final postObj = post[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < post.length - 1 ? 20 : 0,
+                ),
+                child: UserPostCard(
+                  key: ValueKey(postObj['_id']),
+                  post: postObj,
+                  onMoreOptionsPressed: () => _showPostOptions(postObj),
+                ),
+              );
+            }, childCount: post.length + 1),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// สร้าง delegate สำหรับ SliverPersistentHeader
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(color: const Color(0xFFFFF7EB), child: _tabBar);
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

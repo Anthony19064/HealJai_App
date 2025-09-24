@@ -1,3 +1,4 @@
+import 'package:flutter_svg/svg.dart';
 import 'package:healjai_project/Widgets/community/commentPopup.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
@@ -146,7 +147,7 @@ class _UserPostCardState extends State<UserPostCard>
     return ZoomIn(
       duration: Duration(milliseconds: 700),
       child: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(15.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20.0),
@@ -192,8 +193,8 @@ class _UserPostCardState extends State<UserPostCard>
                           userName,
                           style: GoogleFonts.mali(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF464646),
+                            fontSize: 18,
+                            color: Color(0xFF78B465),
                           ),
                         ),
                     const SizedBox(height: 4),
@@ -207,23 +208,22 @@ class _UserPostCardState extends State<UserPostCard>
                   ],
                 ),
                 const Spacer(),
-                Transform.translate(
-                  offset: Offset(0, -10),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                    icon: Icon(
-                      Icons.more_horiz,
-                      color: Color(0xFF464646),
-                      size: 40,
+                GestureDetector(
+                  onTap: widget.onMoreOptionsPressed,
+                  child: Transform.translate(
+                    offset: Offset(0, -10),
+                    child: SvgPicture.asset(
+                      "assets/icons/more.svg",
+                      width: 40,
+                      height: 40,
+                      color: Color(0xFF78B465),
                     ),
-                    onPressed: widget.onMoreOptionsPressed,
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
+            Container(
+              margin: EdgeInsets.only(top: 16),
               child: Text(
                 postTxt,
                 style: GoogleFonts.mali(
@@ -234,8 +234,8 @@ class _UserPostCardState extends State<UserPostCard>
               ),
             ),
             if (postImg.trim().isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
+              Container(
+                margin: EdgeInsets.only(top: 16),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
