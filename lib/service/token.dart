@@ -45,11 +45,10 @@ Future<String?> getJWTRefreshToken() async {
 Future<String> refreshToken() async {
   late String status;
   final refreshToken = await getJWTRefreshToken();
-  String userID = await getUserId();
   final response = await http.post(
     Uri.parse('$apiURL/api/refreshToken'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'refreshToken': refreshToken, 'userID': userID}),
+    body: jsonEncode({'refreshToken': refreshToken}),
   );
 
 
@@ -66,7 +65,7 @@ Future<String> refreshToken() async {
     status = "ResetSuccess";
 
   }
-
+  print(status);
   return status;
 
   

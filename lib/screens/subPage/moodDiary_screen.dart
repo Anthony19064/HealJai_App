@@ -146,7 +146,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
           _moodController.text.trim().isEmpty
               ? "ไม่มีบันทึก"
               : _moodController.text;
-      final data = await addDiaryMood(selectedMood, text);
+      await addDiaryMood(selectedMood, text);
 
           
     setState(() {
