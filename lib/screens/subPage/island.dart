@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healjai_project/Widgets/bottom_nav.dart'; // Assuming you have this file
+import 'package:healjai_project/Widgets/bottom_nav.dart';
+import 'package:rive/rive.dart';
 
 class Island extends StatelessWidget {
   const Island({super.key});
@@ -9,47 +10,22 @@ class Island extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: const BottomNavBar(),
+      extendBodyBehindAppBar: true, // 👈 ให้ background ล้นไปถึงด้านบน
       appBar: AppBar(
         title: const Text('My Island'),
-        backgroundColor: const Color(0xFF2A4758),
+        backgroundColor: Colors.transparent, // 👈 โปร่งใสเพื่อเห็น Rive
         elevation: 0,
-        foregroundColor: Colors.white, // For the back arrow
-        automaticallyImplyLeading: false, // Hide the default back button
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
-      backgroundColor: const Color(0xFF2A4758),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'นี่คือหน้า Island',
-              style: TextStyle(color: Colors.white54, fontSize: 24),
-            ),
-            const SizedBox(height: 30),
-            // This is the new button
-            ElevatedButton.icon(
-              onPressed: () {
-                // Navigate back to the game screen
-                context.go('/game');
-              },
-              icon: const Icon(Icons.casino_outlined),
-              label: const Text('กลับไปที่เกม'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.amber,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: Stack(
+        children: [
+          // 🔹 พื้นหลังเป็น Rive เต็มจอ
+          const RiveAnimation.asset(
+            'assets/animations/rives/backgroud_island.riv', // ✅ ใช้ชื่อไฟล์จริงให้ตรง
+            fit: BoxFit.cover,
+          ),
+        ],
       ),
     );
   }
