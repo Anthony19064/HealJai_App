@@ -1,5 +1,6 @@
 import 'dart:async' as async;
 import 'dart:math';
+import 'package:rive/rive.dart' as rive;
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flame/game.dart';
@@ -44,24 +45,23 @@ class _GameScreenState extends State<GameScreen> {
 
   late final WheelGame _wheelGame;
 
-final List<WeightedPrize> _prizes = [
-  
-  WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 60),
+  final List<WeightedPrize> _prizes = [
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100), 60),
 
-  WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),
 
-  WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 1), 10),
+    WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 1), 10),
 
-  WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 2),
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1), 2),
 
-  WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 10),
+    WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000), 10),
 
-  WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 2), 3),
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 2), 3),
 
-  WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 2), 5),
+    WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 2), 5),
 
-  WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),
-];
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),
+  ];
 
   @override
   void initState() {
@@ -87,24 +87,27 @@ final List<WeightedPrize> _prizes = [
     });
   }
 
-void _spinWheel() {
-  if (_energy <= 0) {
-    _showResultSnackBar("พลังใจไม่เพียงพอ!", isError: true);
-    return;
+  void _spinWheel() {
+    if (_energy <= 0) {
+      _showResultSnackBar("พลังใจไม่เพียงพอ!", isError: true);
+      return;
+    }
+    if (_isSpinning) return;
+    setState(() {
+      _energy--;
+      _isSpinning = true;
+    });
+    _lastResultIndex = _getWeightedRandomPrizeIndex();
+    final double singlePieceDegrees = 360 / _prizes.length;
+    final double targetDegrees =
+        (_lastResultIndex * singlePieceDegrees) + (singlePieceDegrees / 2);
+    _wheelGame.wheel.startSpin(targetDegrees);
   }
-  if (_isSpinning) return;
-  setState(() {
-    _energy--;
-    _isSpinning = true;
-  });
-  _lastResultIndex = _getWeightedRandomPrizeIndex();
-  final double singlePieceDegrees = 360 / _prizes.length;
-  final double targetDegrees = (_lastResultIndex * singlePieceDegrees) + (singlePieceDegrees / 2);
-  _wheelGame.wheel.startSpin(targetDegrees);
-}
+
   void _startEnergyRegenTimer() {
-    _energyRegenTimer =
-        async.Timer.periodic(const Duration(minutes: 5), (timer) {
+    _energyRegenTimer = async.Timer.periodic(const Duration(minutes: 5), (
+      timer,
+    ) {
       if (_energy < 10) {
         setState(() => _energy++);
       }
@@ -157,26 +160,38 @@ void _spinWheel() {
     _showResultSnackBar(resultMessage);
   }
 
-  void _showResultSnackBar(String message,
-      {bool isError = false, Color? backgroundColor}) {
+  void _showResultSnackBar(
+    String message, {
+    bool isError = false,
+    Color? backgroundColor,
+  }) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor:
-          backgroundColor ?? (isError ? Colors.redAccent : Colors.green),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor:
+            backgroundColor ?? (isError ? Colors.redAccent : Colors.green),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // พื้นหลัง (ถ้ามี)
-          // Container(decoration: BoxDecoration(image: DecorationImage(image: AssetImage("..."), fit: BoxFit.cover))),
+          
+          SizedBox.expand(
+            child: rive.RiveAnimation.asset(
+              'assets/animations/rives/backgroud_ani.riv', 
+              fit: BoxFit.cover, 
+            ),
+          ),
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -232,8 +247,11 @@ void _spinWheel() {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 28),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 28,
+          ),
           onPressed: () => context.go('/'),
         ),
         Row(
@@ -242,13 +260,23 @@ void _spinWheel() {
               icon: SizedBox(
                 width: 24,
                 height: 24,
-                child: Image.asset('assets/images/coin.png'),
+                child: rive.RiveAnimation.asset(
+                  'assets/animations/rives/coins.riv',
+                  fit: BoxFit.contain,
+                ),
               ),
               value: NumberFormat("#,###").format(_coins),
             ),
             const SizedBox(width: 8),
             buildStatChip(
-              icon: const Icon(Icons.favorite, color: Colors.red, size: 24),
+              icon: SizedBox(
+                width: 24,
+                height: 24,
+                child: rive.RiveAnimation.asset(
+                  'assets/animations/rives/energy.riv',
+                  fit: BoxFit.contain,
+                ),
+              ),
               value: '$_energy',
             ),
           ],
@@ -265,9 +293,10 @@ void _spinWheel() {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -299,10 +328,7 @@ void _spinWheel() {
     return BounceInUp(
       child: GestureDetector(
         onTap: _isSpinning ? null : _spinWheel,
-        child: Image.asset(
-          'assets/images/spin_1.png',
-          width: 150,
-        ),
+        child: Image.asset('assets/images/spin_1.png', width: 150),
       ),
     );
   }
