@@ -60,7 +60,7 @@ class _GameScreenState extends State<GameScreen> {
 
     WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 2), 5),
 
-    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2), 5),
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 0), 5),
   ];
 
   @override
@@ -184,11 +184,10 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          
           SizedBox.expand(
             child: rive.RiveAnimation.asset(
-              'assets/animations/rives/backgroud_ani.riv', 
-              fit: BoxFit.cover, 
+              'assets/animations/rives/backgroud_ani.riv',
+              fit: BoxFit.cover,
             ),
           ),
 
@@ -328,14 +327,18 @@ class _GameScreenState extends State<GameScreen> {
     return BounceInUp(
       child: GestureDetector(
         onTap: _isSpinning ? null : _spinWheel,
-        child: Image.asset('assets/images/spin_1.png', width: 150),
+        child: Image.asset('assets/images/spin_1.png', width: 200),
       ),
     );
   }
 
   Widget buildIslandButton() {
     return GestureDetector(
-      onTap: () => context.go('/island'),
+      onTap:
+          () => context.go(
+            '/island',
+            extra: {'coins': _coins, 'energy': _energy}, 
+          ),
       child: Container(
         width: 50,
         height: 50,

@@ -1,20 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healjai_project/Widgets/bottom_nav.dart'; // Assuming you have this file
+import 'package:intl/intl.dart'; // Import intl package
 
 class Island extends StatelessWidget {
-  const Island({super.key});
+  // 1. เพิ่มตัวแปรเพื่อรับค่า
+  final int coins;
+  final int energy;
+
+  // 2. แก้ไข Constructor ให้รับค่าเข้ามา
+  const Island({
+    super.key,
+    required this.coins,
+    required this.energy,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const BottomNavBar(),
       appBar: AppBar(
         title: const Text('My Island'),
         backgroundColor: const Color(0xFF2A4758),
         elevation: 0,
-        foregroundColor: Colors.white, // For the back arrow
-        automaticallyImplyLeading: false, // Hide the default back button
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        actions: [
+          _buildStatChip(
+            icon: Icons.monetization_on,
+            color: Colors.amber,
+            value: NumberFormat("#,###").format(coins),
+          ),
+          const SizedBox(width: 8),
+          _buildStatChip(
+            icon: Icons.favorite,
+            color: Colors.red,
+            value: '$energy',
+          ),
+          const SizedBox(width: 16),
+        ],
       ),
       backgroundColor: const Color(0xFF2A4758),
       body: Center(
@@ -26,12 +48,8 @@ class Island extends StatelessWidget {
               style: TextStyle(color: Colors.white54, fontSize: 24),
             ),
             const SizedBox(height: 30),
-            // This is the new button
             ElevatedButton.icon(
-              onPressed: () {
-                // Navigate back to the game screen
-                context.go('/game');
-              },
+              onPressed: () => context.go('/game'),
               icon: const Icon(Icons.casino_outlined),
               label: const Text('กลับไปที่เกม'),
               style: ElevatedButton.styleFrom(
@@ -50,6 +68,34 @@ class Island extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip({
+    required IconData icon,
+    required Color color,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }

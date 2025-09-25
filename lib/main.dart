@@ -41,9 +41,7 @@ void main() async {
 
   runApp(
     ToastificationWrapper(
-      config: ToastificationConfig(
-        alignment: Alignment.topCenter,
-      ),
+      config: ToastificationConfig(alignment: Alignment.topCenter),
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => Navprovider()),
@@ -99,7 +97,6 @@ class MyApp extends StatelessWidget {
             );
           },
           routes: [
-            
             GoRoute(
               path: '/',
               pageBuilder: (context, state) {
@@ -134,17 +131,30 @@ class MyApp extends StatelessWidget {
           },
         ),
         GoRoute(
-              path: '/game',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: GameScreen());
-              },
-            ),
+          path: '/game',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: GameScreen());
+          },
+        ),
+
+        // ✨ แก้ไข 2: อัปเดต /island ให้รับข้อมูลได้
         GoRoute(
-              path: '/island',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: Island());
-              },
-            ),
+          path: '/island',
+          pageBuilder: (context, state) {
+            // ดึงข้อมูลจาก extra ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น 0
+            final Map<String, int> data =
+                (state.extra as Map<String, dynamic>?)?.map(
+                  (key, value) => MapEntry(key, value as int),
+                ) ??
+                {'coins': 0, 'energy': 0};
+            final int coins = data['coins'] ?? 0;
+            final int energy = data['energy'] ?? 0;
+
+            return NoTransitionPage(
+              child: Island(coins: coins, energy: energy),
+            );
+          },
+        ),
         GoRoute(
           path: '/chat',
           pageBuilder: (context, state) {
