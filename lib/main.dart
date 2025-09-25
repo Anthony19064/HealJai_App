@@ -133,7 +133,7 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: GameScreen());
+            return NoTransitionPage(child: PlayScreen());
           },
         ),
 

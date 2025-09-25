@@ -67,6 +67,7 @@ dependencies:
   flutter_spinkit: ^5.2.2
   flame: ^1.11.0 
   toastification: ^3.0.3
+  flame_audio: ^2.8.0
 
   
 dev_dependencies:
