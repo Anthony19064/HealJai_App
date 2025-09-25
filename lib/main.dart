@@ -22,7 +22,7 @@ import 'screens/subPage/article_detail_screen.dart';
 import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
-import 'screens/subPage/island.dart';
+
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -134,25 +134,6 @@ class MyApp extends StatelessWidget {
           path: '/game',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: PlayScreen());
-          },
-        ),
-
-        // ✨ แก้ไข 2: อัปเดต /island ให้รับข้อมูลได้
-        GoRoute(
-          path: '/island',
-          pageBuilder: (context, state) {
-            // ดึงข้อมูลจาก extra ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น 0
-            final Map<String, int> data =
-                (state.extra as Map<String, dynamic>?)?.map(
-                  (key, value) => MapEntry(key, value as int),
-                ) ??
-                {'coins': 0, 'energy': 0};
-            final int coins = data['coins'] ?? 0;
-            final int energy = data['energy'] ?? 0;
-
-            return NoTransitionPage(
-              child: Island(coins: coins, energy: energy),
-            );
           },
         ),
         GoRoute(

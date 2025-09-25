@@ -128,7 +128,7 @@ class _PlayScreenState extends State<PlayScreen> {
     }
     if (_isSpinning) return;
 
-    FlameAudio.loop('spinning.mp3');
+    FlameAudio.audioCache.loadAll(['spinning.mp3']);
 
     setState(() {
       _energy--;
