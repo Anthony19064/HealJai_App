@@ -23,6 +23,16 @@ Future<String?> uploadImage(File? file) async {
   }
 }
 
+Future<List<Map<String, dynamic>>> getMyposts(String userID, int page, int limit) async {
+  final skip = page * limit;
+  final response = await requestWithTokenRetry(
+    '$apiURL/api/myposts/$userID?skip=$skip&limit=$limit',
+    method: 'GET',
+  );
+  final data = jsonDecode(response.body);
+  return List<Map<String, dynamic>>.from(data['data']);
+}
+
 Future<List<Map<String, dynamic>>> getPosts(int page, int limit) async {
   final skip = page * limit;
   final response = await requestWithTokenRetry(
