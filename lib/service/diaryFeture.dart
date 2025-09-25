@@ -71,7 +71,7 @@ Future<Map<String, dynamic>> addDiaryQuestion(
   return data;
 }
 
-Future<Map<String, dynamic>> addDiaryStory(List<String> storyList) async {
+Future<Map<String, dynamic>> addDiaryStory(List<Map<String, String>> storyList) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/addDiaryStory',
     method: 'POST',

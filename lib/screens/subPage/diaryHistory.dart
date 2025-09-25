@@ -563,23 +563,84 @@ class _DiaryhistoryState extends State<Diaryhistory> {
             physics: NeverScrollableScrollPhysics(), // ปิดการ scroll
             itemBuilder: (context, index) {
               return Container(
-                constraints: BoxConstraints(
-                  minHeight: 200, // ความสูงขั้นต่ำ
-                ),
                 margin: EdgeInsets.symmetric(horizontal: 10),
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF78B465),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(width: 2, color: Color(0xFF78B465)),
+                  ),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  _storyInfo[index],
-                  style: GoogleFonts.mali(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "วันที่",
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF78B465),
+                          ),
+                        ),
+                        SizedBox(width: 22),
+                        Text(
+                          '${_storyInfo[index]['date']}',
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF464646),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          "เวลา",
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF78B465),
+                          ),
+                        ),
+                        SizedBox(width: 21),
+                        Text(
+                          '${_storyInfo[index]['time']}',
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF464646),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          "บันทึก",
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF78B465),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          '${_storyInfo[index]['info']}',
+                          style: GoogleFonts.mali(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF464646),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
