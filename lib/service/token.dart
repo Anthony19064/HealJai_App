@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:healjai_project/service/authen.dart';
 import 'package:http/http.dart' as http;
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
@@ -65,7 +64,6 @@ Future<String> refreshToken() async {
     status = "ResetSuccess";
 
   }
-  print(status);
   return status;
 
   

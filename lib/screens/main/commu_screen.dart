@@ -17,49 +17,110 @@ class CommuScreen extends StatefulWidget {
   State<CommuScreen> createState() => _CommuScreenState();
 }
 
-class _CommuScreenState extends State<CommuScreen> {
-  List<Map<String, dynamic>> post = []; // List ข้อมูลโพสทั้งหมด
-  int limit = 5;
-  int page = 1;
-  bool hasMore = true;
+class _CommuScreenState extends State<CommuScreen>
+    with SingleTickerProviderStateMixin {
+  List<Map<String, dynamic>> allPost = []; // List ข้อมูลโพสทั้งหมด
+  List<Map<String, dynamic>> myPost = [];
+  int limitallPost = 5;
+  int pageallPost = 1;
+  bool hasMoreallPost = true;
+
+  int limitmyPost = 5;
+  int pagemyPost = 1;
+  bool hasMoreMyPost = true;
+
   bool isLoadingMore = false;
+
+  bool hasFetchedMyPost = false;
+
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    fetchPost();
-    // ลบ scroll listener เก่าออก เพราะจะใช้ NotificationListener แทน
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.index == 1 && !hasFetchedMyPost) {
+        fetchMyPosts();
+        hasFetchedMyPost = true;
+      }
+    });
+    fetchAllPosts();
   }
 
-  // ดึงโพส
-  Future<void> fetchPost() async {
-    final data = await getPosts(0, page * limit);
-    if (data.length < limit) {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  //ดึงโพสตัวเอง
+  Future<void> fetchMyPosts() async {
+    String userid = await getUserId();
+    final data = await getMyposts(userid, 0, pagemyPost * limitmyPost);
+    if (data.length < limitmyPost) {
       setState(() {
-        hasMore = false;
+        hasMoreMyPost = false;
       });
     }
     if (!mounted) return;
     setState(() {
-      post = data;
+      myPost = data;
     });
   }
 
-  Future<void> fetchMorePosts() async {
-    if (!hasMore) return;
+  //ดึงโพสตัวเองเพิ่ม
+  Future<void> fetchMyMorePost() async {
+    if (!hasMoreMyPost) return;
     if (isLoadingMore) return;
     setState(() {
       isLoadingMore = true;
     });
-    final newPosts = await getPosts(page, limit);
-    if (newPosts.length < limit) {
+    String userid = await getUserId();
+    final newPosts = await getMyposts(userid, pagemyPost, limitmyPost);
+    if (newPosts.length < limitmyPost) {
       setState(() {
-        hasMore = false;
+        hasMoreMyPost = false;
       });
     }
     setState(() {
-      post = [...post, ...newPosts];
-      page++;
+      myPost = [...myPost, ...newPosts];
+      pagemyPost++;
+    });
+    setState(() {
+      isLoadingMore = false;
+    });
+  }
+
+  // ดึงโพสทั้งหมด
+  Future<void> fetchAllPosts() async {
+    final data = await getPosts(0, pageallPost * limitallPost);
+    if (data.length < limitallPost) {
+      setState(() {
+        hasMoreallPost = false;
+      });
+    }
+    if (!mounted) return;
+    setState(() {
+      allPost = data;
+    });
+  }
+
+  Future<void> fetchAllMorePosts() async {
+    if (!hasMoreallPost) return;
+    if (isLoadingMore) return;
+    setState(() {
+      isLoadingMore = true;
+    });
+    final newPosts = await getPosts(pageallPost, limitallPost);
+    if (newPosts.length < limitallPost) {
+      setState(() {
+        hasMoreallPost = false;
+      });
+    }
+    setState(() {
+      allPost = [...allPost, ...newPosts];
+      pageallPost++;
     });
     setState(() {
       isLoadingMore = false;
@@ -97,7 +158,8 @@ class _CommuScreenState extends State<CommuScreen> {
                 Navigator.pop(modalContext);
                 await deletePost(postID);
                 if (!mounted) return;
-                await fetchPost();
+                await fetchAllPosts();
+                await fetchMyPosts();
                 showSuccessToast("ลบโพสต์สำเร็จ", "ลบโพสของคุณเรียบร้อยแล้ว");
               },
             ),
@@ -161,7 +223,8 @@ class _CommuScreenState extends State<CommuScreen> {
           child: FullScreenPostCreator(
             stateEdit: false,
             onPost: () {
-              fetchPost();
+              fetchAllPosts();
+              fetchMyPosts();
             },
           ),
         );
@@ -181,7 +244,8 @@ class _CommuScreenState extends State<CommuScreen> {
             stateEdit: true,
             postObj: postOBJ,
             onPost: () {
-              fetchPost();
+              fetchAllPosts();
+              fetchMyPosts();
             },
           ),
         );
@@ -190,90 +254,149 @@ class _CommuScreenState extends State<CommuScreen> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final widgetPost = [allpost(), allpost()];
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7EB),
       bottomNavigationBar: const BottomNavBar(),
-      body: RefreshIndicator(
-        onRefresh: fetchPost,
-        color: Color(0xFF78B465),
-        backgroundColor: Colors.white,
-        child: SafeArea(
-          child: DefaultTabController(
-            length: widgetPost.length,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification scrollInfo) {
-                if (scrollInfo is ScrollEndNotification &&
-                    scrollInfo.metrics.pixels >=
-                        scrollInfo.metrics.maxScrollExtent - 100) {
-                  fetchMorePosts();
-                }
-                return false;
-              },
-              child: NestedScrollView(
-                headerSliverBuilder: (
-                  BuildContext context,
-                  bool innerBoxIsScrolled,
-                ) {
-                  return <Widget>[
-                    SliverAppBar(
-                      backgroundColor: const Color(0xFFFFF7EB),
-                      elevation: 0,
-                      floating: true, // ให้ header กลับมาเมื่อเลื่อนลง
-                      snap: false, // ให้มีการ snap เมื่อเลื่อน
-                      pinned: false, // ไม่ให้ติดอยู่ด้านบน
-                      automaticallyImplyLeading: false, // ไม่แสดง back button
-                      toolbarHeight: 230, // กำหนดความสูงของ toolbar
-                      title: Column(
-                        children: [
-                          const HeaderSection(),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 15),
-                            child: PostCreationTrigger(
-                              onTap: _showCreatePostModal,
-                            ),
+      body: SafeArea(
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (scrollInfo) {
+            if (scrollInfo is ScrollEndNotification &&
+                scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 100) {
+              if (_tabController.index == 0) {
+                fetchAllMorePosts();
+              } else {
+                fetchMyMorePost();
+              }
+            }
+            return false;
+          },
+          child: NestedScrollView(
+            headerSliverBuilder:
+                (context, innerBoxIsScrolled) => [
+                  SliverAppBar(
+                    backgroundColor: Color(0xFFFFF7EB),
+                    elevation: 0,
+                    floating: true,
+                    snap: false,
+                    pinned: false,
+                    automaticallyImplyLeading: false,
+                    toolbarHeight: 230,
+                    title: Column(
+                      children: [
+                        const HeaderSection(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: PostCreationTrigger(
+                            onTap: _showCreatePostModal,
                           ),
+                        ),
+                      ],
+                    ),
+                    centerTitle: false,
+                    titleSpacing: 0,
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SliverAppBarDelegate(
+                      TabBar(
+                        controller: _tabController,
+                        labelStyle: GoogleFonts.mali(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        labelColor: Color(0xFF78B465),
+                        unselectedLabelColor: Colors.grey,
+                        indicatorColor: Color(0xFF78B465),
+                        tabs: const [
+                          Tab(text: "โพสต์ทั้งหมด"),
+                          Tab(text: "โพสต์ของฉัน"),
                         ],
                       ),
-                      centerTitle: false,
-                      titleSpacing: 0,
                     ),
-                    SliverPersistentHeader(
-                      pinned: true, // ให้ TabBar ติดอยู่ด้านบน
-                      delegate: _SliverAppBarDelegate(
-                        TabBar(
-                          labelStyle: GoogleFonts.mali(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          labelColor: Color(0xFF78B465),
-                          unselectedLabelColor: Colors.grey,
-                          indicatorColor: Color(0xFF78B465),
-                          tabs: const [
-                            Tab(text: "โพสต์ทั้งหมด"),
-                            Tab(text: "โพสต์ของฉัน"),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ];
-                },
-                body: TabBarView(
-                  physics: NeverScrollableScrollPhysics(),
-                  children: widgetPost
+                  ),
+                ],
+            body: TabBarView(
+              controller: _tabController,
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                RefreshIndicator(
+                  onRefresh: fetchAllPosts,
+                  color: Color(0xFF78B465),
+                  backgroundColor: Colors.white,
+                  child: allpost(),
                 ),
-              ),
+                RefreshIndicator(
+                  onRefresh: fetchMyPosts,
+                  color: Color(0xFF78B465),
+                  backgroundColor: Colors.white,
+                  child: myPosts(),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  Widget myPosts() {
+    return myPost.isNotEmpty
+        ? CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.only(
+                left: 15,
+                right: 15,
+                top: 25,
+                bottom: 15,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  if (index == myPost.length) {
+                    return isLoadingMore
+                        ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: SpinKitCircle(
+                            color: Color(0xFF78B465),
+                            size: 100.0,
+                          ),
+                        )
+                        : const SizedBox.shrink();
+                  }
+                  final postObj = myPost[index];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index < myPost.length - 1 ? 20 : 0,
+                    ),
+                    child: UserPostCard(
+                      key: ValueKey(postObj['_id']),
+                      post: postObj,
+                      onMoreOptionsPressed: () => _showPostOptions(postObj),
+                    ),
+                  );
+                }, childCount: myPost.length + 1),
+              ),
+            ),
+          ],
+        )
+        : isLoadingMore
+        ? Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: SpinKitCircle(color: Color(0xFF78B465), size: 100.0),
+        )
+        : Center(
+          child: Text(
+            'ไม่มีโพสต์',
+            style: GoogleFonts.mali(
+              color: Color(0xFF464646),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+            ),
+          ),
+        );
   }
 
   Widget allpost() {
@@ -283,7 +406,7 @@ class _CommuScreenState extends State<CommuScreen> {
           padding: EdgeInsets.only(left: 15, right: 15, top: 25, bottom: 15),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
-              if (index == post.length) {
+              if (index == allPost.length) {
                 return isLoadingMore
                     ? Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -294,10 +417,10 @@ class _CommuScreenState extends State<CommuScreen> {
                     )
                     : const SizedBox.shrink();
               }
-              final postObj = post[index];
+              final postObj = allPost[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: index < post.length - 1 ? 20 : 0,
+                  bottom: index < allPost.length - 1 ? 20 : 0,
                 ),
                 child: UserPostCard(
                   key: ValueKey(postObj['_id']),
@@ -305,7 +428,7 @@ class _CommuScreenState extends State<CommuScreen> {
                   onMoreOptionsPressed: () => _showPostOptions(postObj),
                 ),
               );
-            }, childCount: post.length + 1),
+            }, childCount: allPost.length + 1),
           ),
         ),
       ],

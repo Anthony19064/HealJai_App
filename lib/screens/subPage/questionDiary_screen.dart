@@ -183,6 +183,7 @@ class _QuestionDiaryState extends State<QuestionDiary> {
                           if (value == null || value.trim().isEmpty) {
                             return 'กรุณากรอกคำตอบ';
                           }
+                          return null;
                         },
                       ),
                     ),
