@@ -1,34 +1,20 @@
+// lib/screens/play_screen.dart
+
 import 'dart:async' as async;
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:intl/intl.dart';
-import 'package:rive/rive.dart' as rive;
 
-// ตรวจสอบ Path ไปยังไฟล์ Widget ที่แยกออกไปให้ถูกต้อง
-import 'package:healjai_project/Widgets/minigame/game_top_bar.dart';
-import 'package:healjai_project/Widgets/minigame/wheel_component.dart';
+// Import the new separated files
+import 'package:healjai_project/models/minigame_models.dart';
+import 'package:healjai_project/widgets/minigame/game_top_bar.dart';
+import 'package:healjai_project/widgets/minigame/wheel_component.dart';
+import 'package:healjai_project/widgets/minigame/game_page_view.dart';
+import 'package:healjai_project/widgets/minigame/island_page_view.dart';
+import 'package:healjai_project/widgets/minigame/upgrade_shop_modal.dart';
 
-// --- โครงสร้าง Prize ---
-enum PrizeType { coin, energy, chest, bonus }
 
-class Prize {
-  final PrizeType type;
-  final String label;
-  final int value;
-  final Color color;
-  Prize(this.type, this.label, this.value, this.color);
-}
-
-class WeightedPrize {
-  final Prize prize;
-  final int weight;
-  WeightedPrize(this.prize, this.weight);
-}
-
-// --- Widget หลักที่รวมทุกอย่างไว้ด้วยกัน ---
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
 
@@ -45,40 +31,30 @@ class _PlayScreenState extends State<PlayScreen> {
   int _lastResultIndex = 0;
   Color _pointerColor = Colors.amber;
   late final WheelGame _wheelGame;
-  int _upgradeLevel = 0;
-  final List<int> _upgradeCosts = [199, 299, 399];
   int _energy = 10;
   int _coins = 10000;
 
+  Map<UpgradeType, int> _upgradeLevels = {
+    UpgradeType.island: 0,
+    UpgradeType.tree: 0,
+    UpgradeType.flower: 0,
+  };
+
+  final Map<UpgradeType, List<int>> _upgradeCosts = {
+    UpgradeType.island: [199, 299, 399],
+    UpgradeType.tree: [199, 299, 399],
+    UpgradeType.flower: [199, 299, 399],
+  };
+
   final List<WeightedPrize> _prizes = [
-    // Index 0: (ภาพคือ Coin สีขาว)
     WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 100, Colors.white), 60),
-    // Index 1: (ภาพคือ Bonus สีเหลือง)
-    WeightedPrize(
-      Prize(PrizeType.bonus, "โบนัส", 2, Colors.yellow.shade600),
-      5,
-    ),
-    // Index 2: (ภาพคือ Energy สีแดง)
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 2, Colors.yellow.shade600),5,),
     WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 1, Colors.red.shade400), 10),
-    // Index 3: (ภาพคือ Chest สีดำ)
-    WeightedPrize(
-      Prize(PrizeType.chest, "หีบสมบัติ", 1, Colors.grey.shade800),
-      2,
-    ),
-    // Index 4: (ภาพคือ Coin สีขาว)
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 1, Colors.grey.shade800),2,),
     WeightedPrize(Prize(PrizeType.coin, "เหรียญ", 1000, Colors.white), 10),
-    // Index 5: (ภาพคือ Chest สีดำ)
-    WeightedPrize(
-      Prize(PrizeType.chest, "หีบสมบัติ", 2, Colors.grey.shade800),
-      3,
-    ),
-    // Index 6: (ภาพคือ Energy สีแดง)
+    WeightedPrize(Prize(PrizeType.chest, "หีบสมบัติ", 2, Colors.grey.shade800),3,),
     WeightedPrize(Prize(PrizeType.energy, "หัวใจ", 2, Colors.red.shade400), 5),
-    // Index 7: (ภาพคือ Bonus สีเหลือง)
-    WeightedPrize(
-      Prize(PrizeType.bonus, "โบนัส", 0, Colors.yellow.shade600),
-      5,
-    ),
+    WeightedPrize(Prize(PrizeType.bonus, "โบนัส", 0, Colors.yellow.shade600),5,),
   ];
 
   @override
@@ -127,9 +103,7 @@ class _PlayScreenState extends State<PlayScreen> {
       return;
     }
     if (_isSpinning) return;
-
-    FlameAudio.audioCache.loadAll(['spinning.mp3']);
-
+    FlameAudio.play('spinning.mp3');
     setState(() {
       _energy--;
       _isSpinning = true;
@@ -142,9 +116,7 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _startEnergyRegenTimer() {
-    _energyRegenTimer = async.Timer.periodic(const Duration(minutes: 5), (
-      timer,
-    ) {
+    _energyRegenTimer = async.Timer.periodic(const Duration(minutes: 5), (timer) {
       if (_energy < 10) setState(() => _energy++);
     });
   }
@@ -166,8 +138,7 @@ class _PlayScreenState extends State<PlayScreen> {
     switch (prize.type) {
       case PrizeType.coin:
         _coins += prize.value;
-        resultMessage =
-            "ยินดีด้วย! คุณได้รับ ${NumberFormat("#,###").format(prize.value)} เหรียญ";
+        resultMessage = "ยินดีด้วย! คุณได้รับ ${NumberFormat("#,###").format(prize.value)} เหรียญ";
         break;
       case PrizeType.energy:
         _energy += prize.value;
@@ -176,8 +147,7 @@ class _PlayScreenState extends State<PlayScreen> {
       case PrizeType.chest:
         int randomCoins = Random().nextInt(5000) + 1000;
         _coins += randomCoins;
-        resultMessage =
-            "สุดยอด! เปิดหีบสมบัติได้ ${NumberFormat("#,###").format(randomCoins)} เหรียญ!";
+        resultMessage = "สุดยอด! เปิดหีบสมบัติได้ ${NumberFormat("#,###").format(randomCoins)} เหรียญ!";
         break;
       case PrizeType.bonus:
         if (prize.value == 0) {
@@ -206,16 +176,34 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  void _upgradeIsland() {
-    if (_upgradeLevel < _upgradeCosts.length) {
-      final int cost = _upgradeCosts[_upgradeLevel];
+  void _upgradeItem(UpgradeType type) {
+    int currentLevel = _upgradeLevels[type]!;
+    List<int> costs = _upgradeCosts[type]!;
+    if (currentLevel < costs.length) {
+      int cost = costs[currentLevel];
       if (_coins >= cost) {
         setState(() {
           _coins -= cost;
-          _upgradeLevel++;
+          _upgradeLevels[type] = currentLevel + 1;
         });
       }
     }
+  }
+
+  void _showUpgradeModal() {
+    // Now just a simple call to the function in the new file.
+    showUpgradeShopModal(
+      context: context,
+      currentCoins: _coins,
+      upgradeLevels: _upgradeLevels,
+      upgradeCosts: _upgradeCosts,
+      onUpgrade: (type) {
+        _upgradeItem(type);
+        // We call setState here to rebuild PlayScreen, which will pass the new
+        // state down to IslandPageView, updating the visuals.
+        setState(() {});
+      },
+    );
   }
 
   // --- Build Method ---
@@ -228,7 +216,31 @@ class _PlayScreenState extends State<PlayScreen> {
           PageView(
             controller: _pageController,
             scrollDirection: Axis.vertical,
-            children: [_buildGamePage(), _buildIslandPage()],
+            children: [
+              // Use the new, clean GamePageView widget
+              GamePageView(
+                wheelSize: _wheelSize,
+                wheelGame: _wheelGame,
+                pointerColor: _pointerColor,
+                isSpinning: _isSpinning,
+                onSpin: _spinWheel,
+                onScrollDown: () => _pageController.animateToPage(
+                  1,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                ),
+              ),
+              // Use the new, clean IslandPageView widget
+              IslandPageView(
+                upgradeLevels: _upgradeLevels,
+                onShowUpgradeModal: _showUpgradeModal,
+                onScrollUp: () => _pageController.animateToPage(
+                  0,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                ),
+              ),
+            ],
           ),
           SafeArea(
             child: Align(
@@ -241,181 +253,6 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildGamePage() {
-    return Stack(
-      children: [
-        SizedBox.expand(
-          child: rive.RiveAnimation.asset(
-            'assets/animations/rives/backgroud_ani.riv',
-            fit: BoxFit.cover,
-          ),
-        ),
-        SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 3),
-
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: _buildWheelWithPointer(),
-                ),
-                _buildSpinButton(),
-
-                const Spacer(flex: 2),
-
-                IconButton(
-                  onPressed:
-                      () => _pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      ),
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIslandPage() {
-    return Stack(
-      children: [
-        Container(color: const Color(0xFF162642)),
-        SafeArea(
-          child: Center(
-            child: Column(
-              children: [
-                IconButton(
-                  onPressed:
-                      () => _pageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      ),
-                  icon: const Icon(
-                    Icons.keyboard_arrow_up,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-                Expanded(child: _buildIslandSection()),
-                _buildUpgradeSection(),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWheelWithPointer() {
-    return Stack(
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.none,
-      children: [
-        SizedBox(
-          width: _wheelSize,
-          height: _wheelSize,
-          child: ClipOval(child: GameWidget(game: _wheelGame)),
-        ),
-        Positioned(
-          top: -20,
-          child: Icon(
-            Icons.arrow_drop_down,
-            size: 100,
-            color: _pointerColor,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 10.0,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSpinButton() {
-    return BounceInUp(
-      child: GestureDetector(
-        onTap: _isSpinning ? null : _spinWheel,
-        child: Image.asset('assets/images/spin_1.png', width: 200),
-      ),
-    );
-  }
-
-  Widget _buildIslandSection() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        rive.RiveAnimation.asset(
-          'assets/animations/rives/koh.riv',
-          animations: ['Timeline 1'],
-        ),
-        if (_upgradeLevel >= 1)
-          rive.RiveAnimation.asset(
-            'assets/animations/rives/tree_1.riv',
-            animations: ['Timeline 1'],
-          ),
-      ],
-    );
-  }
-
-  Widget _buildUpgradeSection() {
-    final bool isMaxLevel = _upgradeLevel >= _upgradeCosts.length;
-    int nextUpgradeCost = isMaxLevel ? 0 : _upgradeCosts[_upgradeLevel];
-    final bool canAffordUpgrade = _coins >= nextUpgradeCost;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child:
-          isMaxLevel
-              ? Container(
-                height: 50,
-                alignment: Alignment.center,
-                child: const Text(
-                  '✨ อัปเกรดสูงสุดแล้ว ✨',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.amber,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-              : ElevatedButton.icon(
-                onPressed: canAffordUpgrade ? _upgradeIsland : null,
-                icon: const Icon(Icons.upgrade),
-                label: Text(
-                  'อัปเกรด (${NumberFormat("#,###").format(nextUpgradeCost)})',
-                ),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor:
-                      canAffordUpgrade ? Colors.green : Colors.grey,
-                  minimumSize: const Size(double.infinity, 50),
-                  textStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
     );
   }
 }
