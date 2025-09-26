@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/providers/navProvider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart' as rive;
 
 class GameTopBar extends StatelessWidget {
@@ -9,14 +11,11 @@ class GameTopBar extends StatelessWidget {
   final int energy;
 
   // 2. สร้าง Constructor เพื่อให้รับค่าได้
-  const GameTopBar({
-    super.key,
-    required this.coins,
-    required this.energy,
-  });
+  const GameTopBar({super.key, required this.coins, required this.energy});
 
   @override
   Widget build(BuildContext context) {
+    final NavInfo = Provider.of<Navprovider>(context);
     // 3. นำโค้ดเดิมจาก buildTopBar() มาวางที่นี่
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -27,7 +26,7 @@ class GameTopBar extends StatelessWidget {
             color: Colors.white,
             size: 28,
           ),
-          onPressed: () => context.go('/'),
+          onPressed: () => {context.go('/'), NavInfo.resetHome()},
         ),
         Row(
           children: [
