@@ -23,6 +23,7 @@ import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
 
+
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
 
@@ -40,9 +41,7 @@ void main() async {
 
   runApp(
     ToastificationWrapper(
-      config: ToastificationConfig(
-        alignment: Alignment.topCenter,
-      ),
+      config: ToastificationConfig(alignment: Alignment.topCenter),
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => Navprovider()),
@@ -99,12 +98,6 @@ class MyApp extends StatelessWidget {
           },
           routes: [
             GoRoute(
-              path: '/game',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: GameScreen());
-              },
-            ),
-            GoRoute(
               path: '/',
               pageBuilder: (context, state) {
                 return NoTransitionPage(child: HomeScreen());
@@ -135,6 +128,12 @@ class MyApp extends StatelessWidget {
           path: '/forget_pass',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: ForgetPassword());
+          },
+        ),
+        GoRoute(
+          path: '/game',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: PlayScreen());
           },
         ),
         GoRoute(
