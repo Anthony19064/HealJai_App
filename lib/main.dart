@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/screens/subPage/bookDetail.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:toastification/toastification.dart';
@@ -18,11 +19,9 @@ import 'Screens/authen/regis_screen.dart';
 
 import 'screens/subPage/chatroom_screen.dart';
 import 'screens/subPage/moodDiary_screen.dart';
-import 'screens/subPage/article_detail_screen.dart';
 import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
-
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -103,12 +102,6 @@ class MyApp extends StatelessWidget {
                 return NoTransitionPage(child: HomeScreen());
               },
             ),
-            GoRoute(
-              path: '/book',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: BookScreen());
-              },
-            ),
           ],
         ),
 
@@ -158,10 +151,16 @@ class MyApp extends StatelessWidget {
           },
         ),
         GoRoute(
-          path: '/book/:title',
+          path: '/book',
           pageBuilder: (context, state) {
-            final title = state.pathParameters['title']!;
-            return NoTransitionPage(child: ArticleDetailScreen(title: title));
+            return NoTransitionPage(child: BookScreen());
+          },
+        ),
+        GoRoute(
+          path: '/bookInfo',
+          pageBuilder: (context, state) {
+            final args = state.extra as Map<String, dynamic>?;
+            return NoTransitionPage(child: Bookdetail(data: args));
           },
         ),
         GoRoute(
