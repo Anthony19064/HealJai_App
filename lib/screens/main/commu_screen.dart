@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,7 +6,6 @@ import 'package:healjai_project/Widgets/community/createButton.dart';
 import 'package:healjai_project/Widgets/community/fullCreate.dart';
 import 'package:healjai_project/Widgets/community/postCard.dart';
 import 'package:healjai_project/Widgets/bottom_nav.dart';
-import 'package:healjai_project/Widgets/header_section.dart';
 import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
@@ -285,7 +285,21 @@ class _CommuScreenState extends State<CommuScreen>
                     toolbarHeight: 230,
                     title: Column(
                       children: [
-                        const HeaderSection(),
+                        ZoomIn(
+                          duration: Duration(milliseconds: 500),
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: 20, top: 20),
+                            child: Text(
+                              "Healjai Community 💚",
+                              style: GoogleFonts.mali(
+                                fontSize: 27,
+                                color: Color(0xFF78B465),
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.3,
+                              ),
+                            ),
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           child: PostCreationTrigger(
