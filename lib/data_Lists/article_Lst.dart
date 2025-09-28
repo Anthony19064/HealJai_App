@@ -48,9 +48,9 @@ List<Map<String, dynamic>> ArticleLst = [
       "importanceTitle": "",
       "importanceInfo": [],
       "benefitsTitle": "",
-      "benefits": [],
+      "benefitsInfo": [],
       "techniquesTitle": "",
-      "techniques": [],
+      "techniquesInfo": [],
     },
   },
   {
@@ -68,9 +68,9 @@ List<Map<String, dynamic>> ArticleLst = [
       "importanceTitle": "",
       "importanceInfo": [],
       "benefitsTitle": "",
-      "benefits": [],
+      "benefitsInfo": [],
       "techniquesTitle": "",
-      "techniques": [],
+      "techniquesInfo": [],
     },
   },
 ];
