@@ -82,7 +82,7 @@ class _BookdetailState extends State<Bookdetail> {
                   ],
                 ),
               ),
-              SizedBox(height: 40),
+               SizedBox(height: MediaQuery.of(context).size.height * 0.025),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
@@ -154,12 +154,12 @@ class _BookdetailState extends State<Bookdetail> {
                     ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: widget.data?['info']['importanceInfo'].length,
+                      itemCount: widget.data?['info']['benefitsInfo'].length,
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
-                            '\t\t•  ${widget.data?['info']['importanceInfo'][index]}',
+                            '\t\t•  ${widget.data?['info']['benefitsInfo'][index]}',
                             style: GoogleFonts.kanit(
                               fontSize: 15,
                               color: Color(0xFF464646),
@@ -184,12 +184,12 @@ class _BookdetailState extends State<Bookdetail> {
                     ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: widget.data?['info']['techniques'].length,
+                      itemCount: widget.data?['info']['techniquesInfo'].length,
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
-                            '\t\t•  ${widget.data?['info']['techniques'][index]}',
+                            '\t\t•  ${widget.data?['info']['techniquesInfo'][index]}',
                             style: GoogleFonts.kanit(
                               fontSize: 15,
                               color: Color(0xFF464646),
