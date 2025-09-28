@@ -82,7 +82,7 @@ class _BookdetailState extends State<Bookdetail> {
                   ],
                 ),
               ),
-              SizedBox(height: 30),
+               SizedBox(height: MediaQuery.of(context).size.height * 0.025),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
