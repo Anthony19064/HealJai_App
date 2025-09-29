@@ -22,7 +22,7 @@ class DiaryProvider extends ChangeNotifier {
       taskCount = await getTaskCount(day, month, year) ?? 0;
       taskPercent = taskCount / totalTask;
       if (taskCount == 3) {
-        await addAge(day, month, year);
+        await increaseDay(day, month, year);
       }
 
       notifyListeners();

@@ -167,7 +167,7 @@ class _BookScreenState extends State<BookScreen>
               physics: NeverScrollableScrollPhysics(),
               children: [
                 // widget list ข้างใน
-                goodArticle(),
+                Article(),
                 quote(),
                 bookmark(),
               ],
@@ -289,7 +289,7 @@ class _BookScreenState extends State<BookScreen>
     );
   }
 
-  Widget goodArticle() {
+  Widget Article() {
     return SingleChildScrollView(
       child: Column(
         children: [

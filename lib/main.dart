@@ -31,7 +31,7 @@ import 'providers/userProvider.dart';
 import 'providers/ResetProvider.dart';
 import 'providers/chatProvider.dart';
 import 'providers/DiaryProvider.dart';
-import 'providers/TreeProvider.dart';
+import 'providers/TrackerProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +48,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => ResetProvider()),
           ChangeNotifierProvider(create: (_) => Chatprovider()),
           ChangeNotifierProvider(create: (_) => DiaryProvider()),
-          ChangeNotifierProvider(create: (_) => TreeProvider()),
+          ChangeNotifierProvider(create: (_) => TrackerProvider()),
         ],
         child: const MyApp(),
       ),
