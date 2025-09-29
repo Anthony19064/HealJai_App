@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:healjai_project/providers/TrackerProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
@@ -16,14 +16,17 @@ class TreeSection extends StatefulWidget {
 class _TreeSectionState extends State<TreeSection> {
   @override
   Widget build(BuildContext context) {
-    final TreeInfo = Provider.of<TreeProvider>(context);
+    final TrackerInfo = Provider.of<TrackerProvider>(context);
+
+    int trackerDay = TrackerInfo.TrackerDay;
+    int trackerLvl = (trackerDay / 10).toInt();
 
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "ทำภารกิจเพื่อปลูกต้นของเธอ",
+            "ทำภารกิจเพื่อปลูกดอกไม้ของเธอ",
             style: GoogleFonts.mali(
               color: Color(0xFF78B465),
               fontSize: 23,
@@ -32,20 +35,18 @@ class _TreeSectionState extends State<TreeSection> {
           ),
 
           Container(
-            margin: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.05,
-              bottom: MediaQuery.of(context).size.height * 0.10,
-            ),
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.60,
-              height: 210,
+            width: MediaQuery.of(context).size.width * 0.6,
+            height: MediaQuery.of(context).size.height * 0.35,
+            child: Transform.scale(
+              scale: 1.2,
               child: RiveAnimation.asset(
-                'assets/animations/rives/tree.riv',
-                animations: [TreeInfo.TreeAge > 0 ? 'Seedling_lv1' : 'Seedling_lv0'],
+                'assets/animations/rives/flower_tracker.riv',
+                animations: ['Flower_lv$trackerLvl'],
               ),
             ),
           ),
-          TreeInfo.TreeAge > 0
+
+          trackerDay > 0
               ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -63,7 +64,7 @@ class _TreeSectionState extends State<TreeSection> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "อายุต้นไม้ของเธอ",
+                        "อายุดอกไม้ของเธอ",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.mali(
                           color: Color(0xFF464646),
@@ -74,7 +75,7 @@ class _TreeSectionState extends State<TreeSection> {
                       Container(
                         margin: EdgeInsets.only(left: 15, right: 15),
                         child: Text(
-                          "${TreeInfo.TreeAge}",
+                          "${trackerDay}",
                           style: GoogleFonts.mali(
                             color: Color(0xFF78B465),
                             fontSize: 30,

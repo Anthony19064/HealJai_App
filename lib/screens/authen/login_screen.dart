@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/DiaryProvider.dart';
-import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:healjai_project/providers/TrackerProvider.dart';
 import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final userInfo = Provider.of<UserProvider>(context, listen: false);
-    final TreeInfo = Provider.of<TreeProvider>(context, listen: false);
+    final TreeInfo = Provider.of<TrackerProvider>(context, listen: false);
     final DiaryInfo = Provider.of<DiaryProvider>(context, listen: false);
 
     return Scaffold(
