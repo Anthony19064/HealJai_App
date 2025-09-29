@@ -4,7 +4,7 @@ import 'package:healjai_project/service/apiCall.dart';
 
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
 
-Future<int?> getTreeAge() async {
+Future<int?> getTrackerDay() async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/getAge',
     method: 'GET',
@@ -18,7 +18,7 @@ Future<int?> getTreeAge() async {
   }
 }
 
-Future<Map<String, dynamic>?> addAge(int day, int month, int year) async {
+Future<Map<String, dynamic>?> increaseDay(int day, int month, int year) async {
   final response = await requestWithTokenRetry(
     '$apiURL/api/addAge/${day}/${month}/${year}',
     method: 'POST',

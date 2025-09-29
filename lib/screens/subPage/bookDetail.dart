@@ -199,7 +199,24 @@ class _BookdetailState extends State<Bookdetail> {
                         );
                       },
                     ),
-                    SizedBox(height: 40),
+                    SizedBox(height: 30),
+                    Text(
+                      "สรุปเรื่อง${widget.data?['title']}",
+                      style: GoogleFonts.kanit(
+                        fontSize: 20,
+                        color: Color(0xFF464646),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      '\t\t\t\t\t\t${widget.data?['info']['summary']}',
+                      style: GoogleFonts.kanit(
+                        fontSize: 15,
+                        color: Color(0xFF464646),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ],
                 ),
               ),
