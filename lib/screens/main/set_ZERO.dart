@@ -36,6 +36,8 @@ class _SetZeroState extends State<SetZero> {
       'assets/animations/rives/leaderboard.riv'; // เพิ่มไฟล์ Leaderboard
   static const String _animationName = 'play';
   static const String _soundFile = 'choptree.mp3';
+  Timer? _debounceTimer;
+  final Duration _debounceDuration = const Duration(milliseconds: 3000);
 
   @override
   void initState() {
