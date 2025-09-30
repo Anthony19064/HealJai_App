@@ -25,7 +25,7 @@ class _SetZeroState extends State<SetZero> {
   late AudioPool _chopPool; 
 
   // แนะนำให้ใช้ .ogg หรือ .wav สำหรับ SFX สั้นๆ เพื่อลด Latency
-  static const String _soundFile = 'choptree.mp3'; 
+  static const String _soundFile = 'effectSound.mp3'; 
   static const String _riveFile = 'assets/animations/rives/minigame_cutting.riv';
 
   @override
