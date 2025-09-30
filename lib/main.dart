@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:healjai_project/screens/subPage/bookDetail.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:toastification/toastification.dart';
@@ -23,6 +22,8 @@ import 'screens/subPage/moodDiary_screen.dart';
 import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
+import 'screens/subPage/articleDetail.dart';
+import 'screens/subPage/quoteDetail.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -158,10 +159,17 @@ class MyApp extends StatelessWidget {
           },
         ),
         GoRoute(
-          path: '/bookInfo',
+          path: '/articleInfo',
           pageBuilder: (context, state) {
             final args = state.extra as Map<String, dynamic>?;
-            return NoTransitionPage(child: Bookdetail(data: args));
+            return NoTransitionPage(child: Articledetail(data: args));
+          },
+        ),
+        GoRoute(
+          path: '/quoteInfo',
+          pageBuilder: (context, state) {
+            final args = state.extra as Map<String, dynamic>;
+            return NoTransitionPage(child: Quotedetail(data: args));
           },
         ),
         GoRoute(

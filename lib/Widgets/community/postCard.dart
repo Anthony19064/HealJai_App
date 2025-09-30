@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:healjai_project/Widgets/community/commentPopup.dart';
 import 'package:healjai_project/service/authen.dart';
@@ -66,7 +67,7 @@ class _UserPostCardState extends State<UserPostCard>
   // เรียกจำนวน Like ของโพส
   Future<void> fetchCountLike() async {
     final postId = widget.post['_id'];
-    final data = await getCountLike( postId);
+    final data = await getCountLike(postId);
     if (!mounted) return;
     setState(() {
       countLike = data;
@@ -77,7 +78,7 @@ class _UserPostCardState extends State<UserPostCard>
   Future<void> fetchStateLike() async {
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    final data = await getStateLike( postId, userId);
+    final data = await getStateLike(postId, userId);
     final state = data['success'];
     if (!mounted) return;
     setState(() {
@@ -94,7 +95,7 @@ class _UserPostCardState extends State<UserPostCard>
     });
     final postId = widget.post['_id'];
     String userId = await getUserId();
-    await addLike( postId, userId);
+    await addLike(postId, userId);
   }
 
   // เปิด popup Comment
@@ -173,8 +174,9 @@ class _UserPostCardState extends State<UserPostCard>
                     )
                     : CircleAvatar(
                       radius: 22,
-                      backgroundImage: NetworkImage(userImg),
+                      backgroundImage: CachedNetworkImageProvider(userImg),
                     ),
+
                 const SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,26 +251,34 @@ class _UserPostCardState extends State<UserPostCard>
                   },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15.0),
-                    child: Image.network(
-                      postImg,
+                    child: CachedNetworkImage(
+                      imageUrl: postImg,
                       width: double.infinity,
                       height: 200,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey.shade300,
-                          highlightColor: Colors.grey.shade100,
-                          child: Container(
+                      placeholder:
+                          (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey.shade300,
+                            highlightColor: Colors.grey.shade100,
+                            child: Container(
+                              width: double.infinity,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                            ),
+                          ),
+                      errorWidget:
+                          (context, url, error) => Container(
                             width: double.infinity,
                             height: 200,
                             decoration: BoxDecoration(
                               color: Colors.grey,
                               borderRadius: BorderRadius.circular(15.0),
                             ),
+                            child: Icon(Icons.error, color: Colors.red),
                           ),
-                        );
-                      },
                     ),
                   ),
                 ),
