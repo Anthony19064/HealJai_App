@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flame_audio/flame_audio.dart';
 
 class CatGameScreen extends StatefulWidget {
   const CatGameScreen({super.key});
@@ -44,6 +44,9 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+
+    // Corrected: Use FlameAudio.audioCache to load the sound
+    FlameAudio.audioCache.load('choptree.mp3');
   }
 
   /// Sets up or resets the Rive StateMachineController.
@@ -77,14 +80,9 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void _onTapGameScreen() {
     if (_isAnimating || _gameAnimationTrigger == null) return;
 
-    final player = AudioPlayer();
-    player.play(AssetSource('audio/choptree.mp3'));
-    player.onPlayerComplete.listen((event) {
-      player.dispose();
-    });
+    // This part is correct and does not need to change
+    FlameAudio.play('choptree.mp3');
 
-    // Adjust the duration here to make the game faster.
-    // Make sure this duration matches the animation length in your Rive file.
     const animationDuration = Duration(milliseconds: 400);
 
     setState(() {
@@ -117,6 +115,8 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void dispose() {
     _pageController.dispose();
     _gameController?.dispose();
+    // Corrected: Use FlameAudio.audioCache to clear the sound from cache
+    FlameAudio.audioCache.clear('choptree.mp3');
     super.dispose();
   }
 
@@ -361,7 +361,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
                   );
                 },
                 icon: const Icon(Icons.leaderboard),
-                label: const Text("Leaderboard"),
+                label: const Text("กลับหน้าหลัก"),
               ),
             ),
           ],

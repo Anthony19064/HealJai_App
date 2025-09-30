@@ -46,6 +46,7 @@ dependencies:
   toastification: ^3.0.3
   flame_audio: ^2.8.0
   cached_network_image: ^3.4.1
+  just_audio: ^0.9.36  
 
 dev_dependencies:
   flutter_test:
