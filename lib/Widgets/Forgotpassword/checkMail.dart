@@ -134,6 +134,7 @@ class _CheckEmailState extends State<CheckEmail> {
                               final status = await send_OTP(
                                 _emailController.text,
                               );
+                              print(status);
                               if (status['success']) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

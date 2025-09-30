@@ -197,6 +197,7 @@ class _QuotedetailState extends State<Quotedetail> with WidgetsBindingObserver {
                     ),
                   )
                   : SizedBox.shrink(),
+                  SizedBox(height: 20),
             ],
           ),
         ),
