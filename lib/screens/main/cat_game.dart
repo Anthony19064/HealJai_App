@@ -16,9 +16,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
   // --- Page Controller to manage PageView ---
   late final PageController _pageController;
 
-  // --- Audio Player ---
-  final AudioPlayer _audioPlayer = AudioPlayer();
-
   // --- Game State ---
   int _score = 0;
   int _coins = 0;
@@ -30,10 +27,10 @@ class _CatGameScreenState extends State<CatGameScreen> {
   bool _isAnimating = false;
 
   // --- Leaderboard Position State ---
-  double _xOffset = 0.64;
-  double _yOffset = 0.49;
+  double _xOffset = 0.63;
+  double _yOffset = 0.51;
   double _widthRatio = 0.48;
-  double _heightRatio = 0.28;
+  double _heightRatio = 0.29;
 
   final List<Map<String, dynamic>> _leaderboardData = List.generate(
     50,
@@ -80,10 +77,15 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void _onTapGameScreen() {
     if (_isAnimating || _gameAnimationTrigger == null) return;
 
-    // Play sound effect
-    _audioPlayer.play(AssetSource('audio/chopping-tree-root-212654.mp3'));
+    final player = AudioPlayer();
+    player.play(AssetSource('audio/choptree.mp3'));
+    player.onPlayerComplete.listen((event) {
+      player.dispose();
+    });
 
-    const animationDuration = Duration(milliseconds: 1000);
+    // Adjust the duration here to make the game faster.
+    // Make sure this duration matches the animation length in your Rive file.
+    const animationDuration = Duration(milliseconds: 400);
 
     setState(() {
       _isAnimating = true;
@@ -93,13 +95,10 @@ class _CatGameScreenState extends State<CatGameScreen> {
 
     Future.delayed(animationDuration, () {
       if (!mounted) return;
-
       _addScore();
-
       setState(() {
         _isAnimating = false;
       });
-
       _setupRiveController();
     });
   }
@@ -118,19 +117,76 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void dispose() {
     _pageController.dispose();
     _gameController?.dispose();
-    _audioPlayer.dispose();
     super.dispose();
   }
 
   // --- UI Widgets ---
 
+  Widget _buildDebugSlider(
+    String label,
+    double value,
+    ValueChanged<double> onChanged,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            shadows: [Shadow(blurRadius: 2)],
+          ),
+        ),
+        Expanded(
+          child: Slider(
+            value: value,
+            min: 0.0,
+            max: 1.0,
+            onChanged: onChanged,
+            activeColor: Colors.amber,
+            inactiveColor: Colors.white30,
+          ),
+        ),
+        Text(
+          value.toStringAsFixed(2),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            shadows: [Shadow(blurRadius: 2)],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDebugControls() {
+    return Positioned(
+      bottom: 100,
+      left: 20,
+      right: 20,
+      child: Column(
+        children: [
+          _buildDebugSlider("X Offset", _xOffset, (val) {
+            setState(() => _xOffset = val);
+          }),
+          _buildDebugSlider("Y Offset", _yOffset, (val) {
+            setState(() => _yOffset = val);
+          }),
+          _buildDebugSlider("Width", _widthRatio, (val) {
+            setState(() => _widthRatio = val);
+          }),
+          _buildDebugSlider("Height", _heightRatio, (val) {
+            setState(() => _heightRatio = val);
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLeaderboardPage() {
     final screenSize = MediaQuery.of(context).size;
     final leaderboardContent = Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _leaderboardData.length,
@@ -171,6 +227,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
       ),
     );
     return Scaffold(
+      backgroundColor: const Color(0xFF5C94FC),
       body: Stack(
         alignment: Alignment.center,
         children: [
@@ -194,7 +251,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
             left: 0,
             right: 0,
             child: AppBar(
-              title: const Text("Leaderboard"),
               backgroundColor: Colors.transparent,
               elevation: 0,
               centerTitle: true,
@@ -230,6 +286,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
               label: const Text("ไปตัดไม้กันเถอะ"),
             ),
           ),
+          if (kDebugMode) _buildDebugControls(),
         ],
       ),
     );
@@ -266,7 +323,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
           children: [
             Center(
               child: RiveAnimation.asset(
-                'assets/animations/rives/minigame_cuttingnew.riv',
+                'assets/animations/rives/minigame_cutting3.riv',
                 onInit: _onGameRiveInit,
                 fit: BoxFit.contain,
               ),
