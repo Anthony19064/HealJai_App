@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class CatGameScreen extends StatefulWidget {
   const CatGameScreen({super.key});
@@ -15,16 +16,18 @@ class _CatGameScreenState extends State<CatGameScreen> {
   // --- Page Controller to manage PageView ---
   late final PageController _pageController;
 
+  // --- Audio Player ---
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   // --- Game State ---
   int _score = 0;
   int _coins = 0;
 
   // --- Rive Animation Controller ---
+  Artboard? _riveArtboard;
   SMITrigger? _gameAnimationTrigger;
   StateMachineController? _gameController;
   bool _isAnimating = false;
-
-  Key _riveKey = UniqueKey();
 
   // --- Leaderboard Position State ---
   double _xOffset = 0.64;
@@ -43,26 +46,42 @@ class _CatGameScreenState extends State<CatGameScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(); // Initialize the controller
+    _pageController = PageController();
   }
 
-  /// Called when the Rive widget is initialized.
-  void _onGameRiveInit(Artboard artboard) {
+  /// Sets up or resets the Rive StateMachineController.
+  void _setupRiveController() {
+    if (_riveArtboard == null) return;
+
+    if (_gameController != null) {
+      _riveArtboard!.removeController(_gameController!);
+      _gameController!.dispose();
+    }
+
     _gameController = StateMachineController.fromArtboard(
-      artboard,
+      _riveArtboard!,
       'GameMachine',
     );
 
     if (_gameController != null) {
-      artboard.addController(_gameController!);
+      _riveArtboard!.addController(_gameController!);
       _gameAnimationTrigger =
           _gameController!.findInput<bool>('play') as SMITrigger?;
     }
   }
 
+  /// Called when the Rive widget is initialized.
+  void _onGameRiveInit(Artboard artboard) {
+    _riveArtboard = artboard;
+    _setupRiveController();
+  }
+
   /// Called when the user taps the game screen.
   void _onTapGameScreen() {
     if (_isAnimating || _gameAnimationTrigger == null) return;
+
+    // Play sound effect
+    _audioPlayer.play(AssetSource('audio/chopping-tree-root-212654.mp3'));
 
     const animationDuration = Duration(milliseconds: 1000);
 
@@ -74,11 +93,14 @@ class _CatGameScreenState extends State<CatGameScreen> {
 
     Future.delayed(animationDuration, () {
       if (!mounted) return;
+
       _addScore();
+
       setState(() {
         _isAnimating = false;
-        _riveKey = UniqueKey();
       });
+
+      _setupRiveController();
     });
   }
 
@@ -94,8 +116,9 @@ class _CatGameScreenState extends State<CatGameScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose(); // Dispose the controller
+    _pageController.dispose();
     _gameController?.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -104,7 +127,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
   Widget _buildLeaderboardPage() {
     final screenSize = MediaQuery.of(context).size;
     final leaderboardContent = Container(
-      // ... (Content is the same)
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -182,7 +204,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
               ),
             ),
           ),
-          // --- REPLACED SWIPE TEXT WITH A BUTTON ---
           Positioned(
             bottom: 40,
             child: ElevatedButton.icon(
@@ -200,7 +221,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
               ),
               onPressed: () {
                 _pageController.animateToPage(
-                  1, // Go to page 1 (Game Page)
+                  1,
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                 );
@@ -216,7 +237,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
 
   Widget _buildGamePage() {
     Widget buildStatDisplay(IconData icon, String value) {
-      // ... (This helper widget is the same)
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -247,7 +267,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
             Center(
               child: RiveAnimation.asset(
                 'assets/animations/rives/minigame_cuttingnew.riv',
-                key: _riveKey,
                 onInit: _onGameRiveInit,
                 fit: BoxFit.contain,
               ),
@@ -262,7 +281,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
                 ],
               ),
             ),
-            // --- REPLACED SWIPE TEXT WITH A BUTTON ---
             Positioned(
               bottom: 40,
               child: OutlinedButton.icon(
@@ -280,7 +298,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
                 ),
                 onPressed: () {
                   _pageController.animateToPage(
-                    0, // Go to page 0 (Leaderboard Page)
+                    0,
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeInOut,
                   );
@@ -299,7 +317,6 @@ class _CatGameScreenState extends State<CatGameScreen> {
   Widget build(BuildContext context) {
     return PageView(
       controller: _pageController,
-      // This disables manual swiping
       physics: const NeverScrollableScrollPhysics(),
       children: [_buildLeaderboardPage(), _buildGamePage()],
     );
