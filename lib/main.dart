@@ -11,6 +11,7 @@ import 'Screens/main/game_screen.dart';
 import 'Screens/main/home_screen.dart';
 import 'Screens/main/commu_screen.dart';
 import 'Screens/main/book_screen.dart';
+import 'Screens/main/cat_game.dart';
 
 import 'Screens/authen/forget_password.dart';
 import 'Screens/authen/login_screen.dart';
@@ -127,7 +128,7 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: PlayScreen());
+            return NoTransitionPage(child: CatGameScreen());
           },
         ),
         GoRoute(

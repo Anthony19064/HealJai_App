@@ -6,14 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:intl/intl.dart';
 
-// Import the new separated files
 import 'package:healjai_project/models/minigame_models.dart';
 import 'package:healjai_project/widgets/minigame/game_top_bar.dart';
 import 'package:healjai_project/widgets/minigame/wheel_component.dart';
 import 'package:healjai_project/widgets/minigame/game_page_view.dart';
 import 'package:healjai_project/widgets/minigame/island_page_view.dart';
-import 'package:healjai_project/widgets/minigame/upgrade_shop_modal.dart';
-
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -23,7 +20,6 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  // --- State Variables ---
   final PageController _pageController = PageController();
   final double _wheelSize = 380.0;
   bool _isSpinning = false;
@@ -35,11 +31,11 @@ class _PlayScreenState extends State<PlayScreen> {
   int _coins = 10000;
 
   Map<UpgradeType, int> _upgradeLevels = {
-    UpgradeType.island: 0,
-    UpgradeType.tree: 0,
-    UpgradeType.flower: 0,
+    UpgradeType.island: 1, // เกาะเริ่มที่เลเวล 1
+    UpgradeType.tree: 0,   // ต้นไม้เริ่มที่เลเวล 0
+    UpgradeType.flower: 0, // ดอกไม้เริ่มที่เลเวล 0
   };
-
+  
   final Map<UpgradeType, List<int>> _upgradeCosts = {
     UpgradeType.island: [199, 299, 399],
     UpgradeType.tree: [199, 299, 399],
@@ -78,7 +74,6 @@ class _PlayScreenState extends State<PlayScreen> {
     super.dispose();
   }
 
-  // --- Logic Functions ---
   void _updatePointerColorFromAngle(double angle) {
     double degrees = (angle * 180 / pi) % 360;
     if (degrees < 0) degrees += 360;
@@ -184,6 +179,7 @@ class _PlayScreenState extends State<PlayScreen> {
       if (_coins >= cost) {
         setState(() {
           _coins -= cost;
+          _upgradeLevels = Map.from(_upgradeLevels); 
           _upgradeLevels[type] = currentLevel + 1;
         });
       }
@@ -191,22 +187,112 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _showUpgradeModal() {
-    // Now just a simple call to the function in the new file.
-    showUpgradeShopModal(
+    showModalBottomSheet(
       context: context,
-      currentCoins: _coins,
-      upgradeLevels: _upgradeLevels,
-      upgradeCosts: _upgradeCosts,
-      onUpgrade: (type) {
-        _upgradeItem(type);
-        // We call setState here to rebuild PlayScreen, which will pass the new
-        // state down to IslandPageView, updating the visuals.
-        setState(() {});
+      backgroundColor: const Color(0xFF1E3A5F),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+        
+      ),
+      barrierColor: Colors.black.withOpacity(0),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter modalSetState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ร้านค้าอัปเกรด',
+                    style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildUpgradeButton(
+                    type: UpgradeType.tree,
+                    label: 'เพิ่มต้นไม้',
+                    icon: Icons.park,
+                    modalSetState: modalSetState,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildUpgradeButton(
+                    type: UpgradeType.flower,
+                    label: 'เพิ่มดอกไม้',
+                    icon: Icons.waves,
+                    modalSetState: modalSetState,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildUpgradeButton(
+                    type: UpgradeType.island,
+                    label: 'ขยายเกาะ',
+                    icon: Icons.landscape,
+                    modalSetState: modalSetState,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
 
-  // --- Build Method ---
+  Widget _buildUpgradeButton({
+    required UpgradeType type,
+    required String label,
+    required IconData icon,
+    required StateSetter modalSetState,
+  }) {
+    final int currentLevel = _upgradeLevels[type]!;
+    final List<int> costs = _upgradeCosts[type]!;
+    final bool isMaxLevel = currentLevel >= costs.length;
+    final String levelText = isMaxLevel ? 'สูงสุด' : 'Lv.${currentLevel + 1}';
+
+    String buttonText = 'อัปเกรดสูงสุดแล้ว';
+    int? cost;
+    if (!isMaxLevel) {
+      cost = costs[currentLevel];
+      buttonText = 'อัปเกรด (${NumberFormat("#,###").format(cost)})';
+    }
+
+    final bool canAfford = cost != null && _coins >= cost;
+
+    return ElevatedButton.icon(
+      onPressed: (!isMaxLevel && canAfford)
+          ? () {
+              _upgradeItem(type); 
+              modalSetState(() {});
+            }
+          : null,
+      icon: Icon(icon),
+      label: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('$label ($levelText)'),
+          if (!isMaxLevel)
+            Text(buttonText)
+          else
+            const Text('อัปเกรดสูงสุดแล้ว', style: TextStyle(color: Colors.black87)),
+        ],
+      ),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.green,
+        minimumSize: const Size(double.infinity, 50),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        disabledBackgroundColor:
+            isMaxLevel ? Colors.amber.shade800 : Colors.grey.shade800,
+        disabledForegroundColor: isMaxLevel ? Colors.black87 : Colors.white70,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,7 +303,6 @@ class _PlayScreenState extends State<PlayScreen> {
             controller: _pageController,
             scrollDirection: Axis.vertical,
             children: [
-              // Use the new, clean GamePageView widget
               GamePageView(
                 wheelSize: _wheelSize,
                 wheelGame: _wheelGame,
@@ -230,7 +315,6 @@ class _PlayScreenState extends State<PlayScreen> {
                   curve: Curves.easeInOut,
                 ),
               ),
-              // Use the new, clean IslandPageView widget
               IslandPageView(
                 upgradeLevels: _upgradeLevels,
                 onShowUpgradeModal: _showUpgradeModal,
