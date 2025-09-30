@@ -7,14 +7,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/providers/DiaryProvider.dart';
-import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:healjai_project/providers/TrackerProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 //------ List เก็บข้อมูล
-List<String> _storyList = [];
+List<Map<String, String>> _storyList = [];
 
 // ------------- Class โชว์ Ui หลัก -----------------
 class StoryDiary extends StatefulWidget {
@@ -31,8 +32,16 @@ class _StoryDiaryState extends State<StoryDiary> {
       TextEditingController(); // ตัวเก็บค่า Value Question
 
   void _addStory(String info) {
+    //เวลาในเครื่อง
+    DateTime now = DateTime.now();
+    //แยกวันที่
+    String date = DateFormat('dd-MM-yyyy').format(now);
+    //แยกเวลา
+    String time = DateFormat('HH:mm').format(now);
+
+    Map<String, String> obj = {'info': info, 'date': date, 'time': time};
     setState(() {
-      _storyList.add(info);
+      _storyList.add(obj);
     });
   }
 
@@ -54,12 +63,17 @@ class _StoryDiaryState extends State<StoryDiary> {
         isLoading = false;
       });
 
-      data['success'] == true ? showSuccessToast(data['message'], "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว") : showWarningToast("บันทึกไม่สำเร็จ", data['message']);
+      data['success'] == true
+          ? showSuccessToast(
+            data['message'],
+            "ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว",
+          )
+          : showWarningToast("บันทึกไม่สำเร็จ", data['message']);
     } else {
       showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเข้าสู่ระบบก่อนบันทึกอารมณ์");
     }
     await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Provider.of<TrackerProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }
@@ -163,14 +177,16 @@ class _StoryDiaryState extends State<StoryDiary> {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.04),
-                    Text(
-                      "กดค้างเพื่อลบได้นะ :)",
-                      style: GoogleFonts.mali(
-                        fontSize: 12,
-                        color: Color(0xFFA1A1A1),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    _storyList.isNotEmpty
+                        ? Text(
+                          "กดค้างเพื่อลบได้นะ :)",
+                          style: GoogleFonts.mali(
+                            fontSize: 12,
+                            color: Color(0xFFA1A1A1),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        )
+                        : SizedBox(),
                     SizedBox(height: 10),
                     ListView.builder(
                       shrinkWrap: true,
@@ -193,11 +209,14 @@ class _StoryDiaryState extends State<StoryDiary> {
                             isLoading
                                 ? null
                                 : () async {
-                                  if (_storyList.length != 0) {
+                                  if (_storyList.isNotEmpty) {
                                     await saveStory();
                                     _storyList.clear();
                                   } else {
-                                    showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเพิ่มเรื่องราว");
+                                    showWarningToast(
+                                      "บันทึกไม่สำเร็จ",
+                                      "กรุณาเพิ่มเรื่องราว",
+                                    );
                                   }
                                 },
                         style: ElevatedButton.styleFrom(
@@ -246,7 +265,7 @@ class _StoryDiaryState extends State<StoryDiary> {
 //------------- Class แสดงส่วน Card -------------------------
 class StoryCard extends StatefulWidget {
   final int indexStory;
-  final String info;
+  final Map<String, String> info;
   final Function(int) onDelete;
 
   const StoryCard({
@@ -270,24 +289,83 @@ class _StoryCardState extends State<StoryCard> {
       },
       child: Container(
         width: double.infinity,
-        constraints: BoxConstraints(minHeight: 70),
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        margin: EdgeInsets.only(bottom: 15),
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(width: 2, color: Color(0xFF78B465)),
-        ),
-        child: Center(
-          child: Text(
-            widget.info,
-            softWrap: true,
-            style: GoogleFonts.mali(
-              fontSize: 18,
-              color: Color(0xFF464646),
-              fontWeight: FontWeight.w500,
-            ),
+          color: Colors.transparent,
+          border: Border(
+            bottom: BorderSide(width: 2, color: Color(0xFF78B465)),
           ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  "วันที่",
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF78B465),
+                  ),
+                ),
+                SizedBox(width: 22),
+                Text(
+                  '${widget.info['date']}',
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF464646),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 5),
+            Row(
+              children: [
+                Text(
+                  "เวลา",
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF78B465),
+                  ),
+                ),
+                SizedBox(width: 21),
+                Text(
+                  '${widget.info['time']}',
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF464646),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 5),
+            Row(
+              children: [
+                Text(
+                  "บันทึก",
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF78B465),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  '${widget.info['info']}',
+                  style: GoogleFonts.mali(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF464646),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -386,6 +464,7 @@ void showAddStory(
                         if (value == null || value.trim().isEmpty) {
                           return 'กรุณากรอกคำตอบ';
                         }
+                        return null;
                       },
                     ),
                   ),

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/providers/DiaryProvider.dart';
-import 'package:healjai_project/providers/TreeProvider.dart';
+import 'package:healjai_project/providers/TrackerProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/diaryFeture.dart';
 import 'package:lottie/lottie.dart';
@@ -157,7 +157,7 @@ class _MoodDiaryScreenState extends State<MoodDiaryScreen> {
       showWarningToast("บันทึกไม่สำเร็จ", "กรุณาเข้าสู่ระบบก่อนบันทึกอารมณ์");
     }
     await Provider.of<DiaryProvider>(context, listen: false).fetchTaskCount();
-    await Provider.of<TreeProvider>(context, listen: false).fetchTreeAge();
+    await Provider.of<TrackerProvider>(context, listen: false).fetchTreeAge();
     await Future.delayed(Duration(seconds: 1));
     context.pop();
   }

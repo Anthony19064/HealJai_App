@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/userProvider.dart';
@@ -78,9 +79,11 @@ class PostCreationTrigger extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 22,
-                          backgroundImage: NetworkImage(userImg),
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: CachedNetworkImageProvider(userImg),
                         ),
                       ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: Transform.translate(
@@ -128,7 +131,10 @@ class PostCreationTrigger extends StatelessWidget {
               child: Transform.rotate(
                 angle: 0.3,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.045, vertical: screenHeight * 0.005),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.045,
+                    vertical: screenHeight * 0.005,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),

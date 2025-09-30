@@ -18,11 +18,11 @@ import 'Screens/authen/regis_screen.dart';
 
 import 'screens/subPage/chatroom_screen.dart';
 import 'screens/subPage/moodDiary_screen.dart';
-import 'screens/subPage/article_detail_screen.dart';
 import 'screens/subPage/diaryHistory.dart';
 import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
-import 'screens/subPage/island.dart';
+import 'screens/subPage/articleDetail.dart';
+import 'screens/subPage/quoteDetail.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -32,7 +32,7 @@ import 'providers/userProvider.dart';
 import 'providers/ResetProvider.dart';
 import 'providers/chatProvider.dart';
 import 'providers/DiaryProvider.dart';
-import 'providers/TreeProvider.dart';
+import 'providers/TrackerProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,9 +41,7 @@ void main() async {
 
   runApp(
     ToastificationWrapper(
-      config: ToastificationConfig(
-        alignment: Alignment.topCenter,
-      ),
+      config: ToastificationConfig(alignment: Alignment.topCenter),
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => Navprovider()),
@@ -51,7 +49,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => ResetProvider()),
           ChangeNotifierProvider(create: (_) => Chatprovider()),
           ChangeNotifierProvider(create: (_) => DiaryProvider()),
-          ChangeNotifierProvider(create: (_) => TreeProvider()),
+          ChangeNotifierProvider(create: (_) => TrackerProvider()),
         ],
         child: const MyApp(),
       ),
@@ -99,17 +97,10 @@ class MyApp extends StatelessWidget {
             );
           },
           routes: [
-            
             GoRoute(
               path: '/',
               pageBuilder: (context, state) {
                 return NoTransitionPage(child: HomeScreen());
-              },
-            ),
-            GoRoute(
-              path: '/book',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: BookScreen());
               },
             ),
           ],
@@ -134,17 +125,11 @@ class MyApp extends StatelessWidget {
           },
         ),
         GoRoute(
-              path: '/game',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: GameScreen());
-              },
-            ),
-        GoRoute(
-              path: '/island',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(child: Island());
-              },
-            ),
+          path: '/game',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: PlayScreen());
+          },
+        ),
         GoRoute(
           path: '/chat',
           pageBuilder: (context, state) {
@@ -167,10 +152,23 @@ class MyApp extends StatelessWidget {
           },
         ),
         GoRoute(
-          path: '/book/:title',
+          path: '/book',
           pageBuilder: (context, state) {
-            final title = state.pathParameters['title']!;
-            return NoTransitionPage(child: ArticleDetailScreen(title: title));
+            return NoTransitionPage(child: BookScreen());
+          },
+        ),
+        GoRoute(
+          path: '/articleInfo',
+          pageBuilder: (context, state) {
+            final args = state.extra as Map<String, dynamic>?;
+            return NoTransitionPage(child: Articledetail(data: args));
+          },
+        ),
+        GoRoute(
+          path: '/quoteInfo',
+          pageBuilder: (context, state) {
+            final args = state.extra as Map<String, dynamic>;
+            return NoTransitionPage(child: Quotedetail(data: args));
           },
         ),
         GoRoute(
