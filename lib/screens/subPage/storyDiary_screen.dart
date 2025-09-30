@@ -355,12 +355,16 @@ class _StoryCardState extends State<StoryCard> {
                   ),
                 ),
                 SizedBox(width: 10),
-                Text(
-                  '${widget.info['info']}',
-                  style: GoogleFonts.mali(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF464646),
+                Expanded(
+                  child: Text(
+                    '${widget.info['info']}',
+                    style: GoogleFonts.mali(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF464646),
+                    ),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
                   ),
                 ),
               ],

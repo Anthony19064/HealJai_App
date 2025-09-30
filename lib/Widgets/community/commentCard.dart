@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/service/account.dart';
@@ -32,7 +33,11 @@ class _CommentCardState extends State<CommentCard> {
 
   @override
   Widget build(BuildContext context) {
-    final userImg = userInfo['photoURL'];
+    final userImg =
+        userInfo['photoURL'].toString().trim().isNotEmpty
+            ? userInfo['photoURL']
+            : "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fprofile.png?alt=media&token=8cdff07d-64e1-4d02-b83d-af54648f52a0";
+
     final userName = userInfo['username'];
 
     return Container(
@@ -54,8 +59,8 @@ class _CommentCardState extends State<CommentCard> {
                 ),
               )
               : CircleAvatar(
-                radius: 25,
-                backgroundImage: NetworkImage(userInfo['photoURL']),
+                radius: 22,
+                backgroundImage: CachedNetworkImageProvider(userImg),
               ),
           SizedBox(width: 20),
           Expanded(
