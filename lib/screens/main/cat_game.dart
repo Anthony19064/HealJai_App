@@ -15,6 +15,9 @@ class CatGameScreen extends StatefulWidget {
 class _CatGameScreenState extends State<CatGameScreen> {
   // --- Page Controller to manage PageView ---
   late final PageController _pageController;
+  
+  // --- Random instance (reuse) ---
+  final Random _random = Random();
 
   // --- Game State ---
   int _score = 0;
@@ -44,18 +47,29 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-
-    // Corrected: Use FlameAudio.audioCache to load the sound
-    FlameAudio.audioCache.load('choptree.mp3');
+    _preloadAudio();
   }
 
-  /// Sets up or resets the Rive StateMachineController.
+  /// Pre-load audio ด้วย Flame Audio - ง่ายและเร็วมาก!
+  Future<void> _preloadAudio() async {
+    try {
+      // ⚠️ Flame Audio จะเพิ่ม 'assets/audio/' prefix ให้เอง
+      // ถ้าไฟล์อยู่ที่ assets/audio/choptree.mp3
+      // ใช้แค่ชื่อไฟล์เฉพาะ (ไม่ต้องใส่ audio/)
+      await FlameAudio.audioCache.load('choptree.mp3');
+      debugPrint('✅ Audio loaded successfully');
+    } catch (e) {
+      debugPrint('❌ Error preloading audio: $e');
+    }
+  }
+
+  /// Sets up the Rive StateMachineController (called once).
   void _setupRiveController() {
     if (_riveArtboard == null) return;
 
+    // ลบ controller เก่าถ้ามี
     if (_gameController != null) {
       _riveArtboard!.removeController(_gameController!);
-      _gameController!.dispose();
     }
 
     _gameController = StateMachineController.fromArtboard(
@@ -80,8 +94,8 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void _onTapGameScreen() {
     if (_isAnimating || _gameAnimationTrigger == null) return;
 
-    // This part is correct and does not need to change
-    FlameAudio.play('choptree.mp3');
+    // เล่นเสียงทันที
+    FlameAudio.play('choptree.mp3', volume: 0.8);
 
     const animationDuration = Duration(milliseconds: 400);
 
@@ -89,6 +103,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
       _isAnimating = true;
     });
 
+    // Fire trigger
     _gameAnimationTrigger!.fire();
 
     Future.delayed(animationDuration, () {
@@ -97,6 +112,8 @@ class _CatGameScreenState extends State<CatGameScreen> {
       setState(() {
         _isAnimating = false;
       });
+      // Reset controller เพื่อให้ trigger ทำงานได้อีกครั้ง
+      // นี่เป็นวิธีเดียวถ้า Rive state machine ไม่ auto-reset
       _setupRiveController();
     });
   }
@@ -105,8 +122,9 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void _addScore() {
     setState(() {
       _score++;
-      if (Random().nextInt(10) == 0) {
-        _coins += Random().nextInt(5) + 1;
+      // ใช้ _random instance เดียวกัน
+      if (_random.nextInt(10) == 0) {
+        _coins += _random.nextInt(5) + 1;
       }
     });
   }
@@ -115,8 +133,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
   void dispose() {
     _pageController.dispose();
     _gameController?.dispose();
-    // Corrected: Use FlameAudio.audioCache to clear the sound from cache
-    FlameAudio.audioCache.clear('choptree.mp3');
+    // Flame Audio จัดการ cleanup เองอัตโนมัติ - ไม่ต้อง clear
     super.dispose();
   }
 
@@ -361,7 +378,7 @@ class _CatGameScreenState extends State<CatGameScreen> {
                   );
                 },
                 icon: const Icon(Icons.leaderboard),
-                label: const Text("กลับหน้าหลัก"),
+                label: const Text("Leaderboard"),
               ),
             ),
           ],
