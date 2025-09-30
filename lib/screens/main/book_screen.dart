@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -34,7 +35,7 @@ class _BookScreenState extends State<BookScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -147,7 +148,7 @@ class _BookScreenState extends State<BookScreen>
                       TabBar(
                         controller: _tabController,
                         labelStyle: GoogleFonts.kanit(
-                          fontSize: 16,
+                          fontSize: 20,
                           fontWeight: FontWeight.w600,
                         ),
                         labelColor: Color(0xFF78B465),
@@ -156,7 +157,7 @@ class _BookScreenState extends State<BookScreen>
                         tabs: const [
                           Tab(text: "บทความ"),
                           Tab(text: "Quote"),
-                          Tab(text: "ที่บันทึกไว้"),
+                          // Tab(text: "ที่บันทึกไว้"),
                         ],
                       ),
                     ),
@@ -169,7 +170,7 @@ class _BookScreenState extends State<BookScreen>
                 // widget list ข้างใน
                 Article(),
                 quote(),
-                bookmark(),
+                // bookmark(),
               ],
             ),
           ),
@@ -188,24 +189,22 @@ class _BookScreenState extends State<BookScreen>
         height: 200,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.hardEdge,
-        child: Stack(
-          children: [
-            Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                color: Colors.grey[300],
-                width: double.infinity,
-                height: double.infinity,
+        child: CachedNetworkImage(
+          imageUrl: bookObj['slideImg']!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          placeholder:
+              (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  color: Colors.grey[300],
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
               ),
-            ),
-            Image.network(
-              bookObj['slideImg']!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          ],
+          errorWidget: (context, url, error) => Icon(Icons.error),
         ),
       ),
     );
@@ -216,7 +215,7 @@ class _BookScreenState extends State<BookScreen>
       duration: Duration(milliseconds: 500),
       child: GestureDetector(
         onTap: () {
-          context.push('/bookInfo', extra: bookObj);
+          context.push('/articleInfo', extra: bookObj);
         },
         child: Container(
           width: double.infinity,
@@ -255,32 +254,124 @@ class _BookScreenState extends State<BookScreen>
                 ),
               ),
               SizedBox(width: 10),
-              Stack(
-                children: [
-                  Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CachedNetworkImage(
+                    imageUrl: bookObj['ExImg']!,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.error, color: Colors.red),
+                        ),
                   ),
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        bookObj['ExImg']!,
-                        fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget quoteInfo(Map<String, dynamic> quoteObj) {
+    return ZoomIn(
+      duration: Duration(milliseconds: 500),
+      child: GestureDetector(
+        onTap: () {
+          context.push('/quoteInfo', extra: quoteObj);
+        },
+        child: Container(
+          width: double.infinity,
+          height: 120,
+          margin: EdgeInsets.only(top: 15),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      quoteObj['category']!,
+                      style: GoogleFonts.kanit(
+                        fontSize: 17,
+                        color: Color(0xFF464646),
+                        fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    SizedBox(height: 8),
+                    Text(
+                      quoteObj['description']!,
+                      style: GoogleFonts.kanit(
+                        fontSize: 14,
+                        color: Color(0xFF464646),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 20),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CachedNetworkImage(
+                    imageUrl: quoteObj['ExImg']!,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.error, color: Colors.red),
+                        ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -315,7 +406,7 @@ class _BookScreenState extends State<BookScreen>
             physics: NeverScrollableScrollPhysics(),
             itemCount: quoteLst.length,
             itemBuilder: (context, index) {
-              return cardInfo(quoteLst[index]);
+              return quoteInfo(quoteLst[index]);
             },
           ),
         ],
