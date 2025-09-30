@@ -68,6 +68,7 @@ dependencies:
   flame: ^1.11.0 
   toastification: ^3.0.3
   flame_audio: ^2.8.0
+  cached_network_image: ^3.4.1
 
   
 dev_dependencies:
