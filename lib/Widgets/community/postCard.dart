@@ -135,7 +135,7 @@ class _UserPostCardState extends State<UserPostCard>
     final userImg =
         userInfo['photoURL'].toString().trim().isNotEmpty
             ? userInfo['photoURL']
-            : "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/PostIMG%2F1757601646147.jpg?alt=media&token=c847c813-7b5c-496c-a1ee-958409a5858a";
+            : "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fprofile.png?alt=media&token=8cdff07d-64e1-4d02-b83d-af54648f52a0";
     final String postTxt = widget.post['infoPost'];
     final String postImg = widget.post['img'];
 
