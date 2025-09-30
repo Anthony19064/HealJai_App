@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/screens/main/set_ZERO.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:toastification/toastification.dart';
@@ -128,7 +129,7 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: CatGameScreen());
+            return NoTransitionPage(child: SetZero());
           },
         ),
         GoRoute(
