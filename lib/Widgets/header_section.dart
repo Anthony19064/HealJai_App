@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -81,31 +82,28 @@ class _HeaderSectionState extends State<HeaderSection> {
                   child: ClipOval(
                     child:
                         userInfo.userPhoto != null
-                            ? Image.network(
-                              userInfo.userPhoto!,
+                            ? CachedNetworkImage(
+                              imageUrl: userInfo.userPhoto!,
                               width: 55,
                               height: 55,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
-                                  child: Container(
+                              placeholder:
+                                  (context, url) => Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Container(
+                                      width: 55,
+                                      height: 55,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) => Image.asset(
+                                    'assets/images/profile.png',
                                     width: 55,
                                     height: 55,
-                                    color: Colors.white,
+                                    fit: BoxFit.cover,
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/profile.png',
-                                  width: 55,
-                                  height: 55,
-                                  fit: BoxFit.cover,
-                                );
-                              },
                             )
                             : Image.asset(
                               'assets/images/profile.png',

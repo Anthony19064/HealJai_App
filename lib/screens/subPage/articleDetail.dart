@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,43 +53,38 @@ class _ArticledetailState extends State<Articledetail> {
                         height: 270,
                         color: Colors.transparent,
                       ),
-                      Image.network(
-                        widget.data?['slideImg'] ?? '',
+                      CachedNetworkImage(
+                        imageUrl: widget.data?['slideImg'] ?? '',
                         width: double.infinity,
                         fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            // โหลดเสร็จแล้ว → แสดงรูปจริง
-                            return child;
-                          }
-                          // กำลังโหลด → แสดง shimmer
-                          return Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: Container(
+                        placeholder:
+                            (context, url) => Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                width: double.infinity,
+                                height: 270,
+                                color: Colors.grey[300],
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) => Container(
                               width: double.infinity,
                               height: 270,
-                              color: Colors.grey[300],
+                              color: Colors.grey[200],
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
                             ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          // ถ้าโหลดรูปไม่ได้
-                          return Container(
-                            width: double.infinity,
-                            height: 270,
-                            color: Colors.grey[200],
-                            child: Icon(Icons.broken_image, color: Colors.grey),
-                          );
-                        },
                       ),
                     ],
                   ),
                 ),
               ),
-               SizedBox(height: MediaQuery.of(context).size.height * 0.025),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.025),
               FadeIn(
-                duration: Duration(milliseconds: 1000),
+                duration: Duration(milliseconds: 800),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Column(
@@ -130,7 +126,8 @@ class _ArticledetailState extends State<Articledetail> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
-                        itemCount: widget.data?['info']['importanceInfo'].length,
+                        itemCount:
+                            widget.data?['info']['importanceInfo'].length,
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
@@ -190,7 +187,8 @@ class _ArticledetailState extends State<Articledetail> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
-                        itemCount: widget.data?['info']['techniquesInfo'].length,
+                        itemCount:
+                            widget.data?['info']['techniquesInfo'].length,
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),

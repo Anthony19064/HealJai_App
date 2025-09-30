@@ -2,12 +2,16 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/quote.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Quotedetail extends StatefulWidget {
-  final List<Map<String, String>>? data;
+  final Map<String, dynamic>? data;
   const Quotedetail({super.key, this.data});
 
   @override
@@ -18,14 +22,15 @@ class _QuotedetailState extends State<Quotedetail> with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   int activeIndex = 0;
   final player = AudioPlayer();
-  late List<Map<String, String>> quoteLst;
+  late List<Map<String, dynamic>> quoteLst = [];
   bool isMuted = true;
+  bool is_Loading = false;
 
   @override
   void initState() {
     super.initState();
+    widget.data?['type'] == 'bookmark' ? fetchQuoteBookmark() : fetchQuote(widget.data?['type']);
     // เข้าถึง widget.data ได้ใน initState
-    quoteLst = widget.data ?? [];
     WidgetsBinding.instance.addObserver(this);
     playBackgroundMusic();
   }
@@ -39,6 +44,31 @@ class _QuotedetailState extends State<Quotedetail> with WidgetsBindingObserver {
       // กลับมา foreground → เล่นต่อ
       player.resume();
     }
+  }
+
+  Future<void> fetchQuoteBookmark() async {
+    if (is_Loading) return;
+    setState(() {
+      is_Loading = true;
+    });
+    String userId = await getUserId();
+    final data = await getMyquoteBookmark(userId);
+    setState(() {
+      quoteLst = data;
+      is_Loading = false;
+    });
+  }
+
+  Future<void> fetchQuote(String type) async {
+    if (is_Loading) return;
+    setState(() {
+      is_Loading = true;
+    });
+    final data = await getQuote(type);
+    setState(() {
+      quoteLst = data;
+      is_Loading = false;
+    });
   }
 
   Future<void> playBackgroundMusic() async {
@@ -104,44 +134,69 @@ class _QuotedetailState extends State<Quotedetail> with WidgetsBindingObserver {
           child: Column(
             children: [
               Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: quoteLst.length,
-                  itemBuilder: (context, index) {
-                    final Map<String, String> quoteObg = quoteLst[index];
-                    return QuoteCard(
-                      quoteInfo: quoteObg['info']!,
-                      quoteImg: quoteObg['img']!,
-                    );
-                  },
-                  scrollDirection: Axis.horizontal, // ปัดซ้าย-ขวา
-                  onPageChanged: (index) {
-                    setState(() {
-                      activeIndex = index; // อัพเดต active dot
-                    });
-                  },
-                ),
+                child:
+                    is_Loading
+                        ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: SpinKitCircle(
+                            color: Color(0xFF78B465),
+                            size: 100.0,
+                          ),
+                        )
+                        : quoteLst.isNotEmpty
+                        ? PageView.builder(
+                          controller: _pageController,
+                          itemCount: quoteLst.length,
+                          itemBuilder: (context, index) {
+                            final Map<String, dynamic> quoteObg =
+                                quoteLst[index];
+                            return QuoteCard(
+                              key: PageStorageKey('quote_$index'),
+                              quoteInfo: quoteObg['info'] ?? '',
+                              quoteImg: quoteObg['img'] ?? '',
+                              quoteId: quoteObg['_id'] ?? '',
+                            );
+                          },
+                          scrollDirection: Axis.horizontal, // ปัดซ้าย-ขวา
+                          onPageChanged: (index) {
+                            setState(() {
+                              activeIndex = index; // อัพเดต active dot
+                            });
+                          },
+                        )
+                        : Center(
+                          child: Text(
+                            "ยังไม่มี Quote ที่บันทึกไว้",
+                            style: GoogleFonts.kanit(
+                              fontSize: 20,
+                              color: Color(0xFF464646),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
               ),
-              Center(
-                child: AnimatedSmoothIndicator(
-                  activeIndex: activeIndex,
-                  count: quoteLst.length,
-                  effect: ScrollingDotsEffect(
-                    activeDotColor: Color(0xFF78B465),
-                    dotColor: Colors.grey.shade300,
-                    dotHeight: 10,
-                    dotWidth: 10,
-                    maxVisibleDots: 9, // แสดงแค่ 10 dot รอบ active
-                  ),
-                  onDotClicked: (index) {
-                    _pageController.animateToPage(
-                      index,
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                ),
-              ),
+              quoteLst.isNotEmpty
+                  ? Center(
+                    child: AnimatedSmoothIndicator(
+                      activeIndex: activeIndex,
+                      count: quoteLst.length,
+                      effect: ScrollingDotsEffect(
+                        activeDotColor: Color(0xFF78B465),
+                        dotColor: Colors.grey.shade300,
+                        dotHeight: 10,
+                        dotWidth: 10,
+                        maxVisibleDots: 9, // แสดงแค่ 10 dot รอบ active
+                      ),
+                      onDotClicked: (index) {
+                        _pageController.animateToPage(
+                          index,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
+                  )
+                  : SizedBox.shrink(),
             ],
           ),
         ),
@@ -153,8 +208,14 @@ class _QuotedetailState extends State<Quotedetail> with WidgetsBindingObserver {
 class QuoteCard extends StatefulWidget {
   final String quoteInfo;
   final String quoteImg;
+  final String quoteId;
 
-  const QuoteCard({super.key, required this.quoteInfo, required this.quoteImg});
+  const QuoteCard({
+    super.key,
+    required this.quoteInfo,
+    required this.quoteImg,
+    required this.quoteId,
+  });
 
   @override
   State<QuoteCard> createState() => _QuoteCardState();
@@ -163,6 +224,61 @@ class QuoteCard extends StatefulWidget {
 class _QuoteCardState extends State<QuoteCard> {
   bool isFavorite = false;
   bool isBookmark = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // โหลดข้อมูลทั้งหมด
+    loadAllData();
+  }
+
+  Future<void> loadAllData() async {
+    await Future.wait([fetchStateQuoteLike(), fetchStateQuoteBookmark()]);
+  }
+
+  //ฟังก์ชั่นกดไลก์ Quote
+  Future<void> likeHandle() async {
+    if (!mounted) return;
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+
+    String userId = await getUserId();
+    await addQuoteLike(userId, widget.quoteId);
+  }
+
+  //ฟังก์ชั่นกดบันทึก Quote
+  Future<void> boomarkHandle() async {
+    if (!mounted) return;
+    setState(() {
+      isBookmark = !isBookmark;
+    });
+
+    String userId = await getUserId();
+    await addQuoteBookmark(userId, widget.quoteId);
+  }
+
+  // เรียกสถานะ Like ของ Quote
+  Future<void> fetchStateQuoteLike() async {
+    String userId = await getUserId();
+    final data = await getStateQuoteLike(userId, widget.quoteId);
+    final state = data['success'];
+    if (!mounted) return;
+    setState(() {
+      isFavorite = state;
+    });
+  }
+
+  // เรียกสถานะ Bookmark ของ Quote
+  Future<void> fetchStateQuoteBookmark() async {
+    String userId = await getUserId();
+    final data = await getStateQuoteBookmark(userId, widget.quoteId);
+    final state = data['success'];
+    if (!mounted) return;
+    setState(() {
+      isBookmark = state;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,8 +319,14 @@ class _QuoteCardState extends State<QuoteCard> {
                           fit: BoxFit.cover,
                           width: double.infinity,
                           placeholder:
-                              (context, url) => Center(
-                                child: CircularProgressIndicator(), // โหลดอยู่
+                              (context, url) => Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.grey[100]!,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 200, // ปรับความสูงตามต้องการ
+                                  color: Colors.grey[300],
+                                ),
                               ),
                           errorWidget:
                               (context, url, error) => Icon(Icons.error),
@@ -245,10 +367,8 @@ class _QuoteCardState extends State<QuoteCard> {
                               CircleAvatar(
                                 backgroundColor: Color(0xFFFFC9C9),
                                 child: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      isFavorite = !isFavorite;
-                                    });
+                                  onPressed: () async {
+                                    await likeHandle();
                                   },
                                   icon: Icon(
                                     isFavorite
@@ -264,9 +384,7 @@ class _QuoteCardState extends State<QuoteCard> {
                                 backgroundColor: Color(0xFFD5D0FF),
                                 child: IconButton(
                                   onPressed: () {
-                                    setState(() {
-                                      isBookmark = !isBookmark;
-                                    });
+                                    boomarkHandle();
                                   },
                                   icon: Icon(
                                     isBookmark

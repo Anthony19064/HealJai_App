@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -188,24 +189,22 @@ class _BookScreenState extends State<BookScreen>
         height: 200,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.hardEdge,
-        child: Stack(
-          children: [
-            Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                color: Colors.grey[300],
-                width: double.infinity,
-                height: double.infinity,
+        child: CachedNetworkImage(
+          imageUrl: bookObj['slideImg']!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          placeholder:
+              (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  color: Colors.grey[300],
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
               ),
-            ),
-            Image.network(
-              bookObj['slideImg']!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          ],
+          errorWidget: (context, url, error) => Icon(Icons.error),
         ),
       ),
     );
@@ -255,32 +254,39 @@ class _BookScreenState extends State<BookScreen>
                 ),
               ),
               SizedBox(width: 10),
-              Stack(
-                children: [
-                  Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CachedNetworkImage(
+                    imageUrl: bookObj['ExImg']!,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.error, color: Colors.red),
+                        ),
                   ),
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        bookObj['ExImg']!,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -288,12 +294,13 @@ class _BookScreenState extends State<BookScreen>
       ),
     );
   }
+
   Widget quoteInfo(Map<String, dynamic> quoteObj) {
     return ZoomIn(
       duration: Duration(milliseconds: 500),
       child: GestureDetector(
         onTap: () {
-          context.push('/quoteInfo', extra: quoteObj['quoteLst']);
+          context.push('/quoteInfo', extra: quoteObj);
         },
         child: Container(
           width: double.infinity,
@@ -332,32 +339,39 @@ class _BookScreenState extends State<BookScreen>
                 ),
               ),
               SizedBox(width: 20),
-              Stack(
-                children: [
-                  Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CachedNetworkImage(
+                    imageUrl: quoteObj['ExImg']!,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.error, color: Colors.red),
+                        ),
                   ),
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        quoteObj['ExImg']!,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),

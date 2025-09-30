@@ -167,7 +167,7 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/quoteInfo',
           pageBuilder: (context, state) {
-            final args = state.extra as List<Map<String, String>>?;
+            final args = state.extra as Map<String, dynamic>;
             return NoTransitionPage(child: Quotedetail(data: args));
           },
         ),

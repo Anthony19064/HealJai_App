@@ -110,12 +110,10 @@ List<Map<String, dynamic>> ArticleLst = [
 List<Map<String, dynamic>> quoteLst = [
   {
     "category": "ที่บันทึกไว้",
+    "type": "bookmark",
     "description": "Quote ต่างๆที่เธอบันทึกไว้ :)",
     "ExImg":
         "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fquote_04.jpg?alt=media&token=7f066f7d-5735-4ee8-aa62-ab8a6aae07b0",
-    "quoteLst": [
-      {"info": "", "img": ""},
-    ],
   },
   {
     "category": "กำลังใจ",
@@ -124,96 +122,6 @@ List<Map<String, dynamic>> quoteLst = [
         "ประโยคสั้นๆ ที่ช่วยเติมไฟ ให้กำลังใจ และพลังใจในวันที่เหนื่อย",
     "ExImg":
         "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fquote_01.jpg?alt=media&token=807f4fd3-5add-4fc5-bf18-26e29398a641",
-    "quoteLst": [
-      {
-        "type": "cheerup",
-        "info": "ความผิดพลาด คือ\nหลักฐานของความพยายาม",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_01.jpg?alt=media&token=a0abf4cc-dc4b-4430-83d0-9939ad62664c",
-      },
-      {
-        "type": "cheerup",
-        "info":
-            "นักวิ่งที่เก่งที่สุดไม่ใช่คนที่วิ่งเร็วที่สุด\nแต่เป็นคนที่วิ่งจนถึงเส้นชัย",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_02.jpg?alt=media&token=df8e8f15-3875-452d-b68c-668176c90d32",
-      },
-      {
-        "type": "cheerup",
-        "info":
-            "การก้าวไปข้างหน้า\nแม้แต่เพียงก้าวเดียว\nก็ดีกว่าหยุดอยู่กับที่",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_03.jpg?alt=media&token=1e9a8714-0614-4a59-ae80-72a98fe287e2",
-      },
-      {
-        "type": "cheerup",
-        "info":
-            "ความสำเร็จไม่ใช่\nเรื่องของโชคชะตา\nแต่เป็นเรื่องของความตั้งใจ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_04.jpg?alt=media&token=01078faf-90e1-46f1-94af-c09c7fae787e",
-      },
-      {
-        "type": "cheerup",
-        "info": "หากไร้วาสนา\nก็จงฝืนโชคชะตาจนกว่าจะได้มันมา",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_05.jpg?alt=media&token=bbc2ced8-8c10-41e7-9347-abdc6af66790",
-      },
-      {
-        "type": "cheerup",
-        "info": "ทุกความพยายามไม่เคยสูญเปล่า",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_06.jpg?alt=media&token=6b7aa51b-cac1-457f-8dcc-ebd228767c00",
-      },
-      {
-        "type": "cheerup",
-        "info": "หมดศรัทธากับอะไรก็ได้\nแต่อย่าหมดศรัทธาในตัวเองเลย",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_07.jpg?alt=media&token=e46c130a-9f1c-4952-9a49-acdf7ee3e2e9",
-      },
-      {
-        "type": "cheerup",
-        "info": "เป้าหมายอยู่ไม่ไกล\nตราบใดที่เธอยังไม่หยุดพยายาม",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_08.jpg?alt=media&token=a9a03b1d-5d00-4c61-a13d-4f5f8f6ee0b4",
-      },
-      {
-        "type": "cheerup",
-        "info": "คนที่เธอควรเชื่อใจมากที่สุด\nก็คือตัวเธอเอง",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_09.jpg?alt=media&token=b9bf355f-8db9-4c3b-8b90-f17a1a9e6eee",
-      },
-      {
-        "type": "cheerup",
-        "info": "เธอเก่งในแบบของเธอก็พอ\nไม่ต้องไปแข่งกับใคร",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_10.jpg?alt=media&token=e02923ae-39d9-46a9-bfc0-edc1971ba3b7",
-      },
-      {
-        "type": "cheerup",
-        "info": "ความฝันไม่ใช่เรื่องเพ้อเจ้อ\nมันคือความจริงที่เธอลงมือทำ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_11.jpg?alt=media&token=a1b3ff18-a896-42e3-ba55-3ba0c6828ec7",
-      },
-      {
-        "type": "cheerup",
-        "info":
-            "เริ่มต้นช้ากว่าคนอื่น\nไม่ได้หมายความว่า\nเธอจะช้ากว่าคนอื่นนะ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_12.jpg?alt=media&token=5f331a62-be52-43c0-b71b-0de1ab6073e0",
-      },
-      {
-        "type": "cheerup",
-        "info": "ดอกไม้ยังต้องใช้เวลาเพื่อผลิบาน ชีวิตเธอก็เหมือนกัน สู้ๆนะ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_13.jpg?alt=media&token=ed1026a8-10ce-4936-8612-3c89aaeb67dc",
-      },
-      {
-        "type": "cheerup",
-        "info":
-            "อย่าเอาความรู้สึกกลับไป\nใช้กับเรื่องราวในอดีต\nแค่เธอผ่านทุกอย่างมาได้\nก็เก่งมากแล้ว",
-        "img": "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2FquoteBg%2Fbg_quote_cheerup_14.jpg?alt=media&token=77aca704-21d8-4a27-a68a-33850d65530f",
-      },
-    ],
   },
   {
     "category": "ความสุขเล็กๆ",
@@ -222,40 +130,6 @@ List<Map<String, dynamic>> quoteLst = [
         "ประโยคสั้นๆ ที่ช่วยให้เราหยุดสังเกตและยิ้มกับเรื่องเล็กๆรอบตัว เติมความสุขง่ายๆ ในชีวิตประจำวัน",
     "ExImg":
         "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fquote_02.jpg?alt=media&token=7360eca0-28d0-462d-a444-74aff2242b83",
-    "quoteLst": [
-      {
-        "type": "happy",
-        "info": "การคิดมากเกินไปจะ\nทำลายความสุขของคุณ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "happy",
-        "info":
-            "ใช้ชีวิตให้มีความสุขในทุกวันก็พอแล้ว\nไม่ต้องคิดมากกับทุกเรื่องนะ",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "happy",
-        "info": "เรามีชีวิตเดียว จงใช้มันด้วยความสุขไม่ใช่ความทุกข์",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "happy",
-        "info": "อะไรที่เราทำแล้วมีความสุข สิ่งนั้นไม่เคยเป็นเรื่องเสียเวลา",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "happy",
-        "info":
-            "จงมีชีวิตอยู่เพื่ออนาคต อย่าเอาความรู้สึกกลับไปใช้กับเรื่องในอดีต",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-    ],
   },
   {
     "category": "ความรัก",
@@ -264,33 +138,6 @@ List<Map<String, dynamic>> quoteLst = [
         "ประโยคอบอุ่นหัวใจ สำหรับคนที่อยากรักหรือถูกรักโดยไม่ซับซ้อน",
     "ExImg":
         "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fquote_03.jpg?alt=media&token=ef1583ad-1096-4db2-9a15-596ba4f06cf2",
-    "quoteLst": [
-      {
-        "type": "love",
-        "info": "รักที่ดี คือ\nการรักตัวเองให้มากที่สุด",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "love",
-        "info": "การตกหลุมรักใครสักคน\nทำให้ฉันรู้สึกดีใจที่มีชีวิตอยู่",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "love",
-        "info":
-            "เธอไม่จำเป็นต้องสมบูรณ์แบบเพื่อให้ถูกรัก\nแค่เป็นตัวเธอแบบนี้ก็สมควรถูกรักแล้ว",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-      {
-        "type": "love",
-        "info": "ถ้าเธอชอบดอกไม้\nเธอจะรดน้ำหรือเด็ดมันขึ้นมา",
-        "img":
-            "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fbg_quote_love_01.jpg?alt=media&token=2a2f71aa-69e3-4148-8b89-00ef5d330c9b",
-      },
-    ],
   },
 ];
 List<Map<String, String>> bookmarkLst = [];
