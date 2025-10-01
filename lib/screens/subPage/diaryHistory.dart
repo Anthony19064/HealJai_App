@@ -36,7 +36,7 @@ class _DiaryhistoryState extends State<Diaryhistory> {
     "เฉยๆ": ["Normal", Color(0xFF878787)],
     "เศร้า": ["Sad", Color(0xFF86AFFC)],
     "กลัว": ["Scare", Color(0xFFCB9DF0)],
-    "โกธร": ["Angry", Color(0xFFEB4343)],
+    "โกรธ": ["Angry", Color(0xFFEB4343)],
   };
 
   @override

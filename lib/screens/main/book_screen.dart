@@ -182,7 +182,7 @@ class _BookScreenState extends State<BookScreen>
   Widget SlideContainer(Map<String, dynamic> bookObj) {
     return GestureDetector(
       onTap: () {
-        context.push('/bookInfo', extra: bookObj);
+        context.push('/articleInfo', extra: bookObj);
       },
       child: Container(
         width: double.infinity,
