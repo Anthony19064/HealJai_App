@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:math'; // เพิ่มสำหรับสร้างข้อมูล Leaderboard สุ่ม
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:healjai_project/providers/navProvider.dart';
+import 'package:healjai_project/service/authen.dart';
+import 'package:healjai_project/service/minigame.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:go_router/go_router.dart';
@@ -26,14 +31,11 @@ class _SetZeroState extends State<SetZero> {
   late final PageController _pageController;
 
   // --- Leaderboard Data ---
-  final Random _random = Random();
-  late final List<Map<String, dynamic>> _leaderboardData;
+  List<dynamic> _leaderboardData = [];
 
   // --- ตั้งค่าไฟล์ตรงนี้ ---
   static const String _riveFile =
       'assets/animations/rives/minigame_cutting1.riv'; // ใช้ไฟล์เดิม
-  static const String _leaderboardRiveFile =
-      'assets/animations/rives/leaderboard.riv'; // เพิ่มไฟล์ Leaderboard
   static const String _animationName = 'play';
   static const String _soundFile = 'choptree.mp3';
   Timer? _debounceTimer;
@@ -44,15 +46,35 @@ class _SetZeroState extends State<SetZero> {
     super.initState();
     _pageController = PageController();
     // สร้างข้อมูล Leaderboard แบบสุ่ม
-    _leaderboardData = List.generate(
-      50,
-      (index) => {
-        "name": "Player ${index + 1}",
-        "score": _random.nextInt(5000) + (50 - index) * 100,
-      },
-    )..sort((a, b) => b['score'].compareTo(a['score']));
 
     _loadResources();
+    fetchScore();
+    fetchLeaderBoard();
+  }
+
+  Future<void> fetchScore() async {
+    String userId = await getUserId();
+    final data = await getScore(userId);
+    Map<String, dynamic> info = data['data']!;
+    // print(data['rank']);
+    if(!mounted) return;
+    setState(() {
+      _score = info['score'];
+    });
+  }
+
+  Future<void> fetchLeaderBoard() async{
+    final data = await getLeaderBoard();
+    List<dynamic> info = data['data'];
+    if(!mounted) return;
+    setState(() {
+      _leaderboardData = info;
+    });
+  }
+
+  Future<void> handleScore(int newScore) async{
+    String userId = await getUserId();
+    await addScore(userId, newScore);
   }
 
   Future<void> _loadResources() async {
@@ -124,6 +146,13 @@ class _SetZeroState extends State<SetZero> {
 
     // เล่นแอนิเมชัน
     _animation?.isActive = true;
+
+    if (_debounceTimer?.isActive ?? false) {
+      _debounceTimer!.cancel();
+    }
+    _debounceTimer = Timer(_debounceDuration, () async{
+      await handleScore(_score);
+    });
   }
 
   // ----------------------------------------------------
@@ -132,6 +161,7 @@ class _SetZeroState extends State<SetZero> {
 
   Widget _buildLeaderboardPage() {
     final screenSize = MediaQuery.of(context).size;
+    final NavInfo = Provider.of<Navprovider>(context);
 
     // ตั้งค่าตำแหน่งสำหรับ Leaderboard data (อิงจากโค้ดเดิม)
     const double _xOffset = 0.63;
@@ -155,32 +185,29 @@ class _SetZeroState extends State<SetZero> {
           padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
           child: Row(
             children: [
-              Text(
-                "$rank.",
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              Expanded(
+                child: ZoomIn(
+                  duration: Duration(milliseconds: 500),
+                  child: Text(
+                    '$rank. ชื่อผู้เล่น',
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 14,
+                      fontWeight: fontWeight,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
+              ZoomIn(
+                duration: Duration(milliseconds: 500),
                 child: Text(
-                  player["name"],
+                  "${player["score"]}",
                   style: TextStyle(
                     color: color,
+                    fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    fontWeight: fontWeight,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                "${player["score"]}",
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
                 ),
               ),
             ],
@@ -191,65 +218,71 @@ class _SetZeroState extends State<SetZero> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF5C94FC),
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: screenSize.width,
-            height: screenSize.height,
-            child: RiveAnimation.asset(
-              'assets/animations/rives/leaderboard.riv',
-              fit: BoxFit.contain,
-            ),
-          ),
-          Positioned(
-            left: (_xOffset - (_widthRatio / 2)) * screenSize.width,
-            top: (_yOffset - (_heightRatio / 2)) * screenSize.height,
-            width: _widthRatio * screenSize.width,
-            height: _heightRatio * screenSize.height,
-            child: leaderboardContent,
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.go('/'),
+      body: ZoomIn(
+        duration: Duration(milliseconds: 500),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: screenSize.width,
+              height: screenSize.height,
+              child: RiveAnimation.asset(
+                'assets/animations/rives/leaderboard.riv',
+                fit: BoxFit.contain,
               ),
             ),
-          ),
-          Positioned(
-            bottom: 40,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.brown.shade800,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+            Positioned(
+              left: (_xOffset - (_widthRatio / 2)) * screenSize.width,
+              top: (_yOffset - (_heightRatio / 2)) * screenSize.height,
+              width: _widthRatio * screenSize.width,
+              height: _heightRatio * screenSize.height,
+              child: leaderboardContent,
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: (){
+                    context.go('/');
+                    NavInfo.resetHome();
+                  },
                 ),
               ),
-              onPressed: () {
-                _pageController.animateToPage(
-                  1,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                );
-              },
-              icon: const Icon(Icons.arrow_forward_ios),
-              label: const Text("ไปตัดไม้กันเถอะ"),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: 40,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.brown.shade800,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  _pageController.animateToPage(
+                    1,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                icon: const Icon(Icons.arrow_forward_ios),
+                label: const Text("ไปตัดไม้กันเถอะ"),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -258,6 +291,7 @@ class _SetZeroState extends State<SetZero> {
   // ----------------------------------------------------
 
   Widget _buildGamePage() {
+    
     return Scaffold(
       backgroundColor: const Color(0xFF5C94FC),
       body: SafeArea(
@@ -328,6 +362,7 @@ class _SetZeroState extends State<SetZero> {
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeInOut,
                   );
+                  fetchLeaderBoard();
                 },
                 icon: const Icon(Icons.leaderboard),
                 label: const Text("Leaderboard"),
@@ -342,6 +377,7 @@ class _SetZeroState extends State<SetZero> {
   // ----------------------------------------------------
   // --- เมธอด build หลักที่ใช้ PageView ---
   // ----------------------------------------------------
+  
   @override
   Widget build(BuildContext context) {
     // ใช้ PageView เพื่อสลับระหว่างสองหน้า
