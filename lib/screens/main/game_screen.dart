@@ -24,7 +24,7 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   Artboard? _artboard;
   OneShotAnimation? _animation;
   bool _isCooldown = false;
@@ -40,6 +40,8 @@ class _GameScreenState extends State<GameScreen> {
   final Duration _debounceDuration = const Duration(milliseconds: 3000);
   PageController _pageController = PageController();
   int currentPage = 0;
+  bool isMuted = true;
+  final player = AudioPlayer();
 
   @override
   void initState() {
@@ -48,6 +50,20 @@ class _GameScreenState extends State<GameScreen> {
     _loadResources();
     fetchScore();
     fetchLeaderBoard();
+
+    WidgetsBinding.instance.addObserver(this);
+    playBackgroundMusic();
+  }
+
+    @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // แอปปัดไป home → pause แทน stop
+      player.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      // กลับมา foreground → เล่นต่อ
+      player.resume();
+    }
   }
 
   Future<void> fetchScore() async {
@@ -123,10 +139,28 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> playBackgroundMusic() async {
+    await player.setReleaseMode(ReleaseMode.loop); // เล่นวน
+    await player.play(AssetSource('audio/quote_bg.mp3')); // ไฟล์ใน assets
+    await player.setVolume(0);
+  }
+
+  void toggleMute() {
+    setState(() {
+      if (isMuted) {
+        player.setVolume(1); // เปิดเสียง
+      } else {
+        player.setVolume(0); // mute
+      }
+      isMuted = !isMuted;
+    });
+  }
+
   @override
   void dispose() {
     _chopPool.dispose();
     _pageController.dispose();
+    player.dispose();
     super.dispose();
   }
 
@@ -178,6 +212,17 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isMuted ? Icons.music_off : Icons.music_note,
+              color: Color(0xFF78B465),
+            ),
+            onPressed: () {
+              toggleMute();
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -341,9 +386,7 @@ class _GameScreenState extends State<GameScreen> {
                       SizedBox(
                         width: 30,
                         height: 30,
-                        child: SvgPicture.asset(
-                          "assets/icons/wood.svg",
-                        ),
+                        child: SvgPicture.asset("assets/icons/wood.svg"),
                       ),
                       const SizedBox(width: 8),
                       Text(
