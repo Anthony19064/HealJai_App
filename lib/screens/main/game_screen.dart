@@ -33,11 +33,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   late AudioPool _chopPool;
   List<dynamic> _leaderboardData = [];
   static const String _riveFile =
-      'assets/animations/rives/minigame_cutting1.riv'; // ใช้ไฟล์เดิม
+      'assets/animations/rives/minigame_cutting.riv'; // ใช้ไฟล์เดิม
   static const String _animationName = 'play';
   static const String _soundFile = 'choptree.mp3';
   Timer? _debounceTimer;
-  final Duration _debounceDuration = const Duration(milliseconds: 3000);
+  final Duration _debounceDuration = const Duration(milliseconds: 1500);
   PageController _pageController = PageController();
   int currentPage = 0;
   bool isMuted = true;
@@ -231,13 +231,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
               flex: 9,
               child: PageView(
                 controller: _pageController,
-                onPageChanged: (index) {
+                onPageChanged: (index) async {
                   setState(() {
                     currentPage = index; // อัปเดตหน้าปัจจุบัน
                   });
 
                   if (currentPage == 1) {
-                    fetchLeaderBoard();
+                    await fetchLeaderBoard();
+                  }
+                  else if (currentPage == 0) {
+                    await fetchScore();
                   }
                 },
                 // ป้องกันการสไลด์ด้วยนิ้ว
