@@ -42,23 +42,11 @@ class SocketService {
         if (status == "ResetSuccess") {
           print('reset token แล้วค้าบบ');
           String? newToken = await getJWTAcessToken();
+          _socket.disconnect();
           _socket.io.options?['auth'] = {'token': newToken};
-          _socket.connect();
+          _isInitialized = false; // รีเซ็ตเพื่อให้ initSocket ทำงานใหม่
+          initSocket(context); // reconnect + register event handler ใหม่
         } else if (status == "Token expired") {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "เซสซันหมดอายุ กรุณาเข้าสู่ระบบใหม่ :(",
-                style: GoogleFonts.mali(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              backgroundColor: Color(0xFFFD7D7E),
-            ),
-          );
           router.go('/login');
         }
       }
@@ -128,8 +116,13 @@ class SocketService {
   }
 
   //จับคู่แชท
-  void matchChat(String role) {
-    _socket.emit('register', role);
+  Future<void> matchChat(String role) async {
+    await waitUntilConnected(); // รอจน socket connect
+    if (_socket.connected) {
+      _socket.emit('register', role);
+    } else {
+      print("❌ Socket ยังไม่ connect");
+    }
   }
 
   //ยกเลิกจับคู่
@@ -140,6 +133,10 @@ class SocketService {
   //จบบทสนทนา
   void endChat() {
     _socket.emit('endChat');
+  }
+
+  void resetInitialization() {
+    _isInitialized = false;
   }
 
   bool get isConnected => _socket.connected; // ✅ เช็คว่าเชื่อมแล้วไหม
