@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:healjai_project/service/token.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:healjai_project/service/socket.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 String apiURL = dotenv.env['BE_API_URL'] ?? '';
@@ -70,6 +71,10 @@ Future<void> logout() async {
   );
   final data = jsonDecode(response.body);
   if (data['success'] == true) {
+    final socket = SocketService();
+    socket.dispose();
+    socket.resetInitialization();
+    
     await clearUserLocal(); // clear local
     await deleteJWTAcessToken();
     deleteJWTRefreshToken();

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -17,6 +18,14 @@ import 'package:rive/rive.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+class _FloatingText {
+  final Key id;
+  final String text;
+  final Offset position;
+
+  _FloatingText({required this.id, required this.text, required this.position});
+}
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
@@ -24,24 +33,35 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Artboard? _artboard;
   OneShotAnimation? _animation;
   bool _isCooldown = false;
   int _score = 0;
   bool _isLoading = true;
   late AudioPool _chopPool;
+  late AudioPool _criticalPool;
   List<dynamic> _leaderboardData = [];
-  static const String _riveFile =
-      'assets/animations/rives/minigame_cutting.riv'; // ใช้ไฟล์เดิม
-  static const String _animationName = 'play';
-  static const String _soundFile = 'choptree.mp3';
   Timer? _debounceTimer;
-  final Duration _debounceDuration = const Duration(milliseconds: 1500);
   PageController _pageController = PageController();
   int currentPage = 0;
   bool isMuted = true;
   final player = AudioPlayer();
+
+  List<_FloatingText> _floatingTexts = [];
+
+  void _showFloatingText(String text, Offset position) {
+    final id = UniqueKey();
+    final floatingText = _FloatingText(id: id, text: text, position: position);
+    setState(() => _floatingTexts.add(floatingText));
+
+    // ให้มันค่อยๆ จางหายภายใน 1.2 วิ
+    Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        setState(() => _floatingTexts.removeWhere((t) => t.id == id));
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -55,7 +75,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
     playBackgroundMusic();
   }
 
-    @override
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       // แอปปัดไป home → pause แทน stop
@@ -94,19 +114,27 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   Future<void> _loadResources() async {
     // 1. สร้าง Audio Pool เตรียมไว้
     _chopPool = await FlameAudio.createPool(
-      _soundFile,
+      "choptree.mp3",
       minPlayers: 5,
       maxPlayers: 8,
     );
 
+    _criticalPool = await FlameAudio.createPool(
+      "criticalSound.WAV",
+      minPlayers: 1,
+      maxPlayers: 3,
+    );
+
     // 2. โหลดไฟล์ Rive และตั้งค่า OneShotAnimation
     try {
-      final data = await rootBundle.load(_riveFile);
+      final data = await rootBundle.load(
+        'assets/animations/rives/minigame_cutting.riv',
+      );
       final file = RiveFile.import(data);
       final artboard = file.mainArtboard;
 
       final animation = OneShotAnimation(
-        _animationName,
+        "play",
         autoplay: false,
         onStop: () {
           // เมื่อแอนิเมชันเล่นจบ ให้ปลด Cooldown
@@ -159,6 +187,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   @override
   void dispose() {
     _chopPool.dispose();
+    _criticalPool.dispose();
     _pageController.dispose();
     player.dispose();
     super.dispose();
@@ -167,22 +196,44 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   void _onTapScreen() {
     // ไม่ทำงานถ้ายังโหลดไม่เสร็จ หรือยังอยู่ใน Cooldown
     if (_isLoading || _isCooldown) return;
+    final random = Random();
+    double chance = random.nextDouble();
+    int point = 1;
+
+    if (chance < 0.05) {
+      point = 5;
+      print('ติดคริว่ะ');
+      _criticalPool.start(); // 🔥 เล่นเสียงคริ
+    } else if (chance < 0.10) {
+      point = 3;
+      print('ติดคริว่ะ');
+      _criticalPool.start(); // 🔥 เล่นเสียงคริ
+    } else {
+      _chopPool.start(); // เสียงตัดไม้ปกติ
+    }
 
     setState(() {
       _isCooldown = true; // เริ่ม Cooldown
-      _score++;
+      _score += point;
     });
-
-    // เล่นเสียงจาก Pool
-    _chopPool.start();
 
     // เล่นแอนิเมชัน
     _animation?.isActive = true;
 
+    String text = "+${point}";
+
+    // ✅ กลางซ้ายของจอ
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    _showFloatingText(
+      text,
+      Offset(80, screenHeight / 2 - 200), // ซ้าย 50px, กลางจอในแนวตั้ง
+    );
+
     if (_debounceTimer?.isActive ?? false) {
       _debounceTimer!.cancel();
     }
-    _debounceTimer = Timer(_debounceDuration, () async {
+    _debounceTimer = Timer(Duration(milliseconds: 1500), () async {
       await handleScore(_score);
     });
   }
@@ -238,8 +289,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
 
                   if (currentPage == 1) {
                     await fetchLeaderBoard();
-                  }
-                  else if (currentPage == 0) {
+                  } else if (currentPage == 0) {
                     await fetchScore();
                   }
                 },
@@ -405,22 +455,67 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
                 ),
               ),
             ),
+
             // --- ส่วนแอนิเมชัน ---
             Expanded(
-              child: ZoomIn(
-                duration: Duration(milliseconds: 500),
-                child:
-                    _isLoading
-                        ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF78B465),
-                          ),
-                        )
-                        : Rive(artboard: _artboard!, fit: BoxFit.contain),
+              child: Stack(
+                children: [
+                  // Rive Animation (อยู่ด้านล่าง)
+                  ZoomIn(
+                    duration: Duration(milliseconds: 500),
+                    child:
+                        _isLoading
+                            ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF78B465),
+                              ),
+                            )
+                            : Rive(artboard: _artboard!, fit: BoxFit.contain),
+                  ),
+
+                  // Floating Texts (อยู่ด้านบน)
+                  ..._floatingTexts.map((t) {
+                    return Positioned(
+                      key: t.id,
+                      left: t.position.dx,
+                      top: t.position.dy,
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey(t.id),
+                        tween: Tween(begin: 1.0, end: 0.0),
+                        duration: const Duration(milliseconds: 2500),
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, -200 * (1 - value)),
+                              child: Text(
+                                t.text,
+                                style: GoogleFonts.kanit(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      t.text == "+5"
+                                          ? Colors.redAccent.withOpacity(value)
+                                          : t.text == "+3"?
+                                          Colors.orangeAccent.withOpacity(
+                                            value,
+                                          ) : Colors.black.withOpacity(
+                                            value,
+                                          )
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
             ),
+
             Text(
-              "แตะเพื่อตัดต้นไม้และเก็บคะแนน\nใครคะแนนสูงสุดมีรางวัลพิเศษ !!",
+              "แตะเพื่อตัดต้นไม้และเก็บคะแนน\nใครคะแนนสุดมีรางวัลพิเศษ !!",
               style: GoogleFonts.kanit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
