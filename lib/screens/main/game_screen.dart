@@ -514,7 +514,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ),
 
             Text(
-              "แตะเพื่อตัดต้นไม้และเก็บคะแนน\nใครเก็บคะแนนได้สูงสุดมีรางวัลพิเศษ !!",
+              "แตะเพื่อตัดต้นไม้และเก็บคะแนน\nใครคะแนนสูงสุดมีรางวัลพิเศษ !!",
               style: GoogleFonts.kanit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
