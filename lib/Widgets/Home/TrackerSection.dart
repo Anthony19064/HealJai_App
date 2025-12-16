@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/TrackerProvider.dart';
+import 'package:healjai_project/service/notification.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
@@ -107,7 +108,7 @@ class _TreeSectionState extends State<TreeSection> {
               ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.020),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async{
               context.push('/diaryHistory');
             },
             style: ElevatedButton.styleFrom(
