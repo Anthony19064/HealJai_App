@@ -1,29 +1,33 @@
 import 'dart:async';
 import 'dart:math';
-
-import 'package:animate_do/animate_do.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:healjai_project/providers/navProvider.dart';
-import 'package:healjai_project/service/account.dart';
-import 'package:healjai_project/service/authen.dart';
-import 'package:healjai_project/service/minigame.dart';
-import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class _FloatingText {
+// โมเดลตัวเลขลอยขึ้นพร้อมเก็บข้อมูลสี
+class FloatingCoin {
   final Key id;
-  final String text;
-  final Offset position;
+  final int amount;
+  final double x;
+  final double y;
+  final Color color; // เพิ่มตัวแปรเก็บสี
+  FloatingCoin({required this.id, required this.amount, required this.x, required this.y, required this.color});
+}
 
-  _FloatingText({required this.id, required this.text, required this.position});
+class LevelConfig {
+  final int levelNumber;
+  final int targetScore;
+  final int maxMoves;
+  LevelConfig({required this.levelNumber, required this.targetScore, required this.maxMoves});
+}
+
+class CandyModel {
+  final int id;
+  int type; 
+  int row;
+  int col;
+  CandyModel({required this.id, required this.type, required this.row, required this.col});
 }
 
 class GameScreen extends StatefulWidget {
@@ -33,625 +37,475 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
-  Artboard? _artboard;
-  OneShotAnimation? _animation;
-  bool _isCooldown = false;
+class _GameScreenState extends State<GameScreen> {
+  final int gridSize = 6; 
+  List<CandyModel> candies = [];
+  List<FloatingCoin> _floatingCoins = [];
+  int _nextId = 0;
+  bool _isProcessing = false;
+  Offset? _dragStartPos;
+  
   int _score = 0;
+  int _starCoins = 100; 
+  int _movesLeft = 0;
+  int _currentLevel = 1;
+  late LevelConfig _levelData;
+
+  String? _activeSkill;
+  final Map<String, int> _skillPrices = {'hammer': 50, 'bomb': 100, 'rocket': 80};
+
+  final List<LevelConfig> _levels = [
+    LevelConfig(levelNumber: 1, targetScore: 300, maxMoves: 20),
+    LevelConfig(levelNumber: 2, targetScore: 800, maxMoves: 15),
+    LevelConfig(levelNumber: 3, targetScore: 1500, maxMoves: 12),
+  ];
+
   bool _isLoading = true;
-  late AudioPool _chopPool;
-  late AudioPool _criticalPool;
-  List<dynamic> _leaderboardData = [];
-  Timer? _debounceTimer;
-  PageController _pageController = PageController();
-  int currentPage = 0;
-  bool isMuted = true;
-  final player = AudioPlayer();
-
-  List<_FloatingText> _floatingTexts = [];
-
-  void _showFloatingText(String text, Offset position) {
-    final id = UniqueKey();
-    final floatingText = _FloatingText(id: id, text: text, position: position);
-    setState(() => _floatingTexts.add(floatingText));
-
-    // ให้มันค่อยๆ จางหายภายใน 1.2 วิ
-    Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        setState(() => _floatingTexts.removeWhere((t) => t.id == id));
-      }
-    });
-  }
+  late AudioPool _matchPool;
+  late AudioPool _swapPool;
 
   @override
   void initState() {
     super.initState();
-
-    _loadResources();
-    fetchScore();
-    fetchLeaderBoard();
-
-    WidgetsBinding.instance.addObserver(this);
-    playBackgroundMusic();
+    _setupLevel(_currentLevel);
+    _loadResources().then((_) => _initGame());
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // แอปปัดไป home → pause แทน stop
-      player.pause();
-    } else if (state == AppLifecycleState.resumed) {
-      // กลับมา foreground → เล่นต่อ
-      player.resume();
-    }
-  }
-
-  Future<void> fetchScore() async {
-    String userId = await getUserId();
-    final data = await getScore(userId);
-    Map<String, dynamic> info = data['data']!;
-    // print(data['rank']);
-    if (!mounted) return;
-    setState(() {
-      _score = info['score'];
-    });
-  }
-
-  Future<void> fetchLeaderBoard() async {
-    final data = await getLeaderBoard();
-    List<dynamic> info = data['data'];
-    if (!mounted) return;
-    setState(() {
-      _leaderboardData = info;
-    });
-  }
-
-  Future<void> handleScore(int newScore) async {
-    String userId = await getUserId();
-    await addScore(userId, newScore);
+  void _setupLevel(int lv) {
+    _levelData = _levels.firstWhere((l) => l.levelNumber == lv, 
+        orElse: () => LevelConfig(levelNumber: lv, targetScore: lv * 1000, maxMoves: 10));
+    _score = 0;
+    _movesLeft = _levelData.maxMoves;
   }
 
   Future<void> _loadResources() async {
-    // 1. สร้าง Audio Pool เตรียมไว้
-    _chopPool = await FlameAudio.createPool(
-      "choptree.mp3",
-      minPlayers: 5,
-      maxPlayers: 8,
-    );
-
-    _criticalPool = await FlameAudio.createPool(
-      "criticalSound.WAV",
-      minPlayers: 1,
-      maxPlayers: 3,
-    );
-
-    // 2. โหลดไฟล์ Rive และตั้งค่า OneShotAnimation
     try {
-      final data = await rootBundle.load(
-        'assets/animations/rives/minigame_cutting.riv',
-      );
-      final file = RiveFile.import(data);
-      final artboard = file.mainArtboard;
+      _matchPool = await FlameAudio.createPool("choptree.mp3", minPlayers: 3, maxPlayers: 5);
+      _swapPool = await FlameAudio.createPool("criticalSound.WAV", minPlayers: 1, maxPlayers: 2);
+    } catch(e) { debugPrint("Audio error: $e"); }
+    setState(() => _isLoading = false);
+  }
 
-      final animation = OneShotAnimation(
-        "play",
-        autoplay: false,
-        onStop: () {
-          // เมื่อแอนิเมชันเล่นจบ ให้ปลด Cooldown
-          if (mounted) {
-            setState(() {
-              _isCooldown = false;
-            });
-          }
-        },
-      );
+  void _initGame() {
+    candies.clear();
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) { _addNewCandy(r, c); }
+    }
+    _ensureNoInitialMatches();
+    if (!_hasPossibleMoves()) _shuffleBoard(silent: true);
+    setState(() {});
+  }
 
-      artboard.addController(animation);
+  void _addNewCandy(int r, int c) {
+    candies.add(CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c));
+  }
 
-      // เมื่อโหลดทุกอย่างเสร็จแล้ว ให้อัปเดต UI
-      if (mounted) {
-        setState(() {
-          _artboard = artboard;
-          _animation = animation;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      // จัดการข้อผิดพลาดในการโหลดไฟล์ Rive
-      print('Error loading Rive file: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+  String _getAnimationName(int type) {
+    switch (type) {
+      case 1: return 'Wow'; case 2: return 'Love'; case 3: return 'Happy'; 
+      case 4: return 'Normal'; case 5: return 'Sad'; case 6: return 'Scare'; case 7: return 'Angry';
+      default: return 'Normal';
     }
   }
 
-  Future<void> playBackgroundMusic() async {
-    await player.setReleaseMode(ReleaseMode.loop); // เล่นวน
-    await player.play(AssetSource('audio/quote_bg.mp3')); // ไฟล์ใน assets
-    await player.setVolume(0);
+  // กำหนดสีตัวเลขให้ตรงตามอารมณ์
+  Color _getMoodColor(int type) {
+    switch (type) {
+      case 1: return const Color(0xFFF29C41); // Wow (ประหลาดใจ)
+      case 2: return const Color(0xFFFF9B9B); // Love (มีความรัก)
+      case 3: return const Color(0xFFFFCC00); // Happy (มีความสุข)
+      case 4: return const Color(0xFF878787); // Normal (เฉยๆ)
+      case 5: return const Color(0xFF86AFFC); // Sad (เศร้า)
+      case 6: return const Color(0xFFCB9DF0); // Scare (กลัว)
+      case 7: return const Color(0xFFEB4343); // Angry (โกรธ)
+      default: return Colors.black;
+    }
   }
 
-  void toggleMute() {
+  int _getCoinReward(int type) {
+    if (type >= 1 && type <= 3) return 4; 
+    return 1; 
+  }
+
+  void _showCoinPop(int amount, int type, int row, int col, double cellSize) {
+    final id = UniqueKey();
     setState(() {
-      if (isMuted) {
-        player.setVolume(1); // เปิดเสียง
-      } else {
-        player.setVolume(0); // mute
+      _floatingCoins.add(FloatingCoin(
+        id: id,
+        amount: amount,
+        x: col * cellSize + (cellSize / 4),
+        y: row * cellSize,
+        color: _getMoodColor(type), // ส่งสีตามประเภทอารมณ์ไป
+      ));
+    });
+
+    Timer(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
       }
-      isMuted = !isMuted;
     });
   }
 
-  @override
-  void dispose() {
-    _chopPool.dispose();
-    _criticalPool.dispose();
-    _pageController.dispose();
-    player.dispose();
-    super.dispose();
+  void _ensureNoInitialMatches() {
+    bool hasMatch;
+    do {
+      hasMatch = false;
+      for (var candy in candies) {
+        if (_checkMatchAt(candy.row, candy.col)) {
+          candy.type = Random().nextInt(7) + 1;
+          hasMatch = true;
+        }
+      }
+    } while (hasMatch);
   }
 
-  void _onTapScreen() {
-    // ไม่ทำงานถ้ายังโหลดไม่เสร็จ หรือยังอยู่ใน Cooldown
-    if (_isLoading || _isCooldown) return;
-    final random = Random();
-    double chance = random.nextDouble();
-    int point = 1;
+  CandyModel? _getCandyAt(int r, int c) {
+    try { return candies.firstWhere((e) => e.row == r && e.col == c); } catch (e) { return null; }
+  }
 
-    if (chance < 0.05) {
-      point = 5;
-      print('ติดคริว่ะ');
-      _criticalPool.start(); // 🔥 เล่นเสียงคริ
-    } else if (chance < 0.10) {
-      point = 3;
-      print('ติดคริว่ะ');
-      _criticalPool.start(); // 🔥 เล่นเสียงคริ
+  bool _checkMatchAt(int r, int c) {
+    var candy = _getCandyAt(r, c);
+    if (candy == null) return false;
+    int hCount = 1 + _countSameType(r, c, 0, 1) + _countSameType(r, c, 0, -1);
+    int vCount = 1 + _countSameType(r, c, 1, 0) + _countSameType(r, c, -1, 0);
+    return hCount >= 3 || vCount >= 3;
+  }
+
+  int _countSameType(int r, int c, int dr, int dc) {
+    var base = _getCandyAt(r, c);
+    if (base == null) return 0;
+    int count = 0, currR = r + dr, currC = c + dc;
+    while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
+      var next = _getCandyAt(currR, currC);
+      if (next != null && next.type == base.type) { count++; currR += dr; currC += dc; }
+      else break;
+    }
+    return count;
+  }
+
+  bool _hasPossibleMoves() {
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) {
+        if (c < gridSize - 1 && _wouldMatchIfSwapped(r, c, r, c + 1)) return true;
+        if (r < gridSize - 1 && _wouldMatchIfSwapped(r, c, r + 1, c)) return true;
+      }
+    }
+    return false;
+  }
+
+  bool _wouldMatchIfSwapped(int r1, int c1, int r2, int c2) {
+    var c1Obj = _getCandyAt(r1, c1);
+    var c2Obj = _getCandyAt(r2, c2);
+    if (c1Obj == null || c2Obj == null) return false;
+    int temp = c1Obj.type;
+    c1Obj.type = c2Obj.type;
+    c2Obj.type = temp;
+    bool match = _checkMatchAt(r1, c1) || _checkMatchAt(r2, c2);
+    c2Obj.type = c1Obj.type;
+    c1Obj.type = temp;
+    return match;
+  }
+
+  void _shuffleBoard({bool silent = false}) {
+    if (!silent && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ทางตัน! สลับตารางใหม่อัตโนมัติ")));
+    }
+    do {
+      for (var candy in candies) { candy.type = Random().nextInt(7) + 1; }
+      _ensureNoInitialMatches();
+    } while (!_hasPossibleMoves());
+    setState(() {});
+  }
+
+  void _useSkill(int r, int c, double cellSize) async {
+    if (_isProcessing || _activeSkill == null) return;
+    _isProcessing = true;
+    int price = _skillPrices[_activeSkill!]!;
+    if (_starCoins < price) { _activeSkill = null; _isProcessing = false; setState(() {}); return; }
+
+    Set<CandyModel> toRemove = {};
+    if (_activeSkill == 'hammer') {
+      var target = _getCandyAt(r, c); if (target != null) toRemove.add(target);
+    } else if (_activeSkill == 'bomb') {
+      for (int i = r - 1; i <= r + 1; i++) {
+        for (int j = c - 1; j <= c + 1; j++) {
+          var target = _getCandyAt(i, j); if (target != null) toRemove.add(target);
+        }
+      }
+    } else if (_activeSkill == 'rocket') {
+      for (int j = 0; j < gridSize; j++) {
+        var target = _getCandyAt(r, j); if (target != null) toRemove.add(target);
+      }
+    }
+
+    if (toRemove.isNotEmpty) {
+      setState(() {
+        _starCoins -= price;
+        for (var candy in toRemove) {
+          int reward = _getCoinReward(candy.type);
+          _score += 10;
+          _starCoins += reward;
+          _showCoinPop(reward, candy.type, candy.row, candy.col, cellSize); 
+        }
+        candies.removeWhere((c) => toRemove.contains(c));
+        _activeSkill = null; 
+      });
+      _matchPool.start();
+      await Future.delayed(const Duration(milliseconds: 300));
+      _fillGaps();
+      await _processMatches(cellSize); 
+    }
+    _isProcessing = false;
+  }
+
+  void _handleSwipe(CandyModel candy, Offset globalPos, double cellSize) {
+    if (_dragStartPos == null || _isProcessing || _movesLeft <= 0 || _activeSkill != null) return;
+    final dx = globalPos.dx - _dragStartPos!.dx;
+    final dy = globalPos.dy - _dragStartPos!.dy;
+    if (dx.abs() > 30 || dy.abs() > 30) {
+      int tR = candy.row, tC = candy.col;
+      if (dx.abs() > dy.abs()) { tC = (dx > 0) ? candy.col + 1 : candy.col - 1; }
+      else { tR = (dy > 0) ? candy.row + 1 : candy.row - 1; }
+      if (tR >= 0 && tR < gridSize && tC >= 0 && tC < gridSize) _attemptSwap(candy, tR, tC, cellSize);
+      _dragStartPos = null;
+    }
+  }
+
+  Future<void> _attemptSwap(CandyModel c1, int tR, int tC, double cellSize) async {
+    _isProcessing = true;
+    var c2 = _getCandyAt(tR, tC)!;
+    _swapPos(c1, c2); _swapPool.start();
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (_hasAnyMatch()) {
+      setState(() { _movesLeft--; _starCoins += 2; });
+      await _processMatches(cellSize);
+      if (!_hasPossibleMoves() && _movesLeft > 0) _shuffleBoard();
+      _checkGameStatus();
     } else {
-      _chopPool.start(); // เสียงตัดไม้ปกติ
+      _swapPos(c1, c2);
+      await Future.delayed(const Duration(milliseconds: 350));
     }
+    _isProcessing = false;
+  }
 
+  void _swapPos(CandyModel c1, CandyModel c2) {
     setState(() {
-      _isCooldown = true; // เริ่ม Cooldown
-      _score += point;
+      int tr = c1.row, tc = c1.col;
+      c1.row = c2.row; c1.col = c2.col;
+      c2.row = tr; c2.col = tc;
     });
+  }
 
-    // เล่นแอนิเมชัน
-    _animation?.isActive = true;
-
-    String text = "+${point}";
-
-    // ✅ กลางซ้ายของจอ
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    _showFloatingText(
-      text,
-      Offset(80, screenHeight / 2 - 200), // ซ้าย 50px, กลางจอในแนวตั้ง
-    );
-
-    if (_debounceTimer?.isActive ?? false) {
-      _debounceTimer!.cancel();
+  bool _hasAnyMatch() {
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) { if (_checkMatchAt(r, c)) return true; }
     }
-    _debounceTimer = Timer(Duration(milliseconds: 1500), () async {
-      await handleScore(_score);
+    return false;
+  }
+
+  Future<void> _processMatches(double cellSize) async {
+    while (_hasAnyMatch()) {
+      Set<CandyModel> toRemove = {};
+      for (int r = 0; r < gridSize; r++) {
+        for (int c = 0; c < gridSize; c++) {
+          var candy = _getCandyAt(r, c); if (candy == null) continue;
+          var rowMatch = _getMatchList(r, c, 0, 1); if (rowMatch.length >= 3) toRemove.addAll(rowMatch);
+          var colMatch = _getMatchList(r, c, 1, 0); if (colMatch.length >= 3) toRemove.addAll(colMatch);
+        }
+      }
+      setState(() {
+        for (var c in toRemove) {
+          int reward = _getCoinReward(c.type);
+          _score += 10;
+          _starCoins += reward;
+          _showCoinPop(reward, c.type, c.row, c.col, cellSize); 
+        }
+        candies.removeWhere((c) => toRemove.contains(c));
+      });
+      _matchPool.start();
+      await Future.delayed(const Duration(milliseconds: 300));
+      _fillGaps();
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  List<CandyModel> _getMatchList(int r, int c, int dr, int dc) {
+    var candy = _getCandyAt(r, c); if (candy == null) return [];
+    List<CandyModel> match = [candy];
+    int currR = r + dr, currC = c + dc;
+    while (currR < gridSize && currC < gridSize) {
+      var next = _getCandyAt(currR, currC);
+      if (next != null && next.type == candy.type) { match.add(next); currR += dr; currC += dc; }
+      else break;
+    }
+    return match;
+  }
+
+  void _fillGaps() {
+    setState(() {
+      for (int c = 0; c < gridSize; c++) {
+        int empty = 0;
+        for (int r = gridSize - 1; r >= 0; r--) {
+          var candy = _getCandyAt(r, c);
+          if (candy == null) empty++;
+          else if (empty > 0) candy.row += empty;
+        }
+        for (int i = 0; i < empty; i++) _addNewCandy(i, c);
+      }
     });
+  }
+
+  void _checkGameStatus() {
+    if (_score >= _levelData.targetScore) {
+      _showEndDialog("ยอดเยี่ยม!", "ผ่านด่านที่ $_currentLevel", true);
+    } else if (_movesLeft <= 0) {
+      _showEndDialog("เสียดายจัง", "จำนวนครั้งที่เดินหมดแล้ว", false);
+    }
+  }
+
+  void _showEndDialog(String title, String msg, bool isWin) {
+    showDialog(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(
+      title: Text(title, style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
+      content: Text(msg, style: GoogleFonts.kanit()),
+      actions: [TextButton(onPressed: () {
+        Navigator.pop(ctx);
+        if (isWin) setState(() => _currentLevel++);
+        _setupLevel(_currentLevel); _initGame();
+      }, child: Text(isWin ? "ด่านต่อไป" : "ลองใหม่", style: GoogleFonts.kanit()))],
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final NavInfo = Provider.of<Navprovider>(context);
     return Scaffold(
-      backgroundColor: Color(0xFFFFF7EB),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            context.go('/');
-            NavInfo.resetHome();
-          },
-        ),
-        title: Text(
-          currentPage == 0 ? 'มินิเกม' : 'จัดอันดับ',
-          style: GoogleFonts.kanit(
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF78B465),
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              isMuted ? Icons.music_off : Icons.music_note,
-              color: Color(0xFF78B465),
-            ),
-            onPressed: () {
-              toggleMute();
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 9,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (index) async {
-                  setState(() {
-                    currentPage = index; // อัปเดตหน้าปัจจุบัน
-                  });
-
-                  if (currentPage == 1) {
-                    await fetchLeaderBoard();
-                  } else if (currentPage == 0) {
-                    await fetchScore();
-                  }
-                },
-                // ป้องกันการสไลด์ด้วยนิ้ว
-                // physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildGamePage(), // หน้า 1: Game
-                  _buildLeaderboardPage(), // หน้า 0: Leaderboard
-                ],
-              ),
-            ),
-            Expanded(
-              child: AnimatedSmoothIndicator(
-                activeIndex: currentPage,
-                count: 2,
-                effect: WormEffect(
-                  dotHeight: 12,
-                  dotWidth: 12,
-                  activeDotColor: const Color(0xFF78B465),
-                  dotColor: Colors.grey.shade300,
-                ),
-                onDotClicked: (index) {
-                  _pageController.animateToPage(
-                    index,
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFFFDF5E6),
+      body: SafeArea(child: Column(children: [
+        const SizedBox(height: 10),
+        _buildUpperInfo(),
+        _buildStatusPanel(),
+        _buildSkillButtons(),
+        const SizedBox(height: 10),
+        Expanded(child: _buildPlayArea()),
+        const SizedBox(height: 20),
+      ])),
     );
   }
 
-  Widget _buildLeaderboardPage() {
-    return ZoomIn(
-      duration: Duration(milliseconds: 500),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Expanded(
-              flex: 5,
-              child: ListView.builder(
-                shrinkWrap: true, // ทำให้ ListView ขนาดเท่ากับเนื้อหา
-                padding: EdgeInsets.zero,
-                itemCount: _leaderboardData.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Container(
-                      margin: EdgeInsets.only(bottom: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // 1. Rank
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              'อันดับ',
-                              style: GoogleFonts.kanit(
-                                color: Color(0xFF464646),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.start,
-                            ),
-                          ),
-
-                          // 2. User (รูป + ชื่อ)
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              'ชื่อผู้เล่น',
-                              style: GoogleFonts.kanit(
-                                color: Color(0xFF464646),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-
-                          // 3. Score
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              "คะแนน",
-                              style: GoogleFonts.kanit(
-                                color: Color(0xFF464646),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  final player = _leaderboardData[index - 1];
-
-                  return ZoomIn(
-                    duration: Duration(milliseconds: 500),
-                    child: CardScore(
-                      rank: '${index}',
-                      userId: player['userId'],
-                      score: player['score'],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+  Widget _buildUpperInfo() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Level $_currentLevel', style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.brown[700])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber.shade700)),
+          child: Row(children: [
+            const Icon(Icons.stars, color: Colors.amber, size: 20),
+            const SizedBox(width: 4),
+            Text('$_starCoins', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 18)),
+          ]),
         ),
-      ),
+      ]),
     );
   }
 
-  Widget _buildGamePage() {
-    return ZoomIn(
-      duration: Duration(milliseconds: 500),
+  Widget _buildSkillButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(children: [
+        _skillItem('hammer', Icons.build, _skillPrices['hammer']!, Colors.blue),
+        const SizedBox(width: 10),
+        _skillItem('bomb', Icons.wb_iridescent, _skillPrices['bomb']!, Colors.orange),
+        const SizedBox(width: 10),
+        _skillItem('rocket', Icons.straighten, _skillPrices['rocket']!, Colors.purple),
+      ]),
+    );
+  }
+
+  Widget _skillItem(String type, IconData icon, int price, Color color) {
+    bool isSelected = _activeSkill == type;
+    bool canAfford = _starCoins >= price;
+    return Expanded(
       child: GestureDetector(
-        onTap: _onTapScreen,
-        child: Column(
-          children: [
-            // --- ส่วนแสดงคะแนน ---
-            Align(
-              alignment: AlignmentDirectional.topEnd,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20.0, right: 20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    border: Border.all(width: 2, color: Color(0xFFE0E0E0)),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 30,
-                        height: 30,
-                        child: SvgPicture.asset("assets/icons/wood.svg"),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$_score',
-                        style: GoogleFonts.kanit(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF464646),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // --- ส่วนแอนิเมชัน ---
-            Expanded(
-              child: Stack(
-                children: [
-                  // Rive Animation (อยู่ด้านล่าง)
-                  ZoomIn(
-                    duration: Duration(milliseconds: 500),
-                    child:
-                        _isLoading
-                            ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF78B465),
-                              ),
-                            )
-                            : Rive(artboard: _artboard!, fit: BoxFit.contain),
-                  ),
-
-                  // Floating Texts (อยู่ด้านบน)
-                  ..._floatingTexts.map((t) {
-                    return Positioned(
-                      key: t.id,
-                      left: t.position.dx,
-                      top: t.position.dy,
-                      child: TweenAnimationBuilder<double>(
-                        key: ValueKey(t.id),
-                        tween: Tween(begin: 1.0, end: 0.0),
-                        duration: const Duration(milliseconds: 2500),
-                        builder: (context, value, child) {
-                          return Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(0, -200 * (1 - value)),
-                              child: Text(
-                                t.text,
-                                style: GoogleFonts.kanit(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      t.text == "+5"
-                                          ? Colors.redAccent.withOpacity(value)
-                                          : t.text == "+3"?
-                                          Colors.orangeAccent.withOpacity(
-                                            value,
-                                          ) : Colors.black.withOpacity(
-                                            value,
-                                          )
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-
-            Text(
-              "แตะเพื่อตัดต้นไม้และเก็บคะแนน\nใครคะแนนสูงสุดมีรางวัลพิเศษ !!",
-              style: GoogleFonts.kanit(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF464646),
-                height: 2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        onTap: () { if (canAfford && !_isProcessing) setState(() => _activeSkill = isSelected ? null : type); },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200), padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.4) : (canAfford ? Colors.white : Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(15), border: Border.all(color: isSelected ? color : Colors.grey.shade300, width: 2.5),
+          ),
+          child: Column(children: [
+            Icon(icon, color: canAfford ? color : Colors.grey, size: 28),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.stars, size: 12, color: Colors.amber),
+              Text(' $price', style: GoogleFonts.kanit(fontSize: 14, color: canAfford ? Colors.black87 : Colors.grey)),
+            ]),
+          ]),
         ),
       ),
     );
   }
-}
 
-class CardScore extends StatefulWidget {
-  final String rank;
-  final String userId;
-  final int score;
-  const CardScore({
-    super.key,
-    required this.rank,
-    required this.userId,
-    required this.score,
-  });
-
-  @override
-  State<CardScore> createState() => _CardScoreState();
-}
-
-class _CardScoreState extends State<CardScore> {
-  Map<String, dynamic> userInfo = {};
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserInfo();
-  }
-
-  Future<void> fetchUserInfo() async {
-    final user = await getuserById(widget.userId);
-    if (!mounted) return;
-    setState(() {
-      userInfo = user;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userImg =
-        userInfo['photoURL'].toString().trim().isNotEmpty
-            ? userInfo['photoURL']
-            : "https://firebasestorage.googleapis.com/v0/b/healjaiapp-60ec3.firebasestorage.app/o/AssetsInApp%2Fprofile.png?alt=media&token=8cdff07d-64e1-4d02-b83d-af54648f52a0";
-
+  Widget _buildStatusPanel() {
     return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.only(top: 10),
-      child: Row(
-        children: [
-          // 1. Rank
-          SizedBox(
-            width: 70, // กำหนดความกว้างคงที่
-            child: Text(
-              '${widget.rank}.',
-              style: GoogleFonts.kanit(
-                color: Color(0xFF464646),
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.start,
-            ),
-          ),
-
-          // 2. User (รูป + ชื่อ)
-          Expanded(
-            child: Row(
-              children: [
-                userImg == null
-                    ? Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                    : CircleAvatar(
-                      radius: 25,
-                      backgroundImage: CachedNetworkImageProvider(userImg),
-                    ),
-                SizedBox(width: 20), // ระยะห่างระหว่างรูปกับชื่อ
-                Expanded(
-                  child:
-                      userInfo['username'] == null
-                          ? Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: Container(
-                              width: 50,
-                              height: 20,
-                              decoration: BoxDecoration(color: Colors.grey),
-                            ),
-                          )
-                          : Text(
-                            '${userInfo['username']}',
-                            style: GoogleFonts.kanit(
-                              color: Color(0xFF464646),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                ),
-              ],
-            ),
-          ),
-
-          // 3. Score
-          SizedBox(
-            width: 60, // กำหนดความกว้างคงที่
-            child: Text(
-              "${widget.score}",
-              style: GoogleFonts.kanit(
-                color: Color(0xFF464646),
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        _statBox("เป้าหมาย", "${_levelData.targetScore}", Colors.orange[800]!),
+        _statBox("คะแนน", "$_score", Colors.blue[800]!),
+        _statBox("เหลือ", "$_movesLeft", Colors.red[800]!),
+      ]),
     );
+  }
+
+  Widget _statBox(String t, String v, Color c) => Column(children: [Text(t, style: GoogleFonts.kanit(fontSize: 12)), Text(v, style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: c))]);
+
+  Widget _buildPlayArea() {
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    return LayoutBuilder(builder: (ctx, box) {
+      double cellSize = (box.maxWidth - 40) / gridSize; 
+      return Center(child: Container(
+        width: cellSize * gridSize, height: cellSize * gridSize,
+        decoration: BoxDecoration(color: Colors.brown[50], borderRadius: BorderRadius.circular(12)),
+        child: Stack(children: [
+          ...candies.map((c) => AnimatedPositioned(
+            key: ValueKey(c.id), duration: const Duration(milliseconds: 400), curve: Curves.easeOutBack,
+            top: c.row * cellSize, left: c.col * cellSize,
+            child: GestureDetector(
+              onTap: () { if (_activeSkill != null) _useSkill(c.row, c.col, cellSize); },
+              onPanStart: (d) => _dragStartPos = d.globalPosition,
+              onPanUpdate: (d) => _handleSwipe(c, d.globalPosition, cellSize),
+              child: SizedBox(width: cellSize, height: cellSize, child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: RiveAnimation.asset('assets/animations/rives/mood.riv', animations: [_getAnimationName(c.type)], fit: BoxFit.contain),
+              )),
+            ),
+          )),
+          ..._floatingCoins.map((coin) => TweenAnimationBuilder<double>(
+            key: coin.id,
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 800),
+            builder: (context, value, child) {
+              return Positioned(
+                left: coin.x,
+                top: coin.y - (value * 50),
+                child: Opacity(
+                  opacity: 1.0 - value,
+                  child: Text(
+                    '+${coin.amount}',
+                    style: GoogleFonts.kanit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: coin.color, // แสดงสีตัวเลขตามสีของอารมณ์
+                      shadows: [Shadow(color: Colors.white.withOpacity(0.8), blurRadius: 4)],
+                    ),
+                  ),
+                ),
+              );
+            },
+          )),
+        ]),
+      ));
+    });
   }
 }
