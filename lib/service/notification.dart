@@ -219,7 +219,7 @@ class NotificationService {
 
       await _notifications.zonedSchedule(
         102,
-        'เลิกงานรึยางงง',
+        'กลับบ้านยังค้าบบ',
         'วันนี้เป็นไงบ้าง เหนื่อยรึป่าว ถ้าเหนื่อยก็อย่าลืมพักผ่อนนะะ :)',
         _nextInstanceOfEvening(),
         platformChannelSpecifics,
