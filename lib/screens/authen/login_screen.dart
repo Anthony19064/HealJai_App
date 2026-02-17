@@ -286,7 +286,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           await userInfo.setUserInfo();
                           await TreeInfo.fetchTreeAge();
                           await DiaryInfo.fetchTaskCount();
-                          context.pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
