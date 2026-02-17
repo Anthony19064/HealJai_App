@@ -66,11 +66,11 @@ class _GameScreenState extends State<GameScreen> {
     _loadResources().then((_) => _initGame());
   }
 
-  // --- ระบบด่านแบบไม่สิ้นสุด (แก้ไขค่าเริ่มต้น) ---
+  // --- ระบบด่านไม่สิ้นสุด: เริ่มต้น 20 รอบ เพิ่ม 10 ทุก 5 ด่าน ---
   void _setupLevel(int lv) {
-    int calculatedTarget = lv * 300; // เพิ่มด่านละ 300
-    int baseMoves = 20; // เริ่มต้นที่ 20 รอบ
-    int extraMoves = ((lv - 1) ~/ 5) * 10; // เพิ่ม 10 รอบทุกๆ 5 ด่าน
+    int calculatedTarget = lv * 300; 
+    int baseMoves = 20; 
+    int extraMoves = ((lv - 1) ~/ 5) * 10; 
     
     _levelData = LevelConfig(
       levelNumber: lv, 
@@ -134,9 +134,9 @@ class _GameScreenState extends State<GameScreen> {
     return count;
   }
 
-  // --- ปรับปรุงคะแนนให้เท่ากันทุกตัว (เอาคะแนนตามอารมณ์ออก) ---
+  // --- คะแนนคงที่ 50 แต้ม ---
   void _rewardPlayer(CandyModel candy, double cellSize) {
-    int scoreAmount = 20; // คะแนนคงที่ 50 แต้มต่อลูก
+    int scoreAmount = 20; 
     int coinAmount = 10;
     
     _score += scoreAmount;
@@ -232,6 +232,7 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {});
   }
 
+  // --- แก้บัค: เพิ่มการเช็คสถานะหลังใช้ Skill ---
   void _useSkill(int r, int c, double cellSize) async {
     if (_isProcessing || _activeSkill == null) return;
     _isProcessing = true;
@@ -264,6 +265,7 @@ class _GameScreenState extends State<GameScreen> {
       await Future.delayed(const Duration(milliseconds: 300));
       _fillGaps();
       await _processMatches(cellSize); 
+      _checkGameStatus(); // <--- จุดที่แก้บัค: เช็คว่าแต้มถึงหรือยัง
     }
     _isProcessing = false;
   }
@@ -290,7 +292,7 @@ class _GameScreenState extends State<GameScreen> {
       setState(() { _movesLeft--; });
       await _processMatches(cellSize);
       if (!_hasPossibleMoves() && _movesLeft > 0) _shuffleBoard();
-      _checkGameStatus();
+      _checkGameStatus(); 
     } else {
       _swapPos(c1, c2);
       await Future.delayed(const Duration(milliseconds: 350));
