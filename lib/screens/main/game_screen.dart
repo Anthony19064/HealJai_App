@@ -4,14 +4,15 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rive/rive.dart';
+import 'package:go_router/go_router.dart'; 
 
-// โมเดลตัวเลขลอยขึ้นพร้อมเก็บข้อมูลสี
+// --- Models ---
 class FloatingCoin {
   final Key id;
   final int amount;
   final double x;
   final double y;
-  final Color color; // เพิ่มตัวแปรเก็บสี
+  final Color color;
   FloatingCoin({required this.id, required this.amount, required this.x, required this.y, required this.color});
 }
 
@@ -54,12 +55,6 @@ class _GameScreenState extends State<GameScreen> {
   String? _activeSkill;
   final Map<String, int> _skillPrices = {'hammer': 50, 'bomb': 100, 'rocket': 80};
 
-  final List<LevelConfig> _levels = [
-    LevelConfig(levelNumber: 1, targetScore: 300, maxMoves: 20),
-    LevelConfig(levelNumber: 2, targetScore: 800, maxMoves: 15),
-    LevelConfig(levelNumber: 3, targetScore: 1500, maxMoves: 12),
-  ];
-
   bool _isLoading = true;
   late AudioPool _matchPool;
   late AudioPool _swapPool;
@@ -71,9 +66,18 @@ class _GameScreenState extends State<GameScreen> {
     _loadResources().then((_) => _initGame());
   }
 
+  // --- ระบบด่านแบบไม่สิ้นสุด (แก้ไขค่าเริ่มต้น) ---
   void _setupLevel(int lv) {
-    _levelData = _levels.firstWhere((l) => l.levelNumber == lv, 
-        orElse: () => LevelConfig(levelNumber: lv, targetScore: lv * 1000, maxMoves: 10));
+    int calculatedTarget = lv * 300; // เพิ่มด่านละ 300
+    int baseMoves = 20; // เริ่มต้นที่ 20 รอบ
+    int extraMoves = ((lv - 1) ~/ 5) * 10; // เพิ่ม 10 รอบทุกๆ 5 ด่าน
+    
+    _levelData = LevelConfig(
+      levelNumber: lv, 
+      targetScore: calculatedTarget, 
+      maxMoves: baseMoves + extraMoves
+    );
+    
     _score = 0;
     _movesLeft = _levelData.maxMoves;
   }
@@ -100,31 +104,44 @@ class _GameScreenState extends State<GameScreen> {
     candies.add(CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c));
   }
 
-  String _getAnimationName(int type) {
-    switch (type) {
-      case 1: return 'Wow'; case 2: return 'Love'; case 3: return 'Happy'; 
-      case 4: return 'Normal'; case 5: return 'Sad'; case 6: return 'Scare'; case 7: return 'Angry';
-      default: return 'Normal';
+  bool _hasAnyMatch() {
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) {
+        if (_checkMatchAt(r, c)) return true;
+      }
     }
+    return false;
   }
 
-  // กำหนดสีตัวเลขให้ตรงตามอารมณ์
-  Color _getMoodColor(int type) {
-    switch (type) {
-      case 1: return const Color(0xFFF29C41); // Wow (ประหลาดใจ)
-      case 2: return const Color(0xFFFF9B9B); // Love (มีความรัก)
-      case 3: return const Color(0xFFFFCC00); // Happy (มีความสุข)
-      case 4: return const Color(0xFF878787); // Normal (เฉยๆ)
-      case 5: return const Color(0xFF86AFFC); // Sad (เศร้า)
-      case 6: return const Color(0xFFCB9DF0); // Scare (กลัว)
-      case 7: return const Color(0xFFEB4343); // Angry (โกรธ)
-      default: return Colors.black;
-    }
+  bool _checkMatchAt(int r, int c) {
+    var candy = _getCandyAt(r, c);
+    if (candy == null) return false;
+    int hCount = 1 + _countSameType(r, c, 0, 1) + _countSameType(r, c, 0, -1);
+    int vCount = 1 + _countSameType(r, c, 1, 0) + _countSameType(r, c, -1, 0);
+    return hCount >= 3 || vCount >= 3;
   }
 
-  int _getCoinReward(int type) {
-    if (type >= 1 && type <= 3) return 4; 
-    return 1; 
+  int _countSameType(int r, int c, int dr, int dc) {
+    var base = _getCandyAt(r, c);
+    if (base == null) return 0;
+    int count = 0, currR = r + dr, currC = c + dc;
+    while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
+      var next = _getCandyAt(currR, currC);
+      if (next != null && next.type == base.type) {
+        count++; currR += dr; currC += dc;
+      } else break;
+    }
+    return count;
+  }
+
+  // --- ปรับปรุงคะแนนให้เท่ากันทุกตัว (เอาคะแนนตามอารมณ์ออก) ---
+  void _rewardPlayer(CandyModel candy, double cellSize) {
+    int scoreAmount = 20; // คะแนนคงที่ 50 แต้มต่อลูก
+    int coinAmount = 10;
+    
+    _score += scoreAmount;
+    _starCoins += coinAmount;
+    _showCoinPop(scoreAmount, candy.type, candy.row, candy.col, cellSize);
   }
 
   void _showCoinPop(int amount, int type, int row, int col, double cellSize) {
@@ -135,15 +152,33 @@ class _GameScreenState extends State<GameScreen> {
         amount: amount,
         x: col * cellSize + (cellSize / 4),
         y: row * cellSize,
-        color: _getMoodColor(type), // ส่งสีตามประเภทอารมณ์ไป
+        color: _getMoodColor(type),
       ));
     });
-
     Timer(const Duration(milliseconds: 1000), () {
-      if (mounted) {
-        setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
-      }
+      if (mounted) setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
     });
+  }
+
+  String _getAnimationName(int type) {
+    switch (type) {
+      case 1: return 'Wow'; case 2: return 'Love'; case 3: return 'Happy'; 
+      case 4: return 'Normal'; case 5: return 'Sad'; case 6: return 'Scare'; case 7: return 'Angry';
+      default: return 'Normal';
+    }
+  }
+
+  Color _getMoodColor(int type) {
+    switch (type) {
+      case 1: return const Color(0xFFF29C41);
+      case 2: return const Color(0xFFFF9B9B);
+      case 3: return const Color(0xFFFFCC00);
+      case 4: return const Color(0xFF878787);
+      case 5: return const Color(0xFF86AFFC);
+      case 6: return const Color(0xFFCB9DF0);
+      case 7: return const Color(0xFFEB4343);
+      default: return Colors.black;
+    }
   }
 
   void _ensureNoInitialMatches() {
@@ -161,26 +196,6 @@ class _GameScreenState extends State<GameScreen> {
 
   CandyModel? _getCandyAt(int r, int c) {
     try { return candies.firstWhere((e) => e.row == r && e.col == c); } catch (e) { return null; }
-  }
-
-  bool _checkMatchAt(int r, int c) {
-    var candy = _getCandyAt(r, c);
-    if (candy == null) return false;
-    int hCount = 1 + _countSameType(r, c, 0, 1) + _countSameType(r, c, 0, -1);
-    int vCount = 1 + _countSameType(r, c, 1, 0) + _countSameType(r, c, -1, 0);
-    return hCount >= 3 || vCount >= 3;
-  }
-
-  int _countSameType(int r, int c, int dr, int dc) {
-    var base = _getCandyAt(r, c);
-    if (base == null) return 0;
-    int count = 0, currR = r + dr, currC = c + dc;
-    while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
-      var next = _getCandyAt(currR, currC);
-      if (next != null && next.type == base.type) { count++; currR += dr; currC += dc; }
-      else break;
-    }
-    return count;
   }
 
   bool _hasPossibleMoves() {
@@ -241,12 +256,7 @@ class _GameScreenState extends State<GameScreen> {
     if (toRemove.isNotEmpty) {
       setState(() {
         _starCoins -= price;
-        for (var candy in toRemove) {
-          int reward = _getCoinReward(candy.type);
-          _score += 10;
-          _starCoins += reward;
-          _showCoinPop(reward, candy.type, candy.row, candy.col, cellSize); 
-        }
+        for (var candy in toRemove) { _rewardPlayer(candy, cellSize); }
         candies.removeWhere((c) => toRemove.contains(c));
         _activeSkill = null; 
       });
@@ -277,7 +287,7 @@ class _GameScreenState extends State<GameScreen> {
     _swapPos(c1, c2); _swapPool.start();
     await Future.delayed(const Duration(milliseconds: 350));
     if (_hasAnyMatch()) {
-      setState(() { _movesLeft--; _starCoins += 2; });
+      setState(() { _movesLeft--; });
       await _processMatches(cellSize);
       if (!_hasPossibleMoves() && _movesLeft > 0) _shuffleBoard();
       _checkGameStatus();
@@ -296,13 +306,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  bool _hasAnyMatch() {
-    for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) { if (_checkMatchAt(r, c)) return true; }
-    }
-    return false;
-  }
-
   Future<void> _processMatches(double cellSize) async {
     while (_hasAnyMatch()) {
       Set<CandyModel> toRemove = {};
@@ -314,12 +317,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       setState(() {
-        for (var c in toRemove) {
-          int reward = _getCoinReward(c.type);
-          _score += 10;
-          _starCoins += reward;
-          _showCoinPop(reward, c.type, c.row, c.col, cellSize); 
-        }
+        for (var c in toRemove) { _rewardPlayer(c, cellSize); }
         candies.removeWhere((c) => toRemove.contains(c));
       });
       _matchPool.start();
@@ -367,11 +365,14 @@ class _GameScreenState extends State<GameScreen> {
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(
       title: Text(title, style: GoogleFonts.kanit(fontWeight: FontWeight.bold)),
       content: Text(msg, style: GoogleFonts.kanit()),
-      actions: [TextButton(onPressed: () {
-        Navigator.pop(ctx);
-        if (isWin) setState(() => _currentLevel++);
-        _setupLevel(_currentLevel); _initGame();
-      }, child: Text(isWin ? "ด่านต่อไป" : "ลองใหม่", style: GoogleFonts.kanit()))],
+      actions: [
+        TextButton(onPressed: () => context.go('/'), child: const Text("หน้าหลัก", style: TextStyle(color: Colors.grey))),
+        TextButton(onPressed: () {
+          Navigator.pop(ctx);
+          if (isWin) setState(() => _currentLevel++);
+          _setupLevel(_currentLevel); _initGame();
+        }, child: Text(isWin ? "ด่านต่อไป" : "ลองใหม่")),
+      ],
     ));
   }
 
@@ -380,8 +381,7 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6),
       body: SafeArea(child: Column(children: [
-        const SizedBox(height: 10),
-        _buildUpperInfo(),
+        _buildTopBar(), 
         _buildStatusPanel(),
         _buildSkillButtons(),
         const SizedBox(height: 10),
@@ -391,21 +391,44 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildUpperInfo() {
+  Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Level $_currentLevel', style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.brown[700])),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber.shade700)),
-          child: Row(children: [
-            const Icon(Icons.stars, color: Colors.amber, size: 20),
-            const SizedBox(width: 4),
-            Text('$_starCoins', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 18)),
-          ]),
-        ),
-      ]),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(Icons.home_rounded, color: Colors.brown, size: 32),
+              onPressed: () => context.go('/'), 
+            ),
+          ),
+          Text(
+            'Level $_currentLevel',
+            style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.brown[700]),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.amber.shade700),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.stars, color: Colors.amber, size: 20),
+                  const SizedBox(width: 4),
+                  Text('$_starCoins', style: GoogleFonts.kanit(fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -448,7 +471,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildStatusPanel() {
     return Container(
-      padding: const EdgeInsets.all(12), margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(12), margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)]),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         _statBox("เป้าหมาย", "${_levelData.targetScore}", Colors.orange[800]!),
@@ -496,7 +519,7 @@ class _GameScreenState extends State<GameScreen> {
                     style: GoogleFonts.kanit(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: coin.color, // แสดงสีตัวเลขตามสีของอารมณ์
+                      color: coin.color,
                       shadows: [Shadow(color: Colors.white.withOpacity(0.8), blurRadius: 4)],
                     ),
                   ),
