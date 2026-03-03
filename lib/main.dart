@@ -128,8 +128,15 @@ class MyApp extends StatelessWidget {
             return NoTransitionPage(child: ForgetPassword());
           },
         ),
+        
         GoRoute(
           path: '/game',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: MainMenuScreen());
+          },
+        ),
+         GoRoute(
+          path: '/gamescreen',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: GameScreen());
           },
