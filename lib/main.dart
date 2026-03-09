@@ -13,6 +13,7 @@ import 'screens/main/game_screen.dart';
 import 'screens/main/home_screen.dart';
 import 'screens/main/commu_screen.dart';
 import 'screens/main/book_screen.dart';
+import 'screens/main/ai_chatbot.dart';
 
 import 'Screens/authen/forget_password.dart';
 import 'Screens/authen/login_screen.dart';
@@ -126,6 +127,12 @@ class MyApp extends StatelessWidget {
           path: '/forget_pass',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: ForgetPassword());
+          },
+        ),
+         GoRoute(
+          path: '/ai-chatbot',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: AiChatbotScreen());
           },
         ),
         
