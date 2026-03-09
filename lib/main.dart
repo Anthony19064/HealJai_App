@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/screens/main/ai_chatbot.dart';
 import 'package:healjai_project/service/notification.dart';
 
 import 'package:provider/provider.dart';
@@ -154,8 +155,21 @@ class MyApp extends StatelessWidget {
             return NoTransitionPage(child: ForgetPassword());
           },
         ),
+         GoRoute(
+          path: '/ai-chatbot',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: AiChatbotScreen());
+          },
+        ),
+        
         GoRoute(
           path: '/game',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: MainMenuScreen());
+          },
+        ),
+         GoRoute(
+          path: '/gamescreen',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: GameScreen());
           },
