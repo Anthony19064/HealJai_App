@@ -99,25 +99,25 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 bottomNavigationBar: BottomNavBar(),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () {
-                    context.go('/ai'); // ตัวอย่างกดแล้วไปหน้า mood diary
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100), // ให้มันกลม
-                  ),
-                  child: Image.asset(
-                    'assets/images/goose.png',
-                    width: 35,
-                    height: 35,
-                    fit: BoxFit.cover,
-                  ),
-                  backgroundColor: Colors.white,
-                  elevation: 1,
-                ),
+                // floatingActionButton: FloatingActionButton(
+                //   onPressed: () {
+                //     context.go('/ai'); // ตัวอย่างกดแล้วไปหน้า mood diary
+                //   },
+                //   shape: RoundedRectangleBorder(
+                //     borderRadius: BorderRadius.circular(100), // ให้มันกลม
+                //   ),
+                //   child: Image.asset(
+                //     'assets/images/goose.png',
+                //     width: 35,
+                //     height: 35,
+                //     fit: BoxFit.cover,
+                //   ),
+                //   backgroundColor: Colors.white,
+                //   elevation: 1,
+                // ),
 
-                floatingActionButtonLocation:
-                    FloatingActionButtonLocation.endFloat,
+                // floatingActionButtonLocation:
+                //     FloatingActionButtonLocation.endFloat,
               ),
             );
           },
