@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/navProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 import 'package:go_router/go_router.dart'; 
 
@@ -380,20 +382,23 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final NavInfo = Provider.of<Navprovider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6),
       body: SafeArea(child: Column(children: [
-        _buildTopBar(), 
+        _buildTopBar(NavInfo), 
+        SizedBox(height: 10),
         _buildStatusPanel(),
-        _buildSkillButtons(),
-        const SizedBox(height: 10),
+        SizedBox(height: 20),
         Expanded(child: _buildPlayArea()),
+        _buildSkillButtons(),
         const SizedBox(height: 20),
       ])),
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(NavInfo) {
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Stack(
@@ -403,7 +408,10 @@ class _GameScreenState extends State<GameScreen> {
             alignment: Alignment.centerLeft,
             child: IconButton(
               icon: const Icon(Icons.home_rounded, color: Colors.brown, size: 32),
-              onPressed: () => context.go('/'), 
+              onPressed: (){
+                context.go('/');
+                NavInfo.resetHome();
+              }, 
             ),
           ),
           Text(
@@ -490,8 +498,8 @@ class _GameScreenState extends State<GameScreen> {
     return LayoutBuilder(builder: (ctx, box) {
       double cellSize = (box.maxWidth - 40) / gridSize; 
       return Center(child: Container(
-        width: cellSize * gridSize, height: cellSize * gridSize,
-        decoration: BoxDecoration(color: Colors.brown[50], borderRadius: BorderRadius.circular(12)),
+        width: cellSize * gridSize, height: cellSize * gridSize ,
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
         child: Stack(children: [
           ...candies.map((c) => AnimatedPositioned(
             key: ValueKey(c.id), duration: const Duration(milliseconds: 400), curve: Curves.easeOutBack,

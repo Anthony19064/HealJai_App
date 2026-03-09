@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Welcomesection(), //slider โชว์ข้อความต่างๆ
-              const SizedBox(height: 50),
+              const SizedBox(height: 15),
               DiarySection(), // ระบบประจำวัน
               const SizedBox(height: 50),
               TreeSection(), // ระบบต้นไม้ของผู้ใช้

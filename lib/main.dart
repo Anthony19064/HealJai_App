@@ -13,6 +13,7 @@ import 'screens/main/game_screen.dart';
 import 'screens/main/home_screen.dart';
 import 'screens/main/commu_screen.dart';
 import 'screens/main/book_screen.dart';
+import 'screens/main/ai_screen.dart';
 
 import 'Screens/authen/forget_password.dart';
 import 'Screens/authen/login_screen.dart';
@@ -97,6 +98,25 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 bottomNavigationBar: BottomNavBar(),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () {
+                    context.go('/ai'); // ตัวอย่างกดแล้วไปหน้า mood diary
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100), // ให้มันกลม
+                  ),
+                  child: Image.asset(
+                    'assets/images/goose.png',
+                    width: 35,
+                    height: 35,
+                    fit: BoxFit.cover,
+                  ),
+                  backgroundColor: Colors.white,
+                  elevation: 1,
+                ),
+
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.endFloat,
               ),
             );
           },
@@ -114,6 +134,12 @@ class MyApp extends StatelessWidget {
           path: '/login',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: LoginScreen());
+          },
+        ),
+        GoRoute(
+          path: '/ai',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: AiScreen());
           },
         ),
         GoRoute(
