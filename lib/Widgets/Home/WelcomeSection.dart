@@ -6,10 +6,10 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 List<Widget> welcomeSlideList = [
   WelcomeCard(),
-  QuoteTemplate(quoteAsset: "assets/images/quote_1.png"),
-  QuoteTemplate(quoteAsset: "assets/images/quote_2.png"),
-  QuoteTemplate(quoteAsset: "assets/images/quote_3.png"),
-  QuoteTemplate(quoteAsset: "assets/images/quote_4.png"),
+  // QuoteTemplate(quoteAsset: "assets/images/quote_1.png"),
+  // QuoteTemplate(quoteAsset: "assets/images/quote_2.png"),
+  // QuoteTemplate(quoteAsset: "assets/images/quote_3.png"),
+  // QuoteTemplate(quoteAsset: "assets/images/quote_4.png"),
 ];
 
 class Welcomesection extends StatefulWidget {
@@ -29,35 +29,36 @@ class _WelcomesectionState extends State<Welcomesection> {
     return Container(
       child: Column(
         children: [
-          CarouselSlider.builder(
-            carouselController: _carouselController,
-            itemCount: welcomeSlideList.length,
-            itemBuilder: (context, index, realIndex) {
-              return welcomeSlideList[index];
-            },
-            options: CarouselOptions(
-              height: 300,
-              autoPlay: true,
-              viewportFraction: 1.0,
-              enlargeCenterPage: false,
-              onPageChanged:
-                  (index, reason) => setState(() => activeIndex = index),
-            ),
-          ),
-          const SizedBox(height: 10),
-          AnimatedSmoothIndicator(
-            activeIndex: activeIndex,
-            count: welcomeSlideList.length,
-            effect: WormEffect(
-              dotHeight: 12,
-              dotWidth: 12,
-              activeDotColor: const Color(0xFF78B465),
-              dotColor: Colors.grey.shade300,
-            ),
-            onDotClicked: (index) {
-              _carouselController.animateToPage(index);
-            },
-          ),
+          WelcomeCard(),
+          // CarouselSlider.builder(
+          //   carouselController: _carouselController,
+          //   itemCount: welcomeSlideList.length,
+          //   itemBuilder: (context, index, realIndex) {
+          //     return welcomeSlideList[index];
+          //   },
+          //   options: CarouselOptions(
+          //     height: 300,
+          //     autoPlay: true,
+          //     viewportFraction: 1.0,
+          //     enlargeCenterPage: false,
+          //     onPageChanged:
+          //         (index, reason) => setState(() => activeIndex = index),
+          //   ),
+          // ),
+          // const SizedBox(height: 10),
+          // AnimatedSmoothIndicator(
+          //   activeIndex: activeIndex,
+          //   count: welcomeSlideList.length,
+          //   effect: WormEffect(
+          //     dotHeight: 12,
+          //     dotWidth: 12,
+          //     activeDotColor: const Color(0xFF78B465),
+          //     dotColor: Colors.grey.shade300,
+          //   ),
+          //   onDotClicked: (index) {
+          //     _carouselController.animateToPage(index);
+          //   },
+          // ),
         ],
       ),
     );

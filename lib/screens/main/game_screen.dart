@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:rive/rive.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../providers/GameProvider.dart';
 
 // -------------------------------------------------------------------------
 // 1. การตั้งค่า Router
@@ -18,7 +19,10 @@ final GoRouter _router = GoRouter(
   initialLocation: '/', // หน้าแรกคือ MainMenu
   routes: [
     GoRoute(path: '/', builder: (context, state) => const MainMenuScreen()),
-    GoRoute(path: '/gamescreen', builder: (context, state) => const GameScreen()),
+    GoRoute(
+      path: '/gamescreen',
+      builder: (context, state) => const GameScreen(),
+    ),
   ],
 );
 
@@ -44,14 +48,24 @@ class FloatingCoin {
   final double x;
   final double y;
   final Color color;
-  FloatingCoin({required this.id, required this.amount, required this.x, required this.y, required this.color});
+  FloatingCoin({
+    required this.id,
+    required this.amount,
+    required this.x,
+    required this.y,
+    required this.color,
+  });
 }
 
 class LevelConfig {
   final int levelNumber;
   final int targetScore;
   final int maxMoves;
-  LevelConfig({required this.levelNumber, required this.targetScore, required this.maxMoves});
+  LevelConfig({
+    required this.levelNumber,
+    required this.targetScore,
+    required this.maxMoves,
+  });
 }
 
 class CandyModel {
@@ -59,7 +73,12 @@ class CandyModel {
   int type;
   int row;
   int col;
-  CandyModel({required this.id, required this.type, required this.row, required this.col});
+  CandyModel({
+    required this.id,
+    required this.type,
+    required this.row,
+    required this.col,
+  });
 }
 
 // -------------------------------------------------------------------------
@@ -101,17 +120,28 @@ class MainMenuScreen extends StatelessWidget {
             GestureDetector(
               onTap: () => context.go('/gamescreen'),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                  vertical: 20,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF78B465),
                   borderRadius: BorderRadius.circular(40),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
                   ],
                 ),
                 child: Text(
                   'START GAME',
-                  style: GoogleFonts.kanit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: GoogleFonts.kanit(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -153,11 +183,17 @@ class _GameScreenState extends State<GameScreen> {
   late AudioPool _matchPool;
   late AudioPool _swapPool;
 
+  Future<void> _initLevel() async {
+    _currentLevel = await getLevel();
+    _setupLevel(_currentLevel);
+    await _loadResources();
+    _initGame();
+  }
+
   @override
   void initState() {
     super.initState();
-    _setupLevel(_currentLevel);
-    _loadResources().then((_) => _initGame());
+    _initLevel();
   }
 
   void _setupLevel(int lv) {
@@ -181,8 +217,16 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _loadResources() async {
     try {
-      _matchPool = await FlameAudio.createPool("choptree.mp3", minPlayers: 3, maxPlayers: 5);
-      _swapPool = await FlameAudio.createPool("criticalSound.WAV", minPlayers: 1, maxPlayers: 2);
+      _matchPool = await FlameAudio.createPool(
+        "choptree.mp3",
+        minPlayers: 3,
+        maxPlayers: 5,
+      );
+      _swapPool = await FlameAudio.createPool(
+        "criticalSound.WAV",
+        minPlayers: 1,
+        maxPlayers: 2,
+      );
     } catch (e) {
       debugPrint("Audio error: $e");
     }
@@ -192,7 +236,9 @@ class _GameScreenState extends State<GameScreen> {
   void _initGame() {
     candies.clear();
     for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) { _addNewCandy(r, c); }
+      for (int c = 0; c < gridSize; c++) {
+        _addNewCandy(r, c);
+      }
     }
     _ensureNoInitialMatches();
     if (!_hasPossibleMoves()) _shuffleBoard(silent: true);
@@ -200,7 +246,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _addNewCandy(int r, int c) {
-    candies.add(CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c));
+    candies.add(
+      CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c),
+    );
   }
 
   bool _hasAnyMatch() {
@@ -227,14 +275,17 @@ class _GameScreenState extends State<GameScreen> {
     while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
       var next = _getCandyAt(currR, currC);
       if (next != null && next.type == base.type) {
-        count++; currR += dr; currC += dc;
-      } else break;
+        count++;
+        currR += dr;
+        currC += dc;
+      } else
+        break;
     }
     return count;
   }
 
   void _rewardPlayer(CandyModel candy, double cellSize) {
-    int scoreAmount = 25; 
+    int scoreAmount = 25;
     _score += scoreAmount;
     _showCoinPop(scoreAmount, candy.type, candy.row, candy.col, cellSize);
   }
@@ -242,28 +293,61 @@ class _GameScreenState extends State<GameScreen> {
   void _showCoinPop(int amount, int type, int row, int col, double cellSize) {
     final id = UniqueKey();
     setState(() {
-      _floatingCoins.add(FloatingCoin(
-          id: id, amount: amount, x: col * cellSize + (cellSize / 4), y: row * cellSize, color: _getMoodColor(type)));
+      _floatingCoins.add(
+        FloatingCoin(
+          id: id,
+          amount: amount,
+          x: col * cellSize + (cellSize / 4),
+          y: row * cellSize,
+          color: _getMoodColor(type),
+        ),
+      );
     });
     Timer(const Duration(milliseconds: 1000), () {
-      if (mounted) setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
+      if (mounted)
+        setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
     });
   }
 
   String _getAnimationName(int type) {
     switch (type) {
-      case 1: return 'Wow'; case 2: return 'Love'; case 3: return 'Happy';
-      case 4: return 'Normal'; case 5: return 'Sad'; case 6: return 'Scare'; case 7: return 'Angry';
-      default: return 'Normal';
+      case 1:
+        return 'Wow';
+      case 2:
+        return 'Love';
+      case 3:
+        return 'Happy';
+      case 4:
+        return 'Normal';
+      case 5:
+        return 'Sad';
+      case 6:
+        return 'Scare';
+      case 7:
+        return 'Angry';
+      default:
+        return 'Normal';
     }
   }
 
   Color _getMoodColor(int type) {
     switch (type) {
-      case 1: return const Color(0xFFF29C41); case 2: return const Color(0xFFFF9B9B);
-      case 3: return const Color(0xFFFFCC00); case 4: return const Color(0xFF878787);
-      case 5: return const Color(0xFF86AFFC); case 6: return const Color(0xFFCB9DF0);
-      case 7: return const Color(0xFFEB4343); default: return Colors.black;
+      case 1:
+        return const Color(0xFFF29C41);
+      case 2:
+        return const Color(0xFFFF9B9B);
+      case 3:
+        return const Color(0xFFFFCC00);
+      case 4:
+        return const Color(0xFF878787);
+      case 5:
+        return const Color(0xFF86AFFC);
+      case 6:
+        return const Color(0xFFCB9DF0);
+      case 7:
+        return const Color(0xFFEB4343);
+      default:
+        return Colors.black;
     }
   }
 
@@ -281,14 +365,20 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   CandyModel? _getCandyAt(int r, int c) {
-    try { return candies.firstWhere((e) => e.row == r && e.col == c); } catch (e) { return null; }
+    try {
+      return candies.firstWhere((e) => e.row == r && e.col == c);
+    } catch (e) {
+      return null;
+    }
   }
 
   bool _hasPossibleMoves() {
     for (int r = 0; r < gridSize; r++) {
       for (int c = 0; c < gridSize; c++) {
-        if (c < gridSize - 1 && _wouldMatchIfSwapped(r, c, r, c + 1)) return true;
-        if (r < gridSize - 1 && _wouldMatchIfSwapped(r, c, r + 1, c)) return true;
+        if (c < gridSize - 1 && _wouldMatchIfSwapped(r, c, r, c + 1))
+          return true;
+        if (r < gridSize - 1 && _wouldMatchIfSwapped(r, c, r + 1, c))
+          return true;
       }
     }
     return false;
@@ -309,10 +399,14 @@ class _GameScreenState extends State<GameScreen> {
 
   void _shuffleBoard({bool silent = false}) {
     if (!silent && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ทางตัน! สลับตารางใหม่อัตโนมัติ")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("ทางตัน! สลับตารางใหม่อัตโนมัติ")),
+      );
     }
     do {
-      for (var candy in candies) { candy.type = Random().nextInt(7) + 1; }
+      for (var candy in candies) {
+        candy.type = Random().nextInt(7) + 1;
+      }
       _ensureNoInitialMatches();
     } while (!_hasPossibleMoves());
     setState(() {});
@@ -320,7 +414,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _useSkill(int r, int c, double cellSize) async {
     if (_isProcessing || _activeSkill == null) return;
-    
+
     // เช็คจำนวนครั้งไอเทม
     if (_skillCharges[_activeSkill!]! <= 0) {
       _activeSkill = null;
@@ -331,23 +425,29 @@ class _GameScreenState extends State<GameScreen> {
     _isProcessing = true;
     Set<CandyModel> toRemove = {};
     if (_activeSkill == 'hammer') {
-      var target = _getCandyAt(r, c); if (target != null) toRemove.add(target);
+      var target = _getCandyAt(r, c);
+      if (target != null) toRemove.add(target);
     } else if (_activeSkill == 'bomb') {
       for (int i = r - 1; i <= r + 1; i++) {
         for (int j = c - 1; j <= c + 1; j++) {
-          var target = _getCandyAt(i, j); if (target != null) toRemove.add(target);
+          var target = _getCandyAt(i, j);
+          if (target != null) toRemove.add(target);
         }
       }
     } else if (_activeSkill == 'rocket') {
       for (int j = 0; j < gridSize; j++) {
-        var target = _getCandyAt(r, j); if (target != null) toRemove.add(target);
+        var target = _getCandyAt(r, j);
+        if (target != null) toRemove.add(target);
       }
     }
 
     if (toRemove.isNotEmpty) {
       setState(() {
-        _skillCharges[_activeSkill!] = _skillCharges[_activeSkill!]! - 1; // ลดจำนวนครั้ง
-        for (var candy in toRemove) { _rewardPlayer(candy, cellSize); }
+        _skillCharges[_activeSkill!] =
+            _skillCharges[_activeSkill!]! - 1; // ลดจำนวนครั้ง
+        for (var candy in toRemove) {
+          _rewardPlayer(candy, cellSize);
+        }
         candies.removeWhere((c) => toRemove.contains(c));
         _activeSkill = null;
       });
@@ -361,25 +461,41 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _handleSwipe(CandyModel candy, Offset globalPos, double cellSize) {
-    if (_dragStartPos == null || _isProcessing || _movesLeft <= 0 || _activeSkill != null) return;
+    if (_dragStartPos == null ||
+        _isProcessing ||
+        _movesLeft <= 0 ||
+        _activeSkill != null)
+      return;
     final dx = globalPos.dx - _dragStartPos!.dx;
     final dy = globalPos.dy - _dragStartPos!.dy;
     if (dx.abs() > 30 || dy.abs() > 30) {
       int tR = candy.row, tC = candy.col;
-      if (dx.abs() > dy.abs()) { tC = (dx > 0) ? candy.col + 1 : candy.col - 1; }
-      else { tR = (dy > 0) ? candy.row + 1 : candy.row - 1; }
-      if (tR >= 0 && tR < gridSize && tC >= 0 && tC < gridSize) _attemptSwap(candy, tR, tC, cellSize);
+      if (dx.abs() > dy.abs()) {
+        tC = (dx > 0) ? candy.col + 1 : candy.col - 1;
+      } else {
+        tR = (dy > 0) ? candy.row + 1 : candy.row - 1;
+      }
+      if (tR >= 0 && tR < gridSize && tC >= 0 && tC < gridSize)
+        _attemptSwap(candy, tR, tC, cellSize);
       _dragStartPos = null;
     }
   }
 
-  Future<void> _attemptSwap(CandyModel c1, int tR, int tC, double cellSize) async {
+  Future<void> _attemptSwap(
+    CandyModel c1,
+    int tR,
+    int tC,
+    double cellSize,
+  ) async {
     _isProcessing = true;
     var c2 = _getCandyAt(tR, tC)!;
-    _swapPos(c1, c2); _swapPool.start();
+    _swapPos(c1, c2);
+    _swapPool.start();
     await Future.delayed(const Duration(milliseconds: 350));
     if (_hasAnyMatch()) {
-      setState(() { _movesLeft--; });
+      setState(() {
+        _movesLeft--;
+      });
       await _processMatches(cellSize);
       if (!_hasPossibleMoves() && _movesLeft > 0) _shuffleBoard();
       _checkGameStatus();
@@ -393,8 +509,10 @@ class _GameScreenState extends State<GameScreen> {
   void _swapPos(CandyModel c1, CandyModel c2) {
     setState(() {
       int tr = c1.row, tc = c1.col;
-      c1.row = c2.row; c1.col = c2.col;
-      c2.row = tr; c2.col = tc;
+      c1.row = c2.row;
+      c1.col = c2.col;
+      c2.row = tr;
+      c2.col = tc;
     });
   }
 
@@ -403,13 +521,18 @@ class _GameScreenState extends State<GameScreen> {
       Set<CandyModel> toRemove = {};
       for (int r = 0; r < gridSize; r++) {
         for (int c = 0; c < gridSize; c++) {
-          var candy = _getCandyAt(r, c); if (candy == null) continue;
-          var rowMatch = _getMatchList(r, c, 0, 1); if (rowMatch.length >= 3) toRemove.addAll(rowMatch);
-          var colMatch = _getMatchList(r, c, 1, 0); if (colMatch.length >= 3) toRemove.addAll(colMatch);
+          var candy = _getCandyAt(r, c);
+          if (candy == null) continue;
+          var rowMatch = _getMatchList(r, c, 0, 1);
+          if (rowMatch.length >= 3) toRemove.addAll(rowMatch);
+          var colMatch = _getMatchList(r, c, 1, 0);
+          if (colMatch.length >= 3) toRemove.addAll(colMatch);
         }
       }
       setState(() {
-        for (var c in toRemove) { _rewardPlayer(c, cellSize); }
+        for (var c in toRemove) {
+          _rewardPlayer(c, cellSize);
+        }
         candies.removeWhere((c) => toRemove.contains(c));
       });
       _matchPool.start();
@@ -420,13 +543,18 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   List<CandyModel> _getMatchList(int r, int c, int dr, int dc) {
-    var candy = _getCandyAt(r, c); if (candy == null) return [];
+    var candy = _getCandyAt(r, c);
+    if (candy == null) return [];
     List<CandyModel> match = [candy];
     int currR = r + dr, currC = c + dc;
-    while (currR < gridSize && currC < gridSize) {
+    while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
       var next = _getCandyAt(currR, currC);
-      if (next != null && next.type == candy.type) { match.add(next); currR += dr; currC += dc; }
-      else break;
+      if (next != null && next.type == candy.type) {
+        match.add(next);
+        currR += dr;
+        currC += dc;
+      } else
+        break;
     }
     return match;
   }
@@ -437,8 +565,10 @@ class _GameScreenState extends State<GameScreen> {
         int empty = 0;
         for (int r = gridSize - 1; r >= 0; r--) {
           var candy = _getCandyAt(r, c);
-          if (candy == null) empty++;
-          else if (empty > 0) candy.row += empty;
+          if (candy == null)
+            empty++;
+          else if (empty > 0)
+            candy.row += empty;
         }
         for (int i = 0; i < empty; i++) _addNewCandy(i, c);
       }
@@ -466,7 +596,9 @@ class _GameScreenState extends State<GameScreen> {
           child: Opacity(
             opacity: anim1.value,
             child: Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
               backgroundColor: Colors.transparent,
               child: Stack(
                 clipBehavior: Clip.none,
@@ -483,7 +615,7 @@ class _GameScreenState extends State<GameScreen> {
                           color: Colors.black.withOpacity(0.1),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
-                        )
+                        ),
                       ],
                     ),
                     child: Column(
@@ -494,14 +626,20 @@ class _GameScreenState extends State<GameScreen> {
                           style: GoogleFonts.kanit(
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
-                            color: isWin ? const Color(0xFF78B465) : Colors.redAccent,
+                            color:
+                                isWin
+                                    ? const Color(0xFF78B465)
+                                    : Colors.redAccent,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           msg,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.kanit(fontSize: 18, color: Colors.grey[600]),
+                          style: GoogleFonts.kanit(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
                         ),
                         const SizedBox(height: 20),
                         // กล่องโชว์คะแนน
@@ -517,7 +655,10 @@ class _GameScreenState extends State<GameScreen> {
                             children: [
                               Text(
                                 'คะแนนด่านนี้',
-                                style: GoogleFonts.kanit(fontSize: 14, color: Colors.amber.shade900),
+                                style: GoogleFonts.kanit(
+                                  fontSize: 14,
+                                  color: Colors.amber.shade900,
+                                ),
                               ),
                               Text(
                                 '$_score',
@@ -537,13 +678,19 @@ class _GameScreenState extends State<GameScreen> {
                           height: 60,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isWin ? const Color(0xFF78B465) : Colors.orangeAccent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              backgroundColor:
+                                  isWin
+                                      ? const Color(0xFF78B465)
+                                      : Colors.orangeAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               elevation: 5,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(ctx);
                               if (isWin) setState(() => _currentLevel++);
+                              await saveLevel(_currentLevel);
                               _setupLevel(_currentLevel);
                               _initGame();
                             },
@@ -571,7 +718,10 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                       child: CircleAvatar(
                         radius: 65,
-                        backgroundColor: isWin ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+                        backgroundColor:
+                            isWin
+                                ? const Color(0xFFE8F5E9)
+                                : const Color(0xFFFFEBEE),
                         child: Padding(
                           padding: const EdgeInsets.all(15),
                           child: RiveAnimation.asset(
@@ -594,6 +744,9 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6),
       body: SafeArea(
@@ -620,11 +773,22 @@ class _GameScreenState extends State<GameScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
-              icon: const Icon(Icons.home_rounded, color: Colors.brown, size: 32),
+              icon: const Icon(
+                Icons.home_rounded,
+                color: Colors.brown,
+                size: 32,
+              ),
               onPressed: () => context.go('/'),
             ),
           ),
-          Text('Level $_currentLevel', style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.brown[700])),
+          Text(
+            'Level $_currentLevel',
+            style: GoogleFonts.kanit(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.brown[700],
+            ),
+          ),
         ],
       ),
     );
@@ -651,19 +815,35 @@ class _GameScreenState extends State<GameScreen> {
     bool hasCharges = charges > 0;
     return Expanded(
       child: GestureDetector(
-        onTap: () { if (hasCharges && !_isProcessing) setState(() => _activeSkill = isSelected ? null : type); },
+        onTap: () {
+          if (hasCharges && !_isProcessing)
+            setState(() => _activeSkill = isSelected ? null : type);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.4) : (hasCharges ? Colors.white : Colors.grey.shade200),
+            color:
+                isSelected
+                    ? color.withOpacity(0.4)
+                    : (hasCharges ? Colors.white : Colors.grey.shade200),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: isSelected ? color : Colors.grey.shade300, width: 2.5),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.shade300,
+              width: 2.5,
+            ),
           ),
           child: Column(
             children: [
               Icon(icon, color: hasCharges ? color : Colors.grey, size: 28),
-              Text('x$charges', style: GoogleFonts.kanit(fontSize: 14, fontWeight: FontWeight.bold, color: hasCharges ? Colors.black87 : Colors.red)),
+              Text(
+                'x$charges',
+                style: GoogleFonts.kanit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: hasCharges ? Colors.black87 : Colors.red,
+                ),
+              ),
             ],
           ),
         ),
@@ -675,11 +855,19 @@ class _GameScreenState extends State<GameScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _statBox("เป้าหมาย", "${_levelData.targetScore}", Colors.orange[800]!),
+          _statBox(
+            "เป้าหมาย",
+            "${_levelData.targetScore}",
+            Colors.orange[800]!,
+          ),
           _statBox("คะแนน", "$_score", Colors.blue[800]!),
           _statBox("เหลือ", "$_movesLeft", Colors.red[800]!),
         ],
@@ -690,7 +878,14 @@ class _GameScreenState extends State<GameScreen> {
   Widget _statBox(String t, String v, Color c) => Column(
     children: [
       Text(t, style: GoogleFonts.kanit(fontSize: 12)),
-      Text(v, style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: c)),
+      Text(
+        v,
+        style: GoogleFonts.kanit(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: c,
+        ),
+      ),
     ],
   );
 
@@ -703,31 +898,44 @@ class _GameScreenState extends State<GameScreen> {
           child: Container(
             width: cellSize * gridSize,
             height: cellSize * gridSize,
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Stack(
               children: [
-                ...candies.map((c) => AnimatedPositioned(
+                ...candies.map(
+                  (c) => AnimatedPositioned(
                     key: ValueKey(c.id),
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeOutBack,
                     top: c.row * cellSize,
                     left: c.col * cellSize,
                     child: GestureDetector(
-                      onTap: () { if (_activeSkill != null) _useSkill(c.row, c.col, cellSize); },
+                      onTap: () {
+                        if (_activeSkill != null)
+                          _useSkill(c.row, c.col, cellSize);
+                      },
                       onPanStart: (d) => _dragStartPos = d.globalPosition,
-                      onPanUpdate: (d) => _handleSwipe(c, d.globalPosition, cellSize),
+                      onPanUpdate:
+                          (d) => _handleSwipe(c, d.globalPosition, cellSize),
                       child: SizedBox(
                         width: cellSize,
                         height: cellSize,
                         child: Padding(
                           padding: const EdgeInsets.all(4),
-                          child: RiveAnimation.asset('assets/animations/rives/mood.riv', animations: [_getAnimationName(c.type)], fit: BoxFit.contain),
+                          child: RiveAnimation.asset(
+                            'assets/animations/rives/mood.riv',
+                            animations: [_getAnimationName(c.type)],
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                ..._floatingCoins.map((coin) => TweenAnimationBuilder<double>(
+                ..._floatingCoins.map(
+                  (coin) => TweenAnimationBuilder<double>(
                     key: coin.id,
                     tween: Tween(begin: 0.0, end: 1.0),
                     duration: const Duration(milliseconds: 800),
@@ -739,7 +947,17 @@ class _GameScreenState extends State<GameScreen> {
                           opacity: 1.0 - value,
                           child: Text(
                             '+${coin.amount}',
-                            style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.bold, color: coin.color, shadows: [Shadow(color: Colors.white.withOpacity(0.8), blurRadius: 4)]),
+                            style: GoogleFonts.kanit(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: coin.color,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.white.withOpacity(0.8),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
