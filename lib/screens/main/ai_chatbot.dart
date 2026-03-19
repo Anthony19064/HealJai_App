@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:healjai_project/service/aiChat.dart';
 
 class ChatMessage {
   final String text;
@@ -20,7 +21,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [
-    ChatMessage(text: "สวัสดีเพื่อน มีอะไรให้เราช่วยฮีลใจไหม?", isMe: false),
+    ChatMessage(text: "สวัสดีค้าบวันนี้มีเรื่องอะไรไม่สบายใจรึป่าว? หรืออยากจะพูดคุยเล่นก็ได้นะ :)", isMe: false),
   ];
   bool _isTyping = false;
 
@@ -36,35 +37,34 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     });
   }
 
-  void _handleSend() {
-    if (_messageController.text.trim().isEmpty) return;
+  Future<void> _handleSend() async{
+    String userText = _messageController.text;
+    if (userText.trim().isEmpty) return;
 
     FocusScope.of(context).unfocus();
 
+
+    // ระบบส่งแชท
     setState(() {
-      _messages.add(ChatMessage(text: _messageController.text, isMe: true));
+      _messages.add(ChatMessage(text: userText, isMe: true));
       _isTyping = true;
     });
 
-    String userText = _messageController.text;
     _messageController.clear();
     _scrollToBottom();
+    final result = await SendChatToAi(userText);
+    final aiText = result['reply'] as String;
 
-    Timer(const Duration(seconds: 2), () {
+    // ระบบรับแชทจาก AI
       if (mounted) {
         setState(() {
           _isTyping = false;
-          _messages.add(ChatMessage(text: _getAutoReply(userText), isMe: false));
+          _messages.add(ChatMessage(text: aiText, isMe: false));
         });
         _scrollToBottom();
       }
-    });
   }
 
-  String _getAutoReply(String input) {
-    if (input.contains("ดี")) return "เราสบายดีนะ ขอบคุณที่ถามครับ";
-    return "เราอยู่ตรงนี้เสมอ มีอะไรบอกเราได้นะ";
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +80,8 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black54),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('น้องฮีลใจ', style: GoogleFonts.kanit(fontSize: 26, fontWeight: FontWeight.bold)),
+        title: Text('น้องฮีลใจ', 
+        style: GoogleFonts.kanit(fontSize: 26, fontWeight: FontWeight.bold,color: Colors.black54)),
         centerTitle: true,
       ),
       body: Stack(
@@ -217,10 +218,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
       child: Row(children: [
         const CircleAvatar(radius: 18, backgroundImage: AssetImage('assets/icons/app_icon.png')),
         const SizedBox(width: 10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(color: const Color(0xFFE9F1D7), borderRadius: BorderRadius.circular(15)),
-          child: Text(text, style: GoogleFonts.kanit(fontSize: 16)),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(color: const Color(0xFFE9F1D7), borderRadius: BorderRadius.circular(15)),
+            child: Text(text, style: GoogleFonts.kanit(fontSize: 16)),
+          ),
         ),
       ]),
     );
@@ -230,10 +233,12 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(color: const Color(0xFF82B96D), borderRadius: BorderRadius.circular(15)),
-          child: Text(text, style: GoogleFonts.kanit(fontSize: 16, color: Colors.white)),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(color: const Color(0xFF82B96D), borderRadius: BorderRadius.circular(15)),
+            child: Text(text, style: GoogleFonts.kanit(fontSize: 16, color: Colors.white)),
+          ),
         ),
       ]),
     );
