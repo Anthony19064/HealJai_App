@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:healjai_project/providers/navProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
@@ -106,7 +108,27 @@ class MainMenuScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 10),
+            FadeInUp(
+              duration: const Duration(seconds: 1),
+              child: FutureBuilder<int>(
+                future: getLevel(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox(); // หรือ loading
+                  }
+                  return Text(
+                    'ตอนนี้คุณถึง Level ${snapshot.data} แล้วนะ !!',
+                    style: GoogleFonts.kanit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.brown[500],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 60),
             SizedBox(
               height: 200,
               width: 200,
@@ -765,6 +787,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildTopBar() {
+    final NavInfo = Provider.of<Navprovider>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Stack(
@@ -778,7 +801,10 @@ class _GameScreenState extends State<GameScreen> {
                 color: Colors.brown,
                 size: 32,
               ),
-              onPressed: () => context.go('/'),
+              onPressed: () {
+                NavInfo.resetHome();
+                context.go('/');
+              },
             ),
           ),
           Text(
