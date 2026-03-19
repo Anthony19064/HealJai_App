@@ -5,44 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:healjai_project/providers/navProvider.dart';
 import 'package:provider/provider.dart';
-import 'package:rive/rive.dart';
+import 'package:rive/rive.dart' hide LinearGradient; 
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../providers/GameProvider.dart';
 
 // -------------------------------------------------------------------------
-// 1. การตั้งค่า Router
-// -------------------------------------------------------------------------
-void main() {
-  runApp(const MyMoodApp());
-}
-
-final GoRouter _router = GoRouter(
-  initialLocation: '/', // หน้าแรกคือ MainMenu
-  routes: [
-    GoRoute(path: '/', builder: (context, state) => const MainMenuScreen()),
-    GoRoute(
-      path: '/gamescreen',
-      builder: (context, state) => const GameScreen(),
-    ),
-  ],
-);
-
-class MyMoodApp extends StatelessWidget {
-  const MyMoodApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _router,
-      debugShowCheckedModeBanner: false,
-      title: 'Mood Match Game',
-    );
-  }
-}
-
-// -------------------------------------------------------------------------
-// 2. Models
+// 1. Models
 // -------------------------------------------------------------------------
 class FloatingCoin {
   final Key id;
@@ -50,24 +19,14 @@ class FloatingCoin {
   final double x;
   final double y;
   final Color color;
-  FloatingCoin({
-    required this.id,
-    required this.amount,
-    required this.x,
-    required this.y,
-    required this.color,
-  });
+  FloatingCoin({required this.id, required this.amount, required this.x, required this.y, required this.color});
 }
 
 class LevelConfig {
   final int levelNumber;
   final int targetScore;
-  final int maxMoves;
-  LevelConfig({
-    required this.levelNumber,
-    required this.targetScore,
-    required this.maxMoves,
-  });
+  final int maxTime;
+  LevelConfig({required this.levelNumber, required this.targetScore, required this.maxTime});
 }
 
 class CandyModel {
@@ -75,16 +34,11 @@ class CandyModel {
   int type;
   int row;
   int col;
-  CandyModel({
-    required this.id,
-    required this.type,
-    required this.row,
-    required this.col,
-  });
+  CandyModel({required this.id, required this.type, required this.row, required this.col});
 }
 
 // -------------------------------------------------------------------------
-// 3. หน้าเริ่มเกม (MainMenuScreen)
+// 2. MainMenuScreen
 // -------------------------------------------------------------------------
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -101,11 +55,7 @@ class MainMenuScreen extends StatelessWidget {
               duration: const Duration(seconds: 1),
               child: Text(
                 'Mood Match',
-                style: GoogleFonts.kanit(
-                  fontSize: 56,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.brown[700],
-                ),
+                style: GoogleFonts.kanit(fontSize: 56, fontWeight: FontWeight.w900, color: Colors.brown[700]),
               ),
             ),
             const SizedBox(height: 10),
@@ -114,57 +64,30 @@ class MainMenuScreen extends StatelessWidget {
               child: FutureBuilder<int>(
                 future: getLevel(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const SizedBox(); // หรือ loading
-                  }
+                  if (!snapshot.hasData) return const SizedBox();
                   return Text(
                     'ตอนนี้คุณถึง Level ${snapshot.data} แล้วนะ !!',
-                    style: GoogleFonts.kanit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.brown[500],
-                    ),
+                    style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w600, color: Colors.brown[500]),
                   );
                 },
               ),
             ),
             const SizedBox(height: 60),
             SizedBox(
-              height: 200,
-              width: 200,
-              child: const RiveAnimation.asset(
-                'assets/animations/rives/mood.riv',
-                animations: ['Happy'],
-                fit: BoxFit.contain,
-              ),
+              height: 200, width: 200,
+              child: const RiveAnimation.asset('assets/animations/rives/mood.riv', animations: ['Happy'], fit: BoxFit.contain),
             ),
             const SizedBox(height: 60),
             GestureDetector(
               onTap: () => context.go('/gamescreen'),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 60,
-                  vertical: 20,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
                 decoration: BoxDecoration(
                   color: const Color(0xFF78B465),
                   borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 15, offset: const Offset(0, 8))],
                 ),
-                child: Text(
-                  'START GAME',
-                  style: GoogleFonts.kanit(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Text('START GAME', style: GoogleFonts.kanit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],
@@ -175,7 +98,7 @@ class MainMenuScreen extends StatelessWidget {
 }
 
 // -------------------------------------------------------------------------
-// 4. หน้าเล่นเกม (GameScreen)
+// 3. GameScreen
 // -------------------------------------------------------------------------
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -190,27 +113,23 @@ class _GameScreenState extends State<GameScreen> {
   List<FloatingCoin> _floatingCoins = [];
   int _nextId = 0;
   bool _isProcessing = false;
+  bool _hasGameEnded = false; // ตัวแปรเช็คกันจบด่านซ้ำซ้อน
   Offset? _dragStartPos;
 
   int _score = 0;
-  int _movesLeft = 0;
+  int _secondsLeft = 0;
+  int _maxTime = 0;
+  Timer? _gameTimer;
+
   int _currentLevel = 1;
   late LevelConfig _levelData;
 
   String? _activeSkill;
-  // ระบบไอเทมแบบจำนวนครั้ง
   late Map<String, int> _skillCharges;
 
   bool _isLoading = true;
   late AudioPool _matchPool;
   late AudioPool _swapPool;
-
-  Future<void> _initLevel() async {
-    _currentLevel = await getLevel();
-    _setupLevel(_currentLevel);
-    await _loadResources();
-    _initGame();
-  }
 
   @override
   void initState() {
@@ -218,37 +137,57 @@ class _GameScreenState extends State<GameScreen> {
     _initLevel();
   }
 
+  @override
+  void dispose() {
+    _gameTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initLevel() async {
+    _currentLevel = await getLevel();
+    _setupLevel(_currentLevel);
+    await _loadResources();
+    _initGame();
+    _startCountdown();
+  }
+
   void _setupLevel(int lv) {
-    // เป้าหมายเพิ่มด่านละ 300
     int calculatedTarget = lv * 300;
-    // รอบเดินเริ่ม 20 เพิ่ม 10 ทุก 5 ด่าน
-    int baseMoves = 20;
-    int extraMoves = ((lv - 1) ~/ 5) * 10;
+    int baseTime = 60;
+    int extraTime = (lv - 1) * 5;
 
     _levelData = LevelConfig(
       levelNumber: lv,
       targetScore: calculatedTarget,
-      maxMoves: baseMoves + extraMoves,
+      maxTime: baseTime + extraTime,
     );
 
-    // รีเซ็ตไอเทมใหม่ทุกด่าน
     _skillCharges = {'hammer': 2, 'bomb': 1, 'rocket': 1};
     _score = 0;
-    _movesLeft = _levelData.maxMoves;
+    _secondsLeft = _levelData.maxTime;
+    _maxTime = _secondsLeft;
+    _hasGameEnded = false;
+  }
+
+  void _startCountdown() {
+    _gameTimer?.cancel();
+    _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsLeft > 0) {
+        setState(() => _secondsLeft--);
+        // เช็คแต้มผ่านด่านในทุกวินาที
+        if (_score >= _levelData.targetScore && !_hasGameEnded) {
+          _checkGameStatus();
+        }
+      } else if (!_hasGameEnded) {
+        _checkGameStatus();
+      }
+    });
   }
 
   Future<void> _loadResources() async {
     try {
-      _matchPool = await FlameAudio.createPool(
-        "choptree.mp3",
-        minPlayers: 3,
-        maxPlayers: 5,
-      );
-      _swapPool = await FlameAudio.createPool(
-        "criticalSound.WAV",
-        minPlayers: 1,
-        maxPlayers: 2,
-      );
+      _matchPool = await FlameAudio.createPool("choptree.mp3", minPlayers: 3, maxPlayers: 5);
+      _swapPool = await FlameAudio.createPool("criticalSound.WAV", minPlayers: 1, maxPlayers: 2);
     } catch (e) {
       debugPrint("Audio error: $e");
     }
@@ -268,9 +207,50 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _addNewCandy(int r, int c) {
-    candies.add(
-      CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c),
-    );
+    candies.add(CandyModel(id: _nextId++, type: Random().nextInt(7) + 1, row: r, col: c));
+  }
+
+  void _swapPos(CandyModel c1, CandyModel c2) {
+    setState(() {
+      int tr = c1.row, tc = c1.col;
+      c1.row = c2.row; c1.col = c2.col;
+      c2.row = tr; c2.col = tc;
+    });
+  }
+
+  CandyModel? _getCandyAt(int r, int c) {
+    try { return candies.firstWhere((e) => e.row == r && e.col == c); } catch (e) { return null; }
+  }
+
+  // --- Game Logic ---
+  void _handleSwipe(CandyModel candy, Offset globalPos, double cellSize) {
+    if (_dragStartPos == null || _isProcessing || _secondsLeft <= 0 || _activeSkill != null || _hasGameEnded) return;
+    final dx = globalPos.dx - _dragStartPos!.dx;
+    final dy = globalPos.dy - _dragStartPos!.dy;
+    if (dx.abs() > 30 || dy.abs() > 30) {
+      int tR = candy.row, tC = candy.col;
+      if (dx.abs() > dy.abs()) { tC = (dx > 0) ? candy.col + 1 : candy.col - 1; }
+      else { tR = (dy > 0) ? candy.row + 1 : candy.row - 1; }
+      if (tR >= 0 && tR < gridSize && tC >= 0 && tC < gridSize) _attemptSwap(candy, tR, tC, cellSize);
+      _dragStartPos = null;
+    }
+  }
+
+  Future<void> _attemptSwap(CandyModel c1, int tR, int tC, double cellSize) async {
+    _isProcessing = true;
+    var c2 = _getCandyAt(tR, tC)!;
+    _swapPos(c1, c2);
+    _swapPool.start();
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (_hasAnyMatch()) {
+      await _processMatches(cellSize);
+      if (!_hasPossibleMoves() && _secondsLeft > 0) _shuffleBoard();
+      _checkGameStatus();
+    } else {
+      _swapPos(c1, c2);
+      await Future.delayed(const Duration(milliseconds: 350));
+    }
+    _isProcessing = false;
   }
 
   bool _hasAnyMatch() {
@@ -296,246 +276,9 @@ class _GameScreenState extends State<GameScreen> {
     int count = 0, currR = r + dr, currC = c + dc;
     while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
       var next = _getCandyAt(currR, currC);
-      if (next != null && next.type == base.type) {
-        count++;
-        currR += dr;
-        currC += dc;
-      } else
-        break;
+      if (next != null && next.type == base.type) { count++; currR += dr; currC += dc; } else break;
     }
     return count;
-  }
-
-  void _rewardPlayer(CandyModel candy, double cellSize) {
-    int scoreAmount = 25;
-    _score += scoreAmount;
-    _showCoinPop(scoreAmount, candy.type, candy.row, candy.col, cellSize);
-  }
-
-  void _showCoinPop(int amount, int type, int row, int col, double cellSize) {
-    final id = UniqueKey();
-    setState(() {
-      _floatingCoins.add(
-        FloatingCoin(
-          id: id,
-          amount: amount,
-          x: col * cellSize + (cellSize / 4),
-          y: row * cellSize,
-          color: _getMoodColor(type),
-        ),
-      );
-    });
-    Timer(const Duration(milliseconds: 1000), () {
-      if (mounted)
-        setState(() => _floatingCoins.removeWhere((coin) => coin.id == id));
-    });
-  }
-
-  String _getAnimationName(int type) {
-    switch (type) {
-      case 1:
-        return 'Wow';
-      case 2:
-        return 'Love';
-      case 3:
-        return 'Happy';
-      case 4:
-        return 'Normal';
-      case 5:
-        return 'Sad';
-      case 6:
-        return 'Scare';
-      case 7:
-        return 'Angry';
-      default:
-        return 'Normal';
-    }
-  }
-
-  Color _getMoodColor(int type) {
-    switch (type) {
-      case 1:
-        return const Color(0xFFF29C41);
-      case 2:
-        return const Color(0xFFFF9B9B);
-      case 3:
-        return const Color(0xFFFFCC00);
-      case 4:
-        return const Color(0xFF878787);
-      case 5:
-        return const Color(0xFF86AFFC);
-      case 6:
-        return const Color(0xFFCB9DF0);
-      case 7:
-        return const Color(0xFFEB4343);
-      default:
-        return Colors.black;
-    }
-  }
-
-  void _ensureNoInitialMatches() {
-    bool hasMatch;
-    do {
-      hasMatch = false;
-      for (var candy in candies) {
-        if (_checkMatchAt(candy.row, candy.col)) {
-          candy.type = Random().nextInt(7) + 1;
-          hasMatch = true;
-        }
-      }
-    } while (hasMatch);
-  }
-
-  CandyModel? _getCandyAt(int r, int c) {
-    try {
-      return candies.firstWhere((e) => e.row == r && e.col == c);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  bool _hasPossibleMoves() {
-    for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) {
-        if (c < gridSize - 1 && _wouldMatchIfSwapped(r, c, r, c + 1))
-          return true;
-        if (r < gridSize - 1 && _wouldMatchIfSwapped(r, c, r + 1, c))
-          return true;
-      }
-    }
-    return false;
-  }
-
-  bool _wouldMatchIfSwapped(int r1, int c1, int r2, int c2) {
-    var c1Obj = _getCandyAt(r1, c1);
-    var c2Obj = _getCandyAt(r2, c2);
-    if (c1Obj == null || c2Obj == null) return false;
-    int temp = c1Obj.type;
-    c1Obj.type = c2Obj.type;
-    c2Obj.type = temp;
-    bool match = _checkMatchAt(r1, c1) || _checkMatchAt(r2, c2);
-    c2Obj.type = c1Obj.type;
-    c1Obj.type = temp;
-    return match;
-  }
-
-  void _shuffleBoard({bool silent = false}) {
-    if (!silent && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("ทางตัน! สลับตารางใหม่อัตโนมัติ")),
-      );
-    }
-    do {
-      for (var candy in candies) {
-        candy.type = Random().nextInt(7) + 1;
-      }
-      _ensureNoInitialMatches();
-    } while (!_hasPossibleMoves());
-    setState(() {});
-  }
-
-  void _useSkill(int r, int c, double cellSize) async {
-    if (_isProcessing || _activeSkill == null) return;
-
-    // เช็คจำนวนครั้งไอเทม
-    if (_skillCharges[_activeSkill!]! <= 0) {
-      _activeSkill = null;
-      setState(() {});
-      return;
-    }
-
-    _isProcessing = true;
-    Set<CandyModel> toRemove = {};
-    if (_activeSkill == 'hammer') {
-      var target = _getCandyAt(r, c);
-      if (target != null) toRemove.add(target);
-    } else if (_activeSkill == 'bomb') {
-      for (int i = r - 1; i <= r + 1; i++) {
-        for (int j = c - 1; j <= c + 1; j++) {
-          var target = _getCandyAt(i, j);
-          if (target != null) toRemove.add(target);
-        }
-      }
-    } else if (_activeSkill == 'rocket') {
-      for (int j = 0; j < gridSize; j++) {
-        var target = _getCandyAt(r, j);
-        if (target != null) toRemove.add(target);
-      }
-    }
-
-    if (toRemove.isNotEmpty) {
-      setState(() {
-        _skillCharges[_activeSkill!] =
-            _skillCharges[_activeSkill!]! - 1; // ลดจำนวนครั้ง
-        for (var candy in toRemove) {
-          _rewardPlayer(candy, cellSize);
-        }
-        candies.removeWhere((c) => toRemove.contains(c));
-        _activeSkill = null;
-      });
-      _matchPool.start();
-      await Future.delayed(const Duration(milliseconds: 300));
-      _fillGaps();
-      await _processMatches(cellSize);
-      _checkGameStatus(); // แก้บัคแต้มทะลุไม่เปลี่ยนด่าน
-    }
-    _isProcessing = false;
-  }
-
-  void _handleSwipe(CandyModel candy, Offset globalPos, double cellSize) {
-    if (_dragStartPos == null ||
-        _isProcessing ||
-        _movesLeft <= 0 ||
-        _activeSkill != null)
-      return;
-    final dx = globalPos.dx - _dragStartPos!.dx;
-    final dy = globalPos.dy - _dragStartPos!.dy;
-    if (dx.abs() > 30 || dy.abs() > 30) {
-      int tR = candy.row, tC = candy.col;
-      if (dx.abs() > dy.abs()) {
-        tC = (dx > 0) ? candy.col + 1 : candy.col - 1;
-      } else {
-        tR = (dy > 0) ? candy.row + 1 : candy.row - 1;
-      }
-      if (tR >= 0 && tR < gridSize && tC >= 0 && tC < gridSize)
-        _attemptSwap(candy, tR, tC, cellSize);
-      _dragStartPos = null;
-    }
-  }
-
-  Future<void> _attemptSwap(
-    CandyModel c1,
-    int tR,
-    int tC,
-    double cellSize,
-  ) async {
-    _isProcessing = true;
-    var c2 = _getCandyAt(tR, tC)!;
-    _swapPos(c1, c2);
-    _swapPool.start();
-    await Future.delayed(const Duration(milliseconds: 350));
-    if (_hasAnyMatch()) {
-      setState(() {
-        _movesLeft--;
-      });
-      await _processMatches(cellSize);
-      if (!_hasPossibleMoves() && _movesLeft > 0) _shuffleBoard();
-      _checkGameStatus();
-    } else {
-      _swapPos(c1, c2);
-      await Future.delayed(const Duration(milliseconds: 350));
-    }
-    _isProcessing = false;
-  }
-
-  void _swapPos(CandyModel c1, CandyModel c2) {
-    setState(() {
-      int tr = c1.row, tc = c1.col;
-      c1.row = c2.row;
-      c1.col = c2.col;
-      c2.row = tr;
-      c2.col = tc;
-    });
   }
 
   Future<void> _processMatches(double cellSize) async {
@@ -552,9 +295,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       setState(() {
-        for (var c in toRemove) {
-          _rewardPlayer(c, cellSize);
-        }
+        for (var c in toRemove) _rewardPlayer(c, cellSize);
         candies.removeWhere((c) => toRemove.contains(c));
       });
       _matchPool.start();
@@ -571,12 +312,7 @@ class _GameScreenState extends State<GameScreen> {
     int currR = r + dr, currC = c + dc;
     while (currR >= 0 && currR < gridSize && currC >= 0 && currC < gridSize) {
       var next = _getCandyAt(currR, currC);
-      if (next != null && next.type == candy.type) {
-        match.add(next);
-        currR += dr;
-        currC += dc;
-      } else
-        break;
+      if (next != null && next.type == candy.type) { match.add(next); currR += dr; currC += dc; } else break;
     }
     return match;
   }
@@ -587,195 +323,43 @@ class _GameScreenState extends State<GameScreen> {
         int empty = 0;
         for (int r = gridSize - 1; r >= 0; r--) {
           var candy = _getCandyAt(r, c);
-          if (candy == null)
-            empty++;
-          else if (empty > 0)
-            candy.row += empty;
+          if (candy == null) empty++; else if (empty > 0) candy.row += empty;
         }
         for (int i = 0; i < empty; i++) _addNewCandy(i, c);
       }
     });
   }
 
+  void _rewardPlayer(CandyModel candy, double cellSize) {
+    _score += 25;
+    _showCoinPop(25, candy.type, candy.row, candy.col, cellSize);
+  }
+
   void _checkGameStatus() {
+    if (_hasGameEnded) return;
+
     if (_score >= _levelData.targetScore) {
+      _hasGameEnded = true;
+      _gameTimer?.cancel();
       _showEndDialog("ยอดเยี่ยม!", "ผ่านด่านที่ $_currentLevel", true);
-    } else if (_movesLeft <= 0) {
-      _showEndDialog("เสียดายจัง", "จำนวนครั้งที่เดินหมดแล้ว", false);
+    } else if (_secondsLeft <= 0) {
+      _hasGameEnded = true;
+      _gameTimer?.cancel();
+      _showEndDialog("หมดเวลา!", "คะแนนยังไม่ถึงเป้าหมาย", false);
     }
   }
 
-  void _showEndDialog(String title, String msg, bool isWin) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierLabel: '',
-      transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (ctx, anim1, anim2) => Container(),
-      transitionBuilder: (ctx, anim1, anim2, child) {
-        return Transform.scale(
-          scale: anim1.value,
-          child: Opacity(
-            opacity: anim1.value,
-            child: Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              backgroundColor: Colors.transparent,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 80, 20, 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          isWin ? 'ผ่านด่านแล้ว!' : 'พยายามใหม่นะ!',
-                          style: GoogleFonts.kanit(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color:
-                                isWin
-                                    ? const Color(0xFF78B465)
-                                    : Colors.redAccent,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          msg,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.kanit(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // กล่องโชว์คะแนน
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.amber.shade200),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                'คะแนนด่านนี้',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 14,
-                                  color: Colors.amber.shade900,
-                                ),
-                              ),
-                              Text(
-                                '$_score',
-                                style: GoogleFonts.kanit(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.amber.shade900,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        // ปุ่ม Action หลัก (ขยายเต็มความกว้าง)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  isWin
-                                      ? const Color(0xFF78B465)
-                                      : Colors.orangeAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              elevation: 5,
-                            ),
-                            onPressed: () async {
-                              Navigator.pop(ctx);
-                              if (isWin) setState(() => _currentLevel++);
-                              await saveLevel(_currentLevel);
-                              _setupLevel(_currentLevel);
-                              _initGame();
-                            },
-                            child: Text(
-                              isWin ? 'ลุยด่านต่อไป!' : 'ลองอีกครั้ง',
-                              style: GoogleFonts.kanit(
-                                fontSize: 22,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // รูปตัวละครลอยด้านบน
-                  Positioned(
-                    top: -70,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: CircleAvatar(
-                        radius: 65,
-                        backgroundColor:
-                            isWin
-                                ? const Color(0xFFE8F5E9)
-                                : const Color(0xFFFFEBEE),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: RiveAnimation.asset(
-                            'assets/animations/rives/mood.riv',
-                            animations: [isWin ? 'Happy' : 'Sad'],
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
+  // --- UI Building ---
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6),
       body: SafeArea(
         child: Column(
           children: [
             _buildTopBar(),
-            _buildStatusPanel(),
+            _buildTimeStatusPanel(),
             const SizedBox(height: 10),
             Expanded(child: _buildPlayArea()),
             _buildSkillButtons(),
@@ -787,7 +371,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildTopBar() {
-    final NavInfo = Provider.of<Navprovider>(context);
+    final navInfo = Provider.of<Navprovider>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Stack(
@@ -796,205 +380,218 @@ class _GameScreenState extends State<GameScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
-              icon: const Icon(
-                Icons.home_rounded,
-                color: Colors.brown,
-                size: 32,
-              ),
-              onPressed: () {
-                NavInfo.resetHome();
-                context.go('/');
-              },
+              icon: const Icon(Icons.home_rounded, color: Colors.brown, size: 32),
+              onPressed: () { navInfo.resetHome(); context.go('/'); },
             ),
           ),
-          Text(
-            'Level $_currentLevel',
-            style: GoogleFonts.kanit(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: Colors.brown[700],
-            ),
-          ),
+          Text('Level $_currentLevel', style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.brown[700])),
         ],
       ),
     );
   }
 
-  Widget _buildSkillButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+  Widget _buildTimeStatusPanel() {
+    double progress = _secondsLeft / _maxTime;
+    Color timerColor = _secondsLeft <= 10 ? Colors.redAccent : const Color(0xFF78B465);
+
+    return Container(
+      padding: const EdgeInsets.all(15), margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))]),
+      child: Column(
         children: [
-          _skillItem('hammer', Icons.build, Colors.blue),
-          const SizedBox(width: 10),
-          _skillItem('bomb', Icons.wb_iridescent, Colors.orange),
-          const SizedBox(width: 10),
-          _skillItem('rocket', Icons.straighten, Colors.purple),
-        ],
-      ),
-    );
-  }
-
-  Widget _skillItem(String type, IconData icon, Color color) {
-    bool isSelected = _activeSkill == type;
-    int charges = _skillCharges[type]!;
-    bool hasCharges = charges > 0;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (hasCharges && !_isProcessing)
-            setState(() => _activeSkill = isSelected ? null : type);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? color.withOpacity(0.4)
-                    : (hasCharges ? Colors.white : Colors.grey.shade200),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: isSelected ? color : Colors.grey.shade300,
-              width: 2.5,
-            ),
-          ),
-          child: Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: hasCharges ? color : Colors.grey, size: 28),
-              Text(
-                'x$charges',
-                style: GoogleFonts.kanit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: hasCharges ? Colors.black87 : Colors.red,
-                ),
-              ),
+              _statColumn("TARGET", "${_levelData.targetScore}", Colors.orange[800]!),
+              _statColumn("SCORE", "$_score", Colors.blue[800]!),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusPanel() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _statBox(
-            "เป้าหมาย",
-            "${_levelData.targetScore}",
-            Colors.orange[800]!,
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              Icon(Icons.timer_rounded, color: timerColor, size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    children: [
+                      Container(height: 14, color: Colors.grey[200]),
+                      AnimatedContainer(
+                        duration: const Duration(seconds: 1), height: 14,
+                        width: (MediaQuery.of(context).size.width - 120) * progress,
+                        decoration: BoxDecoration(gradient: LinearGradient(colors: [timerColor, timerColor.withOpacity(0.6)])),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text("${_secondsLeft}s", style: GoogleFonts.kanit(fontSize: 18, fontWeight: FontWeight.bold, color: timerColor)),
+            ],
           ),
-          _statBox("คะแนน", "$_score", Colors.blue[800]!),
-          _statBox("เหลือ", "$_movesLeft", Colors.red[800]!),
         ],
       ),
     );
   }
 
-  Widget _statBox(String t, String v, Color c) => Column(
+  Widget _statColumn(String label, String value, Color color) => Column(
     children: [
-      Text(t, style: GoogleFonts.kanit(fontSize: 12)),
-      Text(
-        v,
-        style: GoogleFonts.kanit(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: c,
-        ),
-      ),
+      Text(label, style: GoogleFonts.kanit(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+      Text(value, style: GoogleFonts.kanit(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
     ],
   );
 
   Widget _buildPlayArea() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
     return LayoutBuilder(
       builder: (ctx, box) {
         double cellSize = (box.maxWidth - 40) / gridSize;
         return Center(
           child: Container(
-            width: cellSize * gridSize,
-            height: cellSize * gridSize,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            width: cellSize * gridSize, height: cellSize * gridSize,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: Stack(
               children: [
-                ...candies.map(
-                  (c) => AnimatedPositioned(
-                    key: ValueKey(c.id),
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeOutBack,
-                    top: c.row * cellSize,
-                    left: c.col * cellSize,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (_activeSkill != null)
-                          _useSkill(c.row, c.col, cellSize);
-                      },
-                      onPanStart: (d) => _dragStartPos = d.globalPosition,
-                      onPanUpdate:
-                          (d) => _handleSwipe(c, d.globalPosition, cellSize),
-                      child: SizedBox(
-                        width: cellSize,
-                        height: cellSize,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: RiveAnimation.asset(
-                            'assets/animations/rives/mood.riv',
-                            animations: [_getAnimationName(c.type)],
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                ...candies.map((c) => AnimatedPositioned(
+                  key: ValueKey(c.id),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutBack,
+                  top: c.row * cellSize, left: c.col * cellSize,
+                  child: GestureDetector(
+                    onTap: () { if (_activeSkill != null) _useSkill(c.row, c.col, cellSize); },
+                    onPanStart: (d) => _dragStartPos = d.globalPosition,
+                    onPanUpdate: (d) => _handleSwipe(c, d.globalPosition, cellSize),
+                    child: SizedBox(
+                      width: cellSize, height: cellSize,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: RiveAnimation.asset('assets/animations/rives/mood.riv', animations: [_getAnimationName(c.type)], fit: BoxFit.contain),
                       ),
                     ),
                   ),
-                ),
-                ..._floatingCoins.map(
-                  (coin) => TweenAnimationBuilder<double>(
-                    key: coin.id,
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 800),
-                    builder: (context, value, child) {
-                      return Positioned(
-                        left: coin.x,
-                        top: coin.y - (value * 50),
-                        child: Opacity(
-                          opacity: 1.0 - value,
-                          child: Text(
-                            '+${coin.amount}',
-                            style: GoogleFonts.kanit(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: coin.color,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.white.withOpacity(0.8),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                )),
+                ..._floatingCoins.map((coin) => TweenAnimationBuilder<double>(
+                  key: coin.id, tween: Tween(begin: 0.0, end: 1.0), duration: const Duration(milliseconds: 800),
+                  builder: (context, value, child) => Positioned(
+                    left: coin.x, top: coin.y - (value * 50),
+                    child: Opacity(opacity: 1.0 - value, child: Text('+${coin.amount}', style: GoogleFonts.kanit(fontSize: 24, fontWeight: FontWeight.bold, color: coin.color))),
                   ),
-                ),
+                )),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  // --- Skill & UI Helpers ---
+  void _useSkill(int r, int c, double cellSize) async {
+    if (_isProcessing || _activeSkill == null || _skillCharges[_activeSkill!]! <= 0 || _hasGameEnded) return;
+    _isProcessing = true; Set<CandyModel> toRemove = {};
+    if (_activeSkill == 'hammer') { var t = _getCandyAt(r, c); if (t != null) toRemove.add(t); }
+    else if (_activeSkill == 'bomb') { for (int i = r - 1; i <= r + 1; i++) { for (int j = c - 1; j <= c + 1; j++) { var t = _getCandyAt(i, j); if (t != null) toRemove.add(t); } } }
+    else if (_activeSkill == 'rocket') { for (int j = 0; j < gridSize; j++) { var t = _getCandyAt(r, j); if (t != null) toRemove.add(t); } }
+    
+    if (toRemove.isNotEmpty) {
+      setState(() { _skillCharges[_activeSkill!] = _skillCharges[_activeSkill!]! - 1; for (var candy in toRemove) { _rewardPlayer(candy, cellSize); } candies.removeWhere((c) => toRemove.contains(c)); _activeSkill = null; });
+      _matchPool.start(); await Future.delayed(const Duration(milliseconds: 300)); _fillGaps(); await _processMatches(cellSize); _checkGameStatus();
+    }
+    _isProcessing = false;
+  }
+
+  Widget _buildSkillButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(children: [ _skillItem('hammer', Icons.build, Colors.blue), const SizedBox(width: 10), _skillItem('bomb', Icons.wb_iridescent, Colors.orange), const SizedBox(width: 10), _skillItem('rocket', Icons.straighten, Colors.purple) ]),
+    );
+  }
+
+  Widget _skillItem(String type, IconData icon, Color color) {
+    bool isSelected = _activeSkill == type; int charges = _skillCharges[type]!; bool hasCharges = charges > 0;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () { if (hasCharges && !_isProcessing) setState(() => _activeSkill = isSelected ? null : type); },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200), padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(color: isSelected ? color.withOpacity(0.4) : (hasCharges ? Colors.white : Colors.grey.shade200), borderRadius: BorderRadius.circular(15), border: Border.all(color: isSelected ? color : Colors.grey.shade300, width: 2.5)),
+          child: Column(children: [ Icon(icon, color: hasCharges ? color : Colors.grey, size: 28), Text('x$charges', style: GoogleFonts.kanit(fontSize: 14, fontWeight: FontWeight.bold, color: hasCharges ? Colors.black87 : Colors.red)) ]),
+        ),
+      ),
+    );
+  }
+
+  String _getAnimationName(int type) => ['Wow', 'Love', 'Happy', 'Normal', 'Sad', 'Scare', 'Angry'][type - 1];
+  Color _getMoodColor(int type) => [const Color(0xFFF29C41), const Color(0xFFFF9B9B), const Color(0xFFFFCC00), const Color(0xFF878787), const Color(0xFF86AFFC), const Color(0xFFCB9DF0), const Color(0xFFEB4343)][type - 1];
+
+  void _ensureNoInitialMatches() {
+    bool hasMatch; do { hasMatch = false; for (var candy in candies) { if (_checkMatchAt(candy.row, candy.col)) { candy.type = Random().nextInt(7) + 1; hasMatch = true; } } } while (hasMatch);
+  }
+
+  bool _hasPossibleMoves() {
+    for (int r = 0; r < gridSize; r++) { for (int c = 0; c < gridSize; c++) { if (c < gridSize - 1 && _wouldMatchIfSwapped(r, c, r, c + 1)) return true; if (r < gridSize - 1 && _wouldMatchIfSwapped(r, c, r + 1, c)) return true; } } return false;
+  }
+
+  bool _wouldMatchIfSwapped(int r1, int c1, int r2, int c2) {
+    var c1Obj = _getCandyAt(r1, c1), c2Obj = _getCandyAt(r2, c2); if (c1Obj == null || c2Obj == null) return false;
+    int temp = c1Obj.type; c1Obj.type = c2Obj.type; c2Obj.type = temp;
+    bool match = _checkMatchAt(r1, c1) || _checkMatchAt(r2, c2);
+    c2Obj.type = c1Obj.type; c1Obj.type = temp; return match;
+  }
+
+  void _shuffleBoard({bool silent = false}) {
+    if (!silent && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ทางตัน! สลับตารางใหม่อัตโนมัติ")));
+    do { for (var candy in candies) { candy.type = Random().nextInt(7) + 1; } _ensureNoInitialMatches(); } while (!_hasPossibleMoves()); setState(() {});
+  }
+
+  void _showCoinPop(int amount, int type, int row, int col, double cellSize) {
+    final id = UniqueKey();
+    setState(() { _floatingCoins.add(FloatingCoin(id: id, amount: amount, x: col * cellSize + (cellSize / 4), y: row * cellSize, color: _getMoodColor(type))); });
+    Timer(const Duration(milliseconds: 1000), () { if (mounted) setState(() => _floatingCoins.removeWhere((coin) => coin.id == id)); });
+  }
+
+  void _showEndDialog(String title, String msg, bool isWin) {
+    showGeneralDialog(
+      context: context, barrierDismissible: false, transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, anim1, anim2) => Container(),
+      transitionBuilder: (ctx, anim1, anim2, child) => Transform.scale(
+        scale: anim1.value,
+        child: Opacity(
+          opacity: anim1.value,
+          child: Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            backgroundColor: Colors.transparent,
+            child: Stack(clipBehavior: Clip.none, alignment: Alignment.topCenter, children: [
+              Container(
+                width: double.infinity, padding: const EdgeInsets.fromLTRB(20, 80, 20, 20),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, offset: const Offset(0, 10))]),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text(isWin ? 'ผ่านด่านแล้ว!' : 'พยายามใหม่นะ!', style: GoogleFonts.kanit(fontSize: 32, fontWeight: FontWeight.w900, color: isWin ? const Color(0xFF78B465) : Colors.redAccent)),
+                  const SizedBox(height: 10), Text(msg, textAlign: TextAlign.center, style: GoogleFonts.kanit(fontSize: 18, color: Colors.grey[600])),
+                  const SizedBox(height: 20),
+                  Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 15), decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber.shade200)), child: Column(children: [ Text('คะแนนด่านนี้', style: GoogleFonts.kanit(fontSize: 14, color: Colors.amber.shade900)), Text('$_score', style: GoogleFonts.kanit(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.amber.shade900)) ])),
+                  const SizedBox(height: 30),
+                  SizedBox(width: double.infinity, height: 60, child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: isWin ? const Color(0xFF78B465) : Colors.orangeAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))), 
+                    onPressed: () async { 
+                      Navigator.pop(ctx); 
+                      if (isWin) {
+                        int nextLevel = _currentLevel + 1;
+                        await saveLevel(nextLevel); // เซฟด่านใหม่ที่นี่ที่เดียว
+                        setState(() { _currentLevel = nextLevel; });
+                      }
+                      _setupLevel(_currentLevel);
+                      _initGame();
+                      _startCountdown();
+                    }, 
+                    child: Text(isWin ? 'ลุยด่านต่อไป!' : 'ลองอีกครั้ง', style: GoogleFonts.kanit(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)))),
+                ]),
+              ),
+              Positioned(top: -70, child: Container(padding: const EdgeInsets.all(5), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: CircleAvatar(radius: 65, backgroundColor: isWin ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE), child: Padding(padding: const EdgeInsets.all(15), child: RiveAnimation.asset('assets/animations/rives/mood.riv', animations: [isWin ? 'Happy' : 'Sad'], fit: BoxFit.contain))))),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }
