@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/providers/conditionProvider.dart';
 
 import 'package:healjai_project/service/notification.dart';
 
@@ -27,6 +28,7 @@ import 'screens/subPage/questionDiary_screen.dart';
 import 'screens/subPage/storyDiary_screen.dart';
 import 'screens/subPage/articleDetail.dart';
 import 'screens/subPage/quoteDetail.dart';
+import 'screens/subPage/condition_screen.dart';
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -75,13 +77,16 @@ class MyApp extends StatelessWidget {
     final GoRouter router = GoRouter(
       initialLocation: '/login',
       refreshListenable: userProvider,
-      redirect: (context, state) {
+      redirect: (context, state) async{
         final loggedIn = userProvider.isLoggedIn;
         final loggingIn =
             state.fullPath == '/login' ||
             state.fullPath == '/regis' ||
             state.fullPath == '/forget_pass';
 
+        final conditionState = await getConditionState();
+
+        if (!conditionState) return '/condition';
         if (!loggedIn && !loggingIn) return '/login';
         if (loggedIn && loggingIn) return '/';
         return null;
@@ -112,6 +117,12 @@ class MyApp extends StatelessWidget {
           ],
         ),
 
+        GoRoute(
+          path: '/condition',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: ConditionScreen());
+          },
+        ),
         GoRoute(
           path: '/login',
           pageBuilder: (context, state) {
