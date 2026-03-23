@@ -1,8 +1,8 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+// import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+// import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 List<Widget> welcomeSlideList = [
   WelcomeCard(),
@@ -21,8 +21,8 @@ class Welcomesection extends StatefulWidget {
 
 class _WelcomesectionState extends State<Welcomesection> {
   int activeIndex = 0;
-  final CarouselSliderController _carouselController =
-      CarouselSliderController();
+  // final CarouselSliderController _carouselController =
+  //     CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {
