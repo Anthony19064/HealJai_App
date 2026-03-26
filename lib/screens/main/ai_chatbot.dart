@@ -23,6 +23,9 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
   final List<ChatMessage> _messages = [
     ChatMessage(text: "สวัสดีค้าบวันนี้มีเรื่องอะไรไม่สบายใจรึป่าว? หรืออยากจะพูดคุยเล่นก็ได้นะ :)", isMe: false),
   ];
+
+  final List<Map<String, String>> logChat = [];
+
   bool _isTyping = false;
 
   void _scrollToBottom() {
@@ -47,12 +50,13 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
     // ระบบส่งแชท
     setState(() {
       _messages.add(ChatMessage(text: userText, isMe: true));
+      logChat.add({'role' : 'user', 'content' : userText});
       _isTyping = true;
     });
 
     _messageController.clear();
     _scrollToBottom();
-    final result = await SendChatToAi(userText);
+    final result = await SendChatToAi(logChat);
     final aiText = result['reply'] as String;
 
     // ระบบรับแชทจาก AI
@@ -60,6 +64,7 @@ class _AiChatbotScreenState extends State<AiChatbotScreen> {
         setState(() {
           _isTyping = false;
           _messages.add(ChatMessage(text: aiText, isMe: false));
+          logChat.add({'role' : 'assistant', 'content' : aiText});
         });
         _scrollToBottom();
       }
