@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:healjai_project/providers/chatProvider.dart';
+import 'package:healjai_project/providers/navProvider.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/dashboard.dart';
 import 'package:provider/provider.dart';
@@ -61,6 +62,7 @@ class _EndChatScreenState extends State<EndChatScreen> {
 
   // ─── หน้าหลัก ─────────────────────────────────────────────────────────────
   Widget _buildMainOptions({Key? key}) {
+    final NavInfo = Provider.of<Navprovider>(context);
     return Padding(
       key: key,
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -124,7 +126,11 @@ class _EndChatScreenState extends State<EndChatScreen> {
 
           // ── ปุ่มกลับหน้าหลัก ──
           TextButton(
-            onPressed: () => context.go('/'),
+            onPressed: () {
+              NavInfo.resetHome();
+              context.go('/');
+            },
+
             child: Text(
               'กลับหน้าหลัก',
               style: GoogleFonts.mali(
@@ -375,7 +381,13 @@ class _EndChatScreenState extends State<EndChatScreen> {
 
     setState(() => _isSubmitting = false);
     // await ReportChat(userId_sender, userId_reciver, _selectedReason! , "Chat", _reasonController.text);
-    await ReportChat(userId, roomId, _selectedReason, 'Chat', _reasonController.text);
+    await ReportChat(
+      userId,
+      roomId,
+      _selectedReason,
+      'Chat',
+      _reasonController.text,
+    );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
