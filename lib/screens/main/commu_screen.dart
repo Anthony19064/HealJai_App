@@ -9,6 +9,7 @@ import 'package:healjai_project/Widgets/bottom_nav.dart';
 import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
+import 'package:healjai_project/service/dashboard.dart';
 
 class CommuScreen extends StatefulWidget {
   const CommuScreen({super.key});
@@ -166,22 +167,9 @@ class _CommuScreenState extends State<CommuScreen>
           ListTile(
             leading: const Icon(Icons.report),
             title: Text('รายงาน', style: GoogleFonts.mali()),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(modalContext); // ✅ ปิด bottom sheet ก่อน
-              _showReportDialog(postID); // ✅ เปิด popup ฟอร์มรายงาน
-            },
-          ),
-        );
-        options.add(
-          ListTile(
-            leading: const Icon(Icons.save),
-            title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
-            onTap: () {
-              Navigator.pop(modalContext);
-              showSuccessToast(
-                "บันทึกสำเร็จ",
-                "บันทึกโพสต์เข้ารายการของคุณแล้ว",
-              );
+              await _showReportDialog(postObj); // ✅ เปิด popup ฟอร์มรายงาน
             },
           ),
         );
@@ -207,10 +195,14 @@ class _CommuScreenState extends State<CommuScreen>
   }
 
   // ✅ เพิ่ม method นี้
-  void _showReportDialog(String postID) {
+  Future<void> _showReportDialog(Map<String, dynamic> postObj) async {
     String? selectedReason;
     final reasonController = TextEditingController();
     bool isSubmitting = false;
+
+    final postID = postObj['_id'];
+    final ownerPostId = postObj['userID'];
+    final String myuserId = await getUserId();
 
     const List<String> presetReasons = [
       'เนื้อหาไม่เหมาะสม',
@@ -364,12 +356,14 @@ class _CommuScreenState extends State<CommuScreen>
                                     ? null
                                     : () async {
                                       setStateDialog(() => isSubmitting = true);
-
                                       // TODO: ส่ง report ไป backend
-                                      await Future.delayed(
-                                        const Duration(seconds: 1),
+                                      await ReportPost(
+                                        myuserId,
+                                        ownerPostId,
+                                        selectedReason!,
+                                        "Post",
+                                        reasonController.text,
                                       );
-
                                       if (dialogContext.mounted) {
                                         Navigator.pop(dialogContext);
                                       }
