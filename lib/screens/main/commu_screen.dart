@@ -19,7 +19,7 @@ class CommuScreen extends StatefulWidget {
 
 class _CommuScreenState extends State<CommuScreen>
     with SingleTickerProviderStateMixin {
-  List<Map<String, dynamic>> allPost = []; // List ข้อมูลโพสทั้งหมด
+  List<Map<String, dynamic>> allPost = [];
   List<Map<String, dynamic>> myPost = [];
   int limitallPost = 5;
   int pageallPost = 1;
@@ -54,7 +54,6 @@ class _CommuScreenState extends State<CommuScreen>
     super.dispose();
   }
 
-  //ดึงโพสตัวเอง
   Future<void> fetchMyPosts() async {
     String userid = await getUserId();
     final data = await getMyposts(userid, 0, pagemyPost * limitmyPost);
@@ -69,7 +68,6 @@ class _CommuScreenState extends State<CommuScreen>
     });
   }
 
-  //ดึงโพสตัวเองเพิ่ม
   Future<void> fetchMyMorePost() async {
     if (!hasMoreMyPost) return;
     if (isLoadingMore) return;
@@ -92,7 +90,6 @@ class _CommuScreenState extends State<CommuScreen>
     });
   }
 
-  // ดึงโพสทั้งหมด
   Future<void> fetchAllPosts() async {
     final data = await getPosts(0, pageallPost * limitallPost);
     if (data.length < limitallPost) {
@@ -170,11 +167,8 @@ class _CommuScreenState extends State<CommuScreen>
             leading: const Icon(Icons.report),
             title: Text('รายงาน', style: GoogleFonts.mali()),
             onTap: () {
-              Navigator.pop(modalContext);
-              showSuccessToast(
-                "รายงานโพสต์สำเร็จ",
-                "ขอบคุณสำหรับการรายงานข้อมูล",
-              );
+              Navigator.pop(modalContext); // ✅ ปิด bottom sheet ก่อน
+              _showReportDialog(postID); // ✅ เปิด popup ฟอร์มรายงาน
             },
           ),
         );
@@ -207,6 +201,227 @@ class _CommuScreenState extends State<CommuScreen>
             ],
           ),
           child: Wrap(children: options),
+        );
+      },
+    );
+  }
+
+  // ✅ เพิ่ม method นี้
+  void _showReportDialog(String postID) {
+    String? selectedReason;
+    final reasonController = TextEditingController();
+    bool isSubmitting = false;
+
+    const List<String> presetReasons = [
+      'เนื้อหาไม่เหมาะสม',
+      'คำพูดรุนแรง / ก้าวร้าว',
+      'เนื้อหาลามกอนาจาร',
+      'สแปม / โฆษณา',
+      'ข้อมูลเท็จ / หลอกลวง',
+      'อื่นๆ',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              backgroundColor: Color(0xFFFFF7EB),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Text(
+                      '🚨 รายงานโพสต์',
+                      style: GoogleFonts.mali(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF333333),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'เราจะตรวจสอบและดำเนินการโดยเร็วนะ',
+                      style: GoogleFonts.mali(fontSize: 13, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Label
+                    Text(
+                      'เลือกเหตุผล *',
+                      style: GoogleFonts.mali(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF464646),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Chips
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children:
+                          presetReasons.map((reason) {
+                            final isSelected = selectedReason == reason;
+                            return GestureDetector(
+                              onTap:
+                                  () => setStateDialog(
+                                    () => selectedReason = reason,
+                                  ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? const Color(0xFFFD7D7E)
+                                          : const Color(0xFFFFF0F0),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(0xFFFD7D7E),
+                                    width: isSelected ? 0 : 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  reason,
+                                  style: GoogleFonts.mali(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : const Color(0xFFFD7D7E),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Textfield
+                    TextField(
+                      controller: reasonController,
+                      maxLines: 3,
+                      maxLength: 200,
+                      style: GoogleFonts.mali(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'รายละเอียดเพิ่มเติม (ถ้ามี)',
+                        hintStyle: GoogleFonts.mali(
+                          color: Colors.grey[400],
+                          fontSize: 13,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF8F8F8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.all(12),
+                        counterStyle: GoogleFonts.mali(color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // ปุ่ม
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'ยกเลิก',
+                              style: GoogleFonts.mali(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap:
+                                selectedReason == null || isSubmitting
+                                    ? null
+                                    : () async {
+                                      setStateDialog(() => isSubmitting = true);
+
+                                      // TODO: ส่ง report ไป backend
+                                      await Future.delayed(
+                                        const Duration(seconds: 1),
+                                      );
+
+                                      if (dialogContext.mounted) {
+                                        Navigator.pop(dialogContext);
+                                      }
+                                      if (mounted) {
+                                        showSuccessToast(
+                                          "รายงานสำเร็จ",
+                                          "ขอบคุณสำหรับการรายงานข้อมูล",
+                                        );
+                                      }
+                                    },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color:
+                                    selectedReason == null
+                                        ? Colors.grey[300]
+                                        : const Color(0xFFFD7D7E),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child:
+                                    isSubmitting
+                                        ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                        : Text(
+                                          'ส่งรายงาน',
+                                          style: GoogleFonts.mali(
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                selectedReason == null
+                                                    ? Colors.grey
+                                                    : Colors.white,
+                                          ),
+                                        ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -450,7 +665,6 @@ class _CommuScreenState extends State<CommuScreen>
   }
 }
 
-// สร้าง delegate สำหรับ SliverPersistentHeader
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate(this._tabBar);
 
