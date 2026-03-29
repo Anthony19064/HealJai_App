@@ -29,6 +29,7 @@ import 'screens/subPage/storyDiary_screen.dart';
 import 'screens/subPage/articleDetail.dart';
 import 'screens/subPage/quoteDetail.dart';
 import 'screens/subPage/condition_screen.dart';
+import 'screens/subPage/end_chat_dialog.dart'; // ✅ เพิ่ม
 
 import 'Widgets/bottom_nav.dart';
 import 'Widgets/header_section.dart';
@@ -77,7 +78,7 @@ class MyApp extends StatelessWidget {
     final GoRouter router = GoRouter(
       initialLocation: '/login',
       refreshListenable: userProvider,
-      redirect: (context, state) async{
+      redirect: (context, state) async {
         final loggedIn = userProvider.isLoggedIn;
         final loggingIn =
             state.fullPath == '/login' ||
@@ -141,20 +142,19 @@ class MyApp extends StatelessWidget {
             return NoTransitionPage(child: ForgetPassword());
           },
         ),
-         GoRoute(
+        GoRoute(
           path: '/ai-chatbot',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: AiChatbotScreen());
           },
         ),
-        
         GoRoute(
           path: '/game',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: MainMenuScreen());
           },
         ),
-         GoRoute(
+        GoRoute(
           path: '/gamescreen',
           pageBuilder: (context, state) {
             return NoTransitionPage(child: GameScreen());
@@ -171,6 +171,34 @@ class MyApp extends StatelessWidget {
               pageBuilder: (context, state) {
                 final role = state.pathParameters['role']!;
                 return NoTransitionPage(child: ChatRoomScreen(role: role));
+              },
+            ),
+            // ✅ เพิ่ม route หน้าจบการสนทนา
+            GoRoute(
+              path: 'end',
+              pageBuilder: (context, state) {
+                return CustomTransitionPage(
+                  child: const EndChatScreen(),
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 1), // เลื่อนขึ้นจากด้านล่าง
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOut,
+                        ),
+                      ),
+                      child: child,
+                    );
+                  },
+                );
               },
             ),
           ],
