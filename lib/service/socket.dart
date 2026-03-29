@@ -43,8 +43,8 @@ class SocketService {
           String? newToken = await getJWTAcessToken();
           _socket.disconnect();
           _socket.io.options?['auth'] = {'token': newToken};
-          _isInitialized = false; // รีเซ็ตเพื่อให้ initSocket ทำงานใหม่
-          initSocket(context); // reconnect + register event handler ใหม่
+          _isInitialized = false;
+          initSocket(context);
         } else if (status == "Token expired") {
           router.go('/login');
         }
@@ -54,16 +54,15 @@ class SocketService {
     _socket.on('matched', (roomId) {
       final role = chatProvider.role;
 
-      //clearค่าเก่า
       chatProvider.clearRoomId(notify: false);
       chatProvider.clearListMessage(notify: false);
 
-      chatProvider.setRoomId(roomId); // บันทึก roomId
+      chatProvider.setRoomId(roomId);
       if (router.canPop()) {
-        router.pop(); // ปิด dialog
+        router.pop();
       }
       Future.microtask(() {
-        router.push('/chat/room/$role'); // ไปหน้าแชทตาม Role
+        router.push('/chat/room/$role');
       });
     });
 
@@ -74,11 +73,12 @@ class SocketService {
       chatProvider.addMessage(message, Sender, time);
     });
 
+    // ✅ แก้ตรงนี้จุดเดียว: ไปหน้า /chat/end แทน /chat
     _socket.on('chatDisconnected', (_) {
       chatProvider.clearRoomId();
       chatProvider.clearListMessage();
       chatProvider.clearRole();
-      router.go('/chat');
+      router.push('/chat/end'); // ทั้งสองฝั่งจะถูก push มาหน้านี้
     });
 
     _socket.onConnectError((data) {
@@ -89,7 +89,7 @@ class SocketService {
       print('⚠️ Socket disconnected');
     });
 
-    _isInitialized = true; // ป้องกันการ register event handler ซ้ำ
+    _isInitialized = true;
   }
 
   void dispose() {
@@ -104,7 +104,6 @@ class SocketService {
     }
   }
 
-  //ส่งข้อความ
   void sendMessage(String roomId, String message, String time, String role) {
     _socket.emit('sendMessage', {
       'roomId': roomId,
@@ -114,9 +113,8 @@ class SocketService {
     });
   }
 
-  //จับคู่แชท
   Future<void> matchChat(String role) async {
-    await waitUntilConnected(); // รอจน socket connect
+    await waitUntilConnected();
     if (_socket.connected) {
       _socket.emit('register', role);
     } else {
@@ -124,12 +122,10 @@ class SocketService {
     }
   }
 
-  //ยกเลิกจับคู่
   void cancelMatch() {
     _socket.emit('cancelRegister');
   }
 
-  //จบบทสนทนา
   void endChat() {
     _socket.emit('endChat');
   }
@@ -138,16 +134,12 @@ class SocketService {
     _isInitialized = false;
   }
 
-  bool get isConnected => _socket.connected; // ✅ เช็คว่าเชื่อมแล้วไหม
+  bool get isConnected => _socket.connected;
 
-  // รอจนกว่าจะเชื่อมต่อ socket
   Future<void> waitUntilConnected() async {
     if (_socket.connected) return;
     final completer = Completer<void>();
-
-    // กันการเรียกซ้ำหลายรอบ
     _socket.once('connect', (_) => completer.complete());
-
     return completer.future;
   }
 }

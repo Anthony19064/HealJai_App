@@ -40,10 +40,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void dispose() {
     super.dispose();
-    socket.endChat();
-    chatProvider.clearRoomId(notify: false);
-    chatProvider.clearRole(notify: false);
-    chatProvider.clearListMessage(notify: false);
+    // ย้ายไปเรียกใน onConfirm แล้ว ไม่ต้องเรียกซ้ำที่นี่
   }
 
   @override
@@ -51,7 +48,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return WillPopScope(
       onWillPop: () async {
         _showExitConfirmationDialog();
-        // ไม่ต้องทำอะไรอัตโนมัติ
         return false;
       },
       child: Scaffold(
@@ -153,16 +149,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   Future<void> _showExitConfirmationDialog() async {
-    // กำหนดค่ารูปภาพและสีตาม Role ของผู้ใช้
-    final String role =
-        widget.role == 'talker'
-            ? 'moonLeave'
-            : 'sunLeave'; //ถ้าpathรูปผิดจะโชว์เป็นiconแทน
+    final String role = widget.role == 'talker' ? 'moonLeave' : 'sunLeave';
     final Color primaryColor = _dynamicColor;
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: true, // อนุญาตให้กดข้างนอกเพื่อปิดได้
+      barrierDismissible: true,
       builder: (BuildContext dialogContext) {
         return CustomExitDialog(
           animationRole: role,
@@ -171,22 +163,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             Navigator.of(dialogContext).pop(); // ปิด Dialog
           },
           onConfirm: () {
-            // ทำ Action เดิม
+            // เคลียร์ข้อมูลทั้งหมด
             socket.endChat();
             chatProvider.clearRole();
             chatProvider.clearRoomId();
             chatProvider.clearListMessage();
 
-            // ปิด Dialog ก่อน แล้วค่อยเปลี่ยนหน้า
+            // ✅ ปิด Dialog แล้วไปหน้าจบการสนทนา
             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-            if (context.mounted) context.pop();
+            if (context.mounted) context.push('/chat/end');
           },
         );
       },
     );
   }
 
-  // ข้อความ
   Widget _buildChatBubble(
     BuildContext context,
     ChatMessage message,
@@ -258,7 +249,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 }
 
-//ช่องกรอกข้อความ
 class MessageInput extends StatefulWidget {
   final Color dynamicColor;
   final VoidCallback onButtonPressed;
