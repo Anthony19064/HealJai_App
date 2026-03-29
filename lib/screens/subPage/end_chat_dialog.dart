@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:healjai_project/providers/chatProvider.dart';
+import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/dashboard.dart';
+import 'package:provider/provider.dart';
 
 class EndChatScreen extends StatefulWidget {
   const EndChatScreen({super.key});
@@ -361,11 +364,18 @@ class _EndChatScreenState extends State<EndChatScreen> {
 
     setState(() => _isSubmitting = true);
 
+    late final Chatprovider chatProvider;
+    chatProvider = Provider.of<Chatprovider>(context, listen: false);
+
+    final roomId = chatProvider.roomId4log;
+    String userId = await getUserId();
+
     // TODO: ส่ง fullReason ไป backend / socket ของคุณ
     await Future.delayed(const Duration(seconds: 1)); // จำลอง API call
 
     setState(() => _isSubmitting = false);
-    // await addReport(userId_sender, userId_reciver, _selectedReason! , "Chat", _reasonController.text);
+    // await ReportChat(userId_sender, userId_reciver, _selectedReason! , "Chat", _reasonController.text);
+    await ReportChat(userId, roomId, _selectedReason, 'Chat', _reasonController.text);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

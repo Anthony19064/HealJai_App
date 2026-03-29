@@ -11,6 +11,7 @@ class ChatMessage {
 
 class Chatprovider extends ChangeNotifier {
   String? roomId;
+  String? roomId4log;
   String? role;
   List<ChatMessage> _messages = [];
 
@@ -18,6 +19,7 @@ class Chatprovider extends ChangeNotifier {
 
   void setRoomId(String id) {
     roomId = id;
+    roomId4log = id;
     notifyListeners();
   }
 

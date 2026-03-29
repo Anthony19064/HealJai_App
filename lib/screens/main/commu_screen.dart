@@ -360,6 +360,7 @@ class _CommuScreenState extends State<CommuScreen>
                                       await ReportPost(
                                         myuserId,
                                         ownerPostId,
+                                        postID,
                                         selectedReason!,
                                         "Post",
                                         reasonController.text,
