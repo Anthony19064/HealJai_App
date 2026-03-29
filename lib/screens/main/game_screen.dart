@@ -53,89 +53,117 @@ class CandyModel {
 }
 
 // -------------------------------------------------------------------------
-// 2. MainMenuScreen
+// 2. MainMenuScreen (หน้า Start Game)
 // -------------------------------------------------------------------------
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
+
+  // ส่วนปุ่ม Home มุมซ้ายบน
+  Widget _buildTopBar(BuildContext context) {
+    final navInfo = Provider.of<Navprovider>(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          icon: const Icon(Icons.home_rounded, color: Colors.brown, size: 36),
+          onPressed: () {
+            navInfo.resetHome();
+            context.go('/');
+          },
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6),
-      body: Center(
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FadeInDown(
-              duration: const Duration(seconds: 1),
-              child: Text(
-                'Mood Match',
-                style: GoogleFonts.kanit(
-                  fontSize: 56,
-                  fontWeight: FontWeight.w900,
-                  color: const Color.fromRGBO(93, 64, 55, 1),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            FadeInUp(
-              duration: const Duration(seconds: 1),
-              child: FutureBuilder<int>(
-                future: getLevel(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox();
-                  return Text(
-                    'ตอนนี้คุณถึง Level ${snapshot.data} แล้วนะ !!',
-                    style: GoogleFonts.kanit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.brown[500],
+            _buildTopBar(context), // แสดงปุ่ม Home ด้านบนสุด
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FadeInDown(
+                    duration: const Duration(seconds: 1),
+                    child: Text(
+                      'Mood Match',
+                      style: GoogleFonts.kanit(
+                        fontSize: 56,
+                        fontWeight: FontWeight.w900,
+                        color: const Color.fromRGBO(93, 64, 55, 1),
+                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 60),
-            SizedBox(
-              height: 200,
-              width: 200,
-              child: RiveAnimation.asset(
-                'assets/animations/rives/goose_login.riv',
-                onInit: (artboard) {
-                  // บังคับใส่ Controller สำหรับท่า normal โดยเฉพาะ
-                  // SimpleAnimation จะสั่งให้ท่านี้ Loop ตลอดเวลาครับ
-                  artboard.addController(SimpleAnimation('normal'));
-                },
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 60),
-            GestureDetector(
-              onTap: () => context.go('/gamescreen'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 60,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color.fromRGBO(93, 64, 55, 1),
-                  borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  'START GAME',
-                  style: GoogleFonts.kanit(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  FadeInUp(
+                    duration: const Duration(seconds: 1),
+                    child: FutureBuilder<int>(
+                      future: getLevel(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox();
+                        return Text(
+                          'ตอนนี้คุณถึง Level ${snapshot.data} แล้วนะ !!',
+                          style: GoogleFonts.kanit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.brown[500],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // ส่วนห่านที่มาร์คอยากให้เล่น Normal ตลอดเวลา
+                  SizedBox(
+                    height: 250,
+                    width: 250,
+                    child: RiveAnimation.asset(
+                      'assets/animations/rives/goose_login.riv',
+                      onInit: (artboard) {
+                        // บังคับให้เล่นท่า normal วนลูปตลอดเวลา
+                        artboard.addController(SimpleAnimation('normal'));
+                      },
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+                  GestureDetector(
+                    onTap: () => context.go('/gamescreen'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 60,
+                        vertical: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(93, 64, 55, 1),
+                        borderRadius: BorderRadius.circular(40),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'START GAME',
+                        style: GoogleFonts.kanit(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ],
@@ -146,7 +174,7 @@ class MainMenuScreen extends StatelessWidget {
 }
 
 // -------------------------------------------------------------------------
-// 3. GameScreen
+// 3. GameScreen (หน้าเล่นเกม)
 // -------------------------------------------------------------------------
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -161,7 +189,7 @@ class _GameScreenState extends State<GameScreen> {
   List<FloatingCoin> _floatingCoins = [];
   int _nextId = 0;
   bool _isProcessing = false;
-  bool _hasGameEnded = false; // ตัวแปรเช็คกันจบด่านซ้ำซ้อน
+  bool _hasGameEnded = false;
   Offset? _dragStartPos;
 
   int _score = 0;
@@ -222,7 +250,6 @@ class _GameScreenState extends State<GameScreen> {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsLeft > 0) {
         setState(() => _secondsLeft--);
-        // เช็คแต้มผ่านด่านในทุกวินาที
         if (_score >= _levelData.targetScore && !_hasGameEnded) {
           _checkGameStatus();
         }
@@ -286,7 +313,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // --- Game Logic ---
   void _handleSwipe(CandyModel candy, Offset globalPos, double cellSize) {
     if (_dragStartPos == null ||
         _isProcessing ||
@@ -440,7 +466,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // --- UI Building ---
   @override
   Widget build(BuildContext context) {
     if (_isLoading)
@@ -667,7 +692,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // --- Skill & UI Helpers ---
   void _useSkill(int r, int c, double cellSize) async {
     if (_isProcessing ||
         _activeSkill == null ||
@@ -955,9 +979,7 @@ class _GameScreenState extends State<GameScreen> {
                                 Navigator.pop(ctx);
                                 if (isWin) {
                                   int nextLevel = _currentLevel + 1;
-                                  await saveLevel(
-                                    nextLevel,
-                                  ); // เซฟด่านใหม่ที่นี่ที่เดียว
+                                  await saveLevel(nextLevel);
                                   setState(() {
                                     _currentLevel = nextLevel;
                                   });
