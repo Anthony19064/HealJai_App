@@ -9,6 +9,7 @@ import 'package:healjai_project/Widgets/bottom_nav.dart';
 import 'package:healjai_project/Widgets/toast.dart';
 import 'package:healjai_project/service/authen.dart';
 import 'package:healjai_project/service/commu.dart';
+import 'package:healjai_project/service/dashboard.dart';
 
 class CommuScreen extends StatefulWidget {
   const CommuScreen({super.key});
@@ -169,8 +170,15 @@ class _CommuScreenState extends State<CommuScreen>
           ListTile(
             leading: const Icon(Icons.report),
             title: Text('รายงาน', style: GoogleFonts.mali()),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(modalContext);
+              await ReportPost(
+                myuserId,
+                ownerPostId,
+                "Type Report",
+                "Post",
+                "ควยไรสัส",
+              );
               showSuccessToast(
                 "รายงานโพสต์สำเร็จ",
                 "ขอบคุณสำหรับการรายงานข้อมูล",
@@ -178,19 +186,19 @@ class _CommuScreenState extends State<CommuScreen>
             },
           ),
         );
-        options.add(
-          ListTile(
-            leading: const Icon(Icons.save),
-            title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
-            onTap: () {
-              Navigator.pop(modalContext);
-              showSuccessToast(
-                "บันทึกสำเร็จ",
-                "บันทึกโพสต์เข้ารายการของคุณแล้ว",
-              );
-            },
-          ),
-        );
+        // options.add(
+        //   ListTile(
+        //     leading: const Icon(Icons.save),
+        //     title: Text('บันทึกโพสต์', style: GoogleFonts.mali()),
+        //     onTap: () {
+        //       Navigator.pop(modalContext);
+        //       showSuccessToast(
+        //         "บันทึกสำเร็จ",
+        //         "บันทึกโพสต์เข้ารายการของคุณแล้ว",
+        //       );
+        //     },
+        //   ),
+        // );
         return Container(
           decoration: BoxDecoration(
             color: const Color(0xFFFFF7EB),
