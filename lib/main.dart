@@ -41,6 +41,25 @@ import 'providers/chatProvider.dart';
 import 'providers/DiaryProvider.dart';
 import 'providers/TrackerProvider.dart';
 
+class AppWrapper extends StatelessWidget {
+  final Widget child;
+
+  const AppWrapper({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey[200],
+      alignment: Alignment.center,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 430),
+        color: Colors.white,
+        child: child,
+      ),
+    );
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
@@ -256,6 +275,13 @@ class MyApp extends StatelessWidget {
       ],
     );
 
-    return MaterialApp.router(routerConfig: router);
+    return MaterialApp.router(
+      routerConfig: router,
+      builder: (context, child) {
+        return AppWrapper(child: child!);
+      },
+    );
   }
 }
+
+
