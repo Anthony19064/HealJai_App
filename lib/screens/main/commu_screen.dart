@@ -18,10 +18,11 @@ class CommuScreen extends StatefulWidget {
   State<CommuScreen> createState() => _CommuScreenState();
 }
 
-class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStateMixin {
+class _CommuScreenState extends State<CommuScreen>
+    with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> allPost = [];
   List<Map<String, dynamic>> myPost = [];
-  
+
   int limitallPost = 5;
   int pageallPost = 1;
   bool hasMoreallPost = true;
@@ -54,7 +55,7 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  // --- ดึงข้อมูล ---
+  // --- การดึงข้อมูล ---
   Future<void> fetchMyPosts() async {
     String userid = await getUserId();
     final data = await getMyposts(userid, 0, pagemyPost * limitmyPost);
@@ -74,7 +75,6 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
     });
   }
 
-  // --- ระบบโหลดเพิ่ม (Pagination) ---
   Future<void> fetchAllMorePosts() async {
     if (!hasMoreallPost || isLoadingMore) return;
     setState(() => isLoadingMore = true);
@@ -100,48 +100,58 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
     });
   }
 
-  // --- แสดง Options และการรายงาน ---
+  // --- Modal & Dialog ---
   Future<void> _showPostOptions(Map<String, dynamic> postObj) async {
     final String myuserId = await getUserId();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (modalContext) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFF7EB),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Wrap(
-          children: [
-            if (postObj['userID'] == myuserId) ...[
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
-                onTap: () { Navigator.pop(modalContext); _showEditPostModal(postObj); },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: Text('ลบโพสต์', style: GoogleFonts.mali(color: Colors.red)),
-                onTap: () async {
-                  Navigator.pop(modalContext);
-                  await deletePost(postObj['_id']);
-                  fetchAllPosts();
-                  fetchMyPosts();
-                  showSuccessToast("ลบโพสต์สำเร็จ", "โพสต์ของคุณหายไปแล้วน้า");
-                },
-              ),
-            ],
-            ListTile(
-              leading: const Icon(Icons.report, color: Colors.orange),
-              title: Text('รายงานโพสต์', style: GoogleFonts.mali()),
-              onTap: () {
-                Navigator.pop(modalContext);
-                _showReportDialog(postObj);
-              },
+      builder:
+          (modalContext) => Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFF7EB),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-          ],
-        ),
-      ),
+            child: Wrap(
+              children: [
+                if (postObj['userID'] == myuserId) ...[
+                  ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: Text('แก้ไขโพสต์', style: GoogleFonts.mali()),
+                    onTap: () {
+                      Navigator.pop(modalContext);
+                      _showEditPostModal(postObj);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
+                    title: Text(
+                      'ลบโพสต์',
+                      style: GoogleFonts.mali(color: Colors.red),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(modalContext);
+                      await deletePost(postObj['_id']);
+                      fetchAllPosts();
+                      fetchMyPosts();
+                      showSuccessToast(
+                        "ลบโพสต์สำเร็จ",
+                        "โพสต์ของคุณหายไปแล้วน้า",
+                      );
+                    },
+                  ),
+                ],
+                ListTile(
+                  leading: const Icon(Icons.report, color: Colors.orange),
+                  title: Text('รายงานโพสต์', style: GoogleFonts.mali()),
+                  onTap: () {
+                    Navigator.pop(modalContext);
+                    _showReportDialog(postObj);
+                  },
+                ),
+              ],
+            ),
+          ),
     );
   }
 
@@ -152,68 +162,139 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
 
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setStateDialog) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          backgroundColor: const Color(0xFFFFF7EB),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('🚨 รายงานโพสต์', style: GoogleFonts.mali(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: ['เนื้อหาไม่เหมาะสม', 'คำพูดรุนแรง', 'ลามกอนาจาร', 'สแปม', 'อื่นๆ'].map((reason) {
-                      final isSelected = selectedReason == reason;
-                      return ChoiceChip(
-                        label: Text(reason, style: GoogleFonts.mali(color: isSelected ? Colors.white : const Color(0xFFFD7D7E))),
-                        selected: isSelected,
-                        selectedColor: const Color(0xFFFD7D7E),
-                        backgroundColor: const Color(0xFFFFF0F0),
-                        onSelected: (val) => setStateDialog(() => selectedReason = reason),
-                      );
-                    }).toList(),
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder:
+                (context, setStateDialog) => Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: reasonController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'รายละเอียดเพิ่มเติม...',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  backgroundColor: const Color(0xFFFFF7EB),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🚨 รายงานโพสต์',
+                            style: GoogleFonts.mali(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children:
+                                [
+                                  'เนื้อหาไม่เหมาะสม',
+                                  'คำพูดรุนแรง',
+                                  'ลามกอนาจาร',
+                                  'สแปม',
+                                  'อื่นๆ',
+                                ].map((reason) {
+                                  final isSelected = selectedReason == reason;
+                                  return ChoiceChip(
+                                    label: Text(
+                                      reason,
+                                      style: GoogleFonts.mali(
+                                        color:
+                                            isSelected
+                                                ? Colors.white
+                                                : const Color(0xFFFD7D7E),
+                                      ),
+                                    ),
+                                    selected: isSelected,
+                                    selectedColor: const Color(0xFFFD7D7E),
+                                    backgroundColor: const Color(0xFFFFF0F0),
+                                    onSelected:
+                                        (val) => setStateDialog(
+                                          () => selectedReason = reason,
+                                        ),
+                                  );
+                                }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: reasonController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: 'รายละเอียดเพิ่มเติม...',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'ยกเลิก',
+                                    style: GoogleFonts.mali(color: Colors.grey),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFD7D7E),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed:
+                                      selectedReason == null || isSubmitting
+                                          ? null
+                                          : () async {
+                                            setStateDialog(
+                                              () => isSubmitting = true,
+                                            );
+                                            String myuserId = await getUserId();
+                                            await ReportPost(
+                                              myuserId,
+                                              postObj['userID'],
+                                              postObj['_id'],
+                                              selectedReason!,
+                                              "Post",
+                                              reasonController.text,
+                                            );
+                                            Navigator.pop(dialogContext);
+                                            showSuccessToast(
+                                              "ส่งรายงานแล้ว",
+                                              "ขอบคุณที่ช่วยดูแลชุมชนของเราน้า",
+                                            );
+                                          },
+                                  child:
+                                      isSubmitting
+                                          ? const SpinKitThreeBounce(
+                                            color: Colors.white,
+                                            size: 20,
+                                          )
+                                          : Text(
+                                            'ส่งรายงาน',
+                                            style: GoogleFonts.mali(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: TextButton(onPressed: () => Navigator.pop(context), child: Text('ยกเลิก', style: GoogleFonts.mali(color: Colors.grey)))),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFD7D7E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          onPressed: selectedReason == null || isSubmitting ? null : () async {
-                            setStateDialog(() => isSubmitting = true);
-                            String myuserId = await getUserId();
-                            await ReportPost(myuserId, postObj['userID'], postObj['_id'], selectedReason!, "Post", reasonController.text);
-                            Navigator.pop(dialogContext);
-                            showSuccessToast("ส่งรายงานแล้ว", "ขอบคุณที่ช่วยดูแลชุมชนของเราน้า");
-                          },
-                          child: isSubmitting ? const SpinKitThreeBounce(color: Colors.white, size: 20) : Text('ส่งรายงาน', style: GoogleFonts.mali(color: Colors.white)),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
+                ),
           ),
-        ),
-      ),
     );
   }
 
@@ -222,7 +303,14 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FullScreenPostCreator(stateEdit: false, onPost: () { fetchAllPosts(); fetchMyPosts(); }),
+      builder:
+          (context) => FullScreenPostCreator(
+            stateEdit: false,
+            onPost: () {
+              fetchAllPosts();
+              fetchMyPosts();
+            },
+          ),
     );
   }
 
@@ -231,10 +319,19 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FullScreenPostCreator(stateEdit: true, postObj: postOBJ, onPost: () { fetchAllPosts(); fetchMyPosts(); }),
+      builder:
+          (context) => FullScreenPostCreator(
+            stateEdit: true,
+            postObj: postOBJ,
+            onPost: () {
+              fetchAllPosts();
+              fetchMyPosts();
+            },
+          ),
     );
   }
 
+  // --- Build ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,35 +339,87 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
       bottomNavigationBar: const BottomNavBar(),
       body: SafeArea(
         child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar(
-              backgroundColor: const Color(0xFFFFF7EB),
-              floating: true,
-              toolbarHeight: 180,
-              title: Column(
-                children: [
-                  ZoomIn(child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Text("Healjai Community 💚", style: GoogleFonts.mali(fontSize: 27, color: const Color(0xFF78B465), fontWeight: FontWeight.w700)))),
-                  Padding(padding: const EdgeInsets.symmetric(horizontal: 15), child: PostCreationTrigger(onTap: _showCreatePostModal)),
-                ],
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SliverAppBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  labelColor: const Color(0xFF78B465),
-                  indicatorColor: const Color(0xFF78B465),
-                  tabs: const [Tab(text: "โพสต์ทั้งหมด"), Tab(text: "โพสต์ของฉัน")],
+          headerSliverBuilder:
+              (context, innerBoxIsScrolled) => [
+                SliverAppBar(
+                  backgroundColor: const Color(0xFFFFF7EB),
+                  floating: true,
+                  snap: true,
+                  toolbarHeight: 230, // ความสูงเพื่อรองรับหัวใจ
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ZoomIn(
+                        duration: const Duration(milliseconds: 500),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 30,
+                            bottom: 15,
+                          ), // เพิ่มช่องไฟ
+                          child: Text(
+                            "Healjai Community 💚",
+                            style: GoogleFonts.mali(
+                              fontSize: 32, // 👈 ปรับตัวหนังสือให้ใหญ่ขึ้น
+                              color: const Color(0xFF78B465),
+                              fontWeight: FontWeight.w800, // 👈 ปรับให้หนาขึ้น
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
+                        child: PostCreationTrigger(onTap: _showCreatePostModal),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverAppBarDelegate(
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: const Color(0xFF78B465),
+                      indicatorColor: const Color(0xFF78B465),
+                      // --- 1. ปรับ Font ตัวที่เลือกอยู่ (Active) ---
+                      labelStyle: GoogleFonts.mali(
+                        fontSize: 18, // ปรับขนาดตามใจชอบเลย (เช่น 18 หรือ 20)
+                        fontWeight: FontWeight.bold,
+                      ),
+                      // --- 2. ปรับ Font ตัวที่ไม่ได้เลือก (Inactive) ---
+                      unselectedLabelStyle: GoogleFonts.mali(
+                        fontSize:
+                            16, // ให้เล็กลงนิดนึงเพื่อให้ตัวที่เลือกดูเด่นขึ้น
+                        fontWeight: FontWeight.w500,
+                      ),
+                      unselectedLabelColor:
+                          Colors.grey, // สีของตัวที่ไม่ได้เลือก
+                      tabs: const [
+                        Tab(text: "โพสต์ทั้งหมด"),
+                        Tab(text: "โพสต์ของฉัน"),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
           body: TabBarView(
             controller: _tabController,
             children: [
-              _buildPostList(allPost, fetchAllPosts, fetchAllMorePosts, hasMoreallPost),
-              _buildPostList(myPost, fetchMyPosts, fetchMyMorePost, hasMoreMyPost),
+              _buildPostList(
+                allPost,
+                fetchAllPosts,
+                fetchAllMorePosts,
+                hasMoreallPost,
+              ),
+              _buildPostList(
+                myPost,
+                fetchMyPosts,
+                fetchMyMorePost,
+                hasMoreMyPost,
+              ),
             ],
           ),
         ),
@@ -278,29 +427,56 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildPostList(List<Map<String, dynamic>> posts, RefreshCallback onRefresh, Future<void> Function() onLoadMore, bool hasMore) {
+  Widget _buildPostList(
+    List<Map<String, dynamic>> posts,
+    RefreshCallback onRefresh,
+    Future<void> Function() onLoadMore,
+    bool hasMore,
+  ) {
     return RefreshIndicator(
       onRefresh: onRefresh,
       color: const Color(0xFF78B465),
-      child: posts.isEmpty && !isLoadingMore
-          ? Center(child: Text('ไม่มีโพสต์', style: GoogleFonts.mali(fontSize: 18)))
-          : NotificationListener<ScrollNotification>(
-              onNotification: (scroll) {
-                if (scroll.metrics.pixels == scroll.metrics.maxScrollExtent && hasMore) onLoadMore();
-                return false;
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(15),
-                itemCount: posts.length + (hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == posts.length) return const Padding(padding: EdgeInsets.all(20), child: Center(child: SpinKitCircle(color: Color(0xFF78B465), size: 50)));
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: UserPostCard(key: ValueKey(posts[index]['_id']), post: posts[index], onMoreOptionsPressed: () => _showPostOptions(posts[index])),
-                  );
+      child:
+          posts.isEmpty && !isLoadingMore
+              ? Center(
+                child: Text(
+                  'ไม่มีโพสต์',
+                  style: GoogleFonts.mali(fontSize: 18),
+                ),
+              )
+              : NotificationListener<ScrollNotification>(
+                onNotification: (scroll) {
+                  if (scroll.metrics.pixels == scroll.metrics.maxScrollExtent &&
+                      hasMore)
+                    onLoadMore();
+                  return false;
                 },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(15),
+                  itemCount: posts.length + (hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == posts.length)
+                      return const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Center(
+                          child: SpinKitCircle(
+                            color: Color(0xFF78B465),
+                            size: 50,
+                          ),
+                        ),
+                      );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: UserPostCard(
+                        key: ValueKey(posts[index]['_id']),
+                        post: posts[index],
+                        onMoreOptionsPressed:
+                            () => _showPostOptions(posts[index]),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
     );
   }
 }
@@ -308,8 +484,16 @@ class _CommuScreenState extends State<CommuScreen> with SingleTickerProviderStat
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate(this._tabBar);
   final TabBar _tabBar;
-  @override double get minExtent => _tabBar.preferredSize.height;
-  @override double get maxExtent => _tabBar.preferredSize.height;
-  @override Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => Container(color: const Color(0xFFFFF7EB), child: _tabBar);
-  @override bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => Container(color: const Color(0xFFFFF7EB), child: _tabBar);
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
 }

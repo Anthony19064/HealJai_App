@@ -104,7 +104,7 @@ class PostCreationTrigger extends StatelessWidget {
                               style: GoogleFonts.mali(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
-                                fontSize: screenWidth * 0.04,
+                                fontSize: screenWidth * 0.03,
                                 letterSpacing: 1.5,
                               ),
                             ),
