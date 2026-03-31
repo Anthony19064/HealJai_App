@@ -53,7 +53,7 @@ class _RegisScreenPageViewState extends State<RegisScreenPageView> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading:
-            current_page != 4
+            current_page != 5
                 ? IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
                   onPressed: () {
@@ -578,7 +578,7 @@ class _ConditionState extends State<Condition> {
                       isAccepted = value!;
                     });
                   },
-                  activeColor: Color(0xFF78B465)
+                  activeColor: Color(0xFF78B465),
                 ),
                 Expanded(
                   child: Text(
